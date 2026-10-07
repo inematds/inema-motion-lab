@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="day">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dia e noite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&family=Sora:wght@600&display=swap" rel="stylesheet">
+<script>
+  // Tema antes da primeira pintura: preferência salva > sistema.
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('inema-dia-noite'); } catch (e) {}
+    if (t !== 'day' && t !== 'night') {
+      t = (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'night' : 'day';
+    }
+    if (/[?&]demo=1\b/.test(location.search)) t = 'day';
+    document.documentElement.setAttribute('data-theme', t);
+    document.documentElement.classList.add('no-trans');
+  })();
+</script>
+<style>
+  :root {
+    --bg: #f6f1e7; --surface: #efe6d4; --fg: #17120f; --fg-2: #5b4f45; --accent: #b45309;
+    --track: #e6d6b8; --knob: #fffaf0; --line: rgba(23,18,15,.10);
+    --hill-far: #b9c9a0; --hill-near: #8fb27a; --grass: #74a05e; --grass-dark: #5a8a4a;
+    --wall: #f0e2c8; --wall-dark: #dcc8a6; --roof: #a8502e; --win-off: #cfe1e6; --door: #7a4a2a;
+    --capy: #9b6b43; --capy-dark: #7a5232; --capy-nose: #3e2a1c; --capy-light: #b48459;
+    --dur: 900ms;
+    color-scheme: light;
+  }
+  :root[data-theme="night"] {
+    --bg: #0b0b0d; --surface: #111114; --fg: #f3efe7; --fg-2: #a69d90; --accent: #E2A23B;
+    --track: #26262c; --knob: #f3efe7; --line: rgba(243,239,231,.10);
+    --hill-far: #1f2a44; --hill-near: #1a2832; --grass: #16241f; --grass-dark: #0f1a17;
+    --wall: #3a3646; --wall-dark: #2c2936; --roof: #3a2420; --win-off: #1a1f2c; --door: #2a1d18;
+    --capy: #5e4636; --capy-dark: #46342a; --capy-nose: #1e1510; --capy-light: #6e5444;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: Inter, system-ui, sans-serif;
+    transition: background-color var(--dur) ease, color var(--dur) ease;
+  }
+  .no-trans, .no-trans * { transition: none !important; }
+
+  main {
+    height: 100vh; height: 100dvh; width: 100%;
+    display: grid; grid-template-columns: 40% 60%;
+    padding: clamp(14px, 3.2vmin, 36px); gap: clamp(14px, 3vmin, 36px);
+  }
+  .copy {
+    display: flex; flex-direction: column; justify-content: space-between;
+    min-width: 0; padding: clamp(4px, 1.5vmin, 18px) 0 clamp(4px, 1.5vmin, 18px) clamp(4px, 1.5vmin, 18px);
+  }
+  .label {
+    font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 500;
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  }
+  .brand { color: var(--accent); transition: color var(--dur) ease; }
+  .brand b { color: var(--fg); font-weight: 500; transition: color var(--dur) ease; }
+
+  .swap { display: grid; }
+  .swap > span {
+    grid-area: 1 / 1; opacity: 0; transform: translateY(-8px);
+    transition: opacity 300ms ease, transform 300ms ease;
+  }
+  :root[data-theme="day"] .swap > .d,
+  :root[data-theme="night"] .swap > .n {
+    opacity: 1; transform: none;
+    transition: opacity 400ms ease 250ms, transform 400ms cubic-bezier(.2,.8,.2,1) 250ms;
+  }
+  .time { color: var(--fg-2); margin-bottom: .9em; transition: color var(--dur) ease; }
+  h1 {
+    font-family: Sora, Inter, sans-serif; font-weight: 600; margin: 0;
+    font-size: clamp(2.6rem, 6.2vw, 5.4rem); line-height: 1.02; letter-spacing: -.03em;
+  }
+  h1 .dot { color: var(--accent); transition: color var(--dur) ease; }
+  .lead {
+    margin: .9em 0 0; max-width: 26ch; color: var(--fg-2);
+    font-size: clamp(1rem, 1.55vw, 1.3rem); line-height: 1.5;
+    transition: color var(--dur) ease;
+  }
+  .lead strong { color: var(--fg); font-weight: 500; transition: color var(--dur) ease; }
+
+  .toggle-row { display: flex; align-items: center; gap: 14px; }
+  .switch {
+    position: relative; width: 84px; height: 44px; flex: none;
+    border: 1px solid var(--line); border-radius: 999px; padding: 0;
+    background: var(--track); cursor: pointer;
+    transition: background-color var(--dur) ease, border-color var(--dur) ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .switch:focus { outline: none; }
+  .switch:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+  .knob {
+    position: absolute; top: 3px; left: 3px; width: 36px; height: 36px; border-radius: 50%;
+    background: var(--knob); box-shadow: 0 2px 6px rgba(0,0,0,.18);
+    transition: transform 420ms cubic-bezier(.5,1.6,.4,1), background-color var(--dur) ease;
+    display: grid; place-items: center; overflow: hidden;
+  }
+  .switch[aria-checked="true"] .knob { transform: translateX(40px); }
+  .knob svg { width: 24px; height: 24px; overflow: visible; }
+  .k-rays { stroke: var(--accent); stroke-width: 2; stroke-linecap: round;
+    transform-origin: 12px 12px; transition: transform 420ms ease, opacity 300ms ease, stroke var(--dur) ease; }
+  .k-disc { fill: var(--accent); transform-origin: 12px 12px; transition: transform 420ms ease, fill var(--dur) ease; }
+  .k-cut { fill: var(--knob); transform: translate(13px, -13px); transition: transform 420ms ease, fill var(--dur) ease; }
+  .switch[aria-checked="true"] .k-rays { transform: rotate(90deg) scale(.2); opacity: 0; }
+  .switch[aria-checked="true"] .k-disc { transform: scale(1.35); }
+  .switch[aria-checked="true"] .k-cut { transform: translate(3.6px, -3.4px); }
+  .toggle-label { color: var(--fg-2); transition: color var(--dur) ease; cursor: pointer; }
+
+  .scene {
+    position: relative; min-width: 0; min-height: 0; border-radius: 28px; overflow: hidden;
+    border: 1px solid var(--line); background: var(--surface);
+    transition: background-color var(--dur) ease, border-color var(--dur) ease;
+  }
+  .scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .scene svg * { transition: fill var(--dur) ease; }
+
+  /* Cursor fantasma */
+  .ghost { position: fixed; left: 0; top: 0; width: 30px; height: 30px; pointer-events: none;
+    z-index: 10; opacity: 0; will-change: transform, opacity; }
+  .ghost svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+  .ring { position: fixed; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid #E2A23B; pointer-events: none; z-index: 9; opacity: 0; will-change: transform, opacity; }
+
+  @media (max-width: 759px) {
+    main { grid-template-columns: 100%; grid-template-rows: auto minmax(0, 1fr); }
+    .copy { gap: 18px; padding: 6px 4px 0; }
+    h1 { font-size: clamp(2.3rem, 11vw, 3.4rem); }
+    .lead { font-size: 1rem; margin-top: .6em; }
+    .scene { border-radius: 22px; }
+  }
+  @media (max-width: 759px) and (max-height: 560px) {
+    .lead { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<main id="piece">
+  <section class="copy">
+    <div class="label brand">INEMA<b>.CLUB</b></div>
+    <div>
+      <div class="label time swap" aria-hidden="true">
+        <span class="d">06:40 · manhã</span><span class="n">22:15 · noite</span>
+      </div>
+      <h1 class="swap" aria-live="polite">
+        <span class="d" id="t-day">Bom dia<span class="dot">.</span></span>
+        <span class="n" id="t-night">Boa noite<span class="dot">.</span></span>
+      </h1>
+      <p class="lead">Estude no seu ritmo. O <strong>INEMA.CLUB</strong> está aberto 24&nbsp;h.</p>
+    </div>
+    <div class="toggle-row">
+      <button class="switch" id="sw" type="button" role="switch" aria-checked="false" aria-labelledby="sw-label">
+        <span class="knob" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <g class="k-rays">
+              <line x1="12" y1="1.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.5"/>
+              <line x1="1.5" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.5" y2="12"/>
+              <line x1="4.6" y1="4.6" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.4" y2="19.4"/>
+              <line x1="4.6" y1="19.4" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.4" y2="4.6"/>
+            </g>
+            <circle class="k-disc" cx="12" cy="12" r="5.5"/>
+            <circle class="k-cut" cx="12" cy="12" r="5.6"/>
+          </svg>
+        </span>
+      </button>
+      <label class="label toggle-label" id="sw-label" for="sw">Modo noturno</label>
+    </div>
+  </section>
+
+  <div class="scene" aria-hidden="true">
+    <svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMax slice">
+      <defs>
+        <linearGradient id="gDay" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#9fd3e6"/><stop offset=".72" stop-color="#f6e7c8"/>
+        </linearGradient>
+        <linearGradient id="gDusk" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#6a5a9a"/><stop offset=".4" stop-color="#c8607a"/><stop offset=".72" stop-color="#f2a65a"/>
+        </linearGradient>
+        <linearGradient id="gNight" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0d1530"/><stop offset=".72" stop-color="#1d2547"/>
+        </linearGradient>
+        <radialGradient id="gSunGlow"><stop offset="0" stop-color="#ffe7a3" stop-opacity=".75"/><stop offset="1" stop-color="#ffe7a3" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gMoonGlow"><stop offset="0" stop-color="#f3efe7" stop-opacity=".35"/><stop offset="1" stop-color="#f3efe7" stop-opacity="0"/></radialGradient>
+        <radialGradient id="gWin"><stop offset="0" stop-color="#E2A23B" stop-opacity=".55"/><stop offset="1" stop-color="#E2A23B" stop-opacity="0"/></radialGradient>
+      </defs>
+
+      <!-- céu -->
+      <rect width="1000" height="1000" fill="url(#gDay)"/>
+      <rect id="skyDusk" width="1000" height="1000" fill="url(#gDusk)" opacity="0"/>
+      <rect id="skyNight" width="1000" height="1000" fill="url(#gNight)" opacity="0"/>
+      <g id="stars"></g>
+
+      <!-- roda celeste: pivô (500,760), raio 520 -->
+      <g id="wheel">
+        <g transform="translate(744 301)">
+          <circle r="150" fill="url(#gSunGlow)"/>
+          <g id="sunRays" stroke="#f6c453" stroke-width="7" stroke-linecap="round" opacity=".85">
+            <line x1="0" y1="-76" x2="0" y2="-96"/><line x1="0" y1="76" x2="0" y2="96"/>
+            <line x1="-76" y1="0" x2="-96" y2="0"/><line x1="76" y1="0" x2="96" y2="0"/>
+            <line x1="38" y1="-66" x2="48" y2="-83"/><line x1="-38" y1="66" x2="-48" y2="83"/>
+            <line x1="-38" y1="-66" x2="-48" y2="-83"/><line x1="38" y1="66" x2="48" y2="83"/>
+            <line x1="66" y1="-38" x2="83" y2="-48"/><line x1="-66" y1="38" x2="-83" y2="48"/>
+            <line x1="-66" y1="-38" x2="-83" y2="-48"/><line x1="66" y1="38" x2="83" y2="48"/>
+          </g>
+          <circle r="58" fill="#f6c453"/>
+          <circle r="58" fill="#fff3c4" opacity=".35" transform="translate(-14 -14) scale(.6)"/>
+        </g>
+        <g transform="translate(256 1219) rotate(180)">
+          <circle r="120" fill="url(#gMoonGlow)"/>
+          <circle r="50" fill="#efe6d2"/>
+          <circle cx="-16" cy="-12" r="10" fill="#d9ccb2"/>
+          <circle cx="15" cy="10" r="7" fill="#d9ccb2"/>
+          <circle cx="-4" cy="22" r="5" fill="#d9ccb2"/>
+          <circle cx="20" cy="-20" r="4" fill="#d9ccb2"/>
+        </g>
+      </g>
+
+      <!-- nuvens -->
+      <g id="clouds" fill="#fffaf0">
+        <g id="cloud1"><ellipse cx="0" cy="0" rx="62" ry="22"/><circle cx="-18" cy="-14" r="24"/><circle cx="16" cy="-20" r="28"/></g>
+        <g id="cloud2" opacity=".85"><ellipse cx="0" cy="0" rx="46" ry="16"/><circle cx="-10" cy="-12" r="18"/><circle cx="14" cy="-14" r="20"/></g>
+      </g>
+
+      <!-- terra -->
+      <path d="M0 640 C150 585 300 598 420 640 C540 682 650 600 800 608 C900 614 960 628 1000 622 L1000 1000 L0 1000Z" fill="var(--hill-far)"/>
+      <path d="M0 700 C120 600 300 560 440 600 C560 635 620 700 700 720 L1000 745 L1000 1000 L0 1000Z" fill="var(--hill-near)"/>
+      <ellipse id="spill" cx="370" cy="640" rx="200" ry="50" fill="url(#gWin)" opacity="0"/>
+
+      <!-- escola / estúdio -->
+      <g id="school">
+        <rect x="270" y="455" width="200" height="152" fill="var(--wall)"/>
+        <rect x="270" y="455" width="200" height="10" fill="var(--wall-dark)"/>
+        <path d="M252 461 L370 378 L488 461 Z" fill="var(--roof)"/>
+        <path d="M282 461 L370 400 L458 461 Z" fill="var(--wall)"/>
+        <circle cx="370" cy="430" r="16" fill="var(--win-off)"/>
+        <rect x="290" y="474" width="28" height="32" rx="3" fill="var(--win-off)"/>
+        <rect x="356" y="474" width="28" height="32" rx="3" fill="var(--win-off)"/>
+        <rect x="422" y="474" width="28" height="32" rx="3" fill="var(--win-off)"/>
+        <rect x="290" y="518" width="28" height="32" rx="3" fill="var(--win-off)"/>
+        <rect x="356" y="518" width="28" height="32" rx="3" fill="var(--win-off)"/>
+        <rect x="422" y="518" width="28" height="32" rx="3" fill="var(--win-off)"/>
+        <rect x="353" y="562" width="34" height="45" rx="4" fill="var(--door)"/>
+        <rect x="335" y="603" width="70" height="6" rx="2" fill="var(--wall-dark)"/>
+      </g>
+      <g id="lights">
+        <g class="lit"><circle cx="304" cy="490" r="36" fill="url(#gWin)"/><rect x="290" y="474" width="28" height="32" rx="3" fill="#E2A23B"/></g>
+        <g class="lit"><circle cx="370" cy="490" r="36" fill="url(#gWin)"/><rect x="356" y="474" width="28" height="32" rx="3" fill="#E2A23B"/></g>
+        <g class="lit"><circle cx="436" cy="490" r="36" fill="url(#gWin)"/><rect x="422" y="474" width="28" height="32" rx="3" fill="#E2A23B"/></g>
+        <g class="lit"><circle cx="304" cy="534" r="36" fill="url(#gWin)"/><rect x="290" y="518" width="28" height="32" rx="3" fill="#E2A23B"/></g>
+        <g class="lit"><circle cx="370" cy="534" r="36" fill="url(#gWin)"/><rect x="356" y="518" width="28" height="32" rx="3" fill="#E2A23B"/></g>
+        <g class="lit"><circle cx="436" cy="534" r="36" fill="url(#gWin)"/><rect x="422" y="518" width="28" height="32" rx="3" fill="#E2A23B"/></g>
+        <g class="lit"><circle cx="370" cy="430" r="40" fill="url(#gWin)"/><circle cx="370" cy="430" r="16" fill="#E2A23B"/></g>
+      </g>
+      <g id="schoolInk" fill="none" stroke="var(--door)" stroke-width="3" stroke-linecap="round" opacity=".55">
+        <line x1="304" y1="474" x2="304" y2="506"/><line x1="370" y1="474" x2="370" y2="506"/><line x1="436" y1="474" x2="436" y2="506"/>
+        <line x1="304" y1="518" x2="304" y2="550"/><line x1="370" y1="518" x2="370" y2="550"/><line x1="436" y1="518" x2="436" y2="550"/>
+      </g>
+      <text x="370" y="438" text-anchor="middle" font-family="Sora, sans-serif" font-weight="600" font-size="22" fill="var(--door)">i</text>
+
+      <!-- grama da frente -->
+      <path d="M0 800 C200 768 400 792 600 780 C780 770 900 792 1000 786 L1000 1000 L0 1000Z" fill="var(--grass)"/>
+      <g fill="var(--grass-dark)">
+        <path d="M150 812 l8 -26 l5 22 l7 -18 l3 24Z"/>
+        <path d="M455 800 l6 -22 l5 18 l6 -14 l3 20Z"/>
+        <path d="M880 806 l7 -24 l5 20 l7 -16 l3 22Z"/>
+        <path d="M300 900 l9 -30 l6 26 l8 -22 l3 28Z"/>
+        <path d="M760 930 l8 -26 l5 22 l7 -18 l3 24Z"/>
+      </g>
+
+      <!-- capivara -->
+      <g id="capy">
+        <ellipse cx="700" cy="866" rx="130" ry="13" fill="#000" opacity=".16"/>
+        <!-- pata traseira -->
+        <path d="M770 846 C790 846 806 856 800 868 L752 868 C748 858 756 846 770 846Z" fill="var(--capy-dark)"/>
+        <!-- corpo -->
+        <path d="M598 820 C600 778 650 758 712 758 C778 758 818 788 818 826 C818 856 790 868 740 868 L640 868 C612 868 596 850 598 820Z" fill="var(--capy)"/>
+        <path d="M640 776 C680 760 750 758 790 780 C760 772 690 772 650 790Z" fill="var(--capy-dark)" opacity=".55"/>
+        <path d="M650 856 C700 864 760 864 800 852 C790 866 760 870 720 870 L650 868Z" fill="var(--capy-dark)" opacity=".5"/>
+        <!-- pata dianteira -->
+        <path d="M640 842 C612 840 578 848 562 858 C554 864 558 870 570 870 L664 870 C668 856 658 844 640 842Z" fill="var(--capy-dark)"/>
+        <path d="M566 866 l0 -5 M574 868 l0 -6 M582 868 l0 -6" stroke="var(--capy-nose)" stroke-width="1.6" stroke-linecap="round" opacity=".5"/>
+        <!-- cabeça (pivô no pescoço) -->
+        <g id="capyHead">
+          <path d="M628 784 C624 766 604 756 580 755 C556 754 532 757 518 768 C506 778 504 796 508 810 C512 824 526 830 544 830 L604 828 C626 826 636 806 628 784Z" fill="var(--capy)"/>
+          <path d="M508 806 C512 822 526 830 544 830 L600 829 C580 822 540 820 508 806Z" fill="var(--capy-dark)" opacity=".5"/>
+          <!-- boca de bocejo -->
+          <g id="capyMouth" transform="translate(527 818) scale(1 0)">
+            <ellipse cx="0" cy="0" rx="13" ry="10" fill="#3a1d16"/>
+            <ellipse cx="2" cy="5" rx="8" ry="4" fill="#c86a6a"/>
+          </g>
+          <path d="M512 812 C520 816 532 817 542 815" fill="none" stroke="var(--capy-nose)" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- narina -->
+          <ellipse cx="516" cy="784" rx="4" ry="5.5" fill="var(--capy-nose)"/>
+          <!-- orelha -->
+          <g id="capyEar">
+            <ellipse cx="608" cy="760" rx="10" ry="9" fill="var(--capy-dark)"/>
+            <ellipse cx="608" cy="762" rx="5" ry="4.5" fill="var(--capy-nose)" opacity=".6"/>
+          </g>
+          <!-- olho -->
+          <circle cx="574" cy="776" r="5.5" fill="#1a110c"/>
+          <circle cx="576" cy="774" r="1.6" fill="#fff" opacity=".85"/>
+          <g id="capyLid" transform="translate(574 769.5) scale(1 0) translate(-574 -769.5)">
+            <ellipse cx="574" cy="776" rx="7.5" ry="7" fill="var(--capy)"/>
+          </g>
+          <path id="capySleep" d="M567 777 C571 781 577 781 581 777" fill="none" stroke="#1a110c" stroke-width="2.4" stroke-linecap="round" opacity="0"/>
+        </g>
+      </g>
+      <g id="zzz" font-family="JetBrains Mono, monospace" font-weight="500" fill="#f3efe7">
+        <text font-size="20">z</text><text font-size="26">z</text><text font-size="32">Z</text>
+      </g>
+    </svg>
+  </div>
+</main>
+
+<div class="ring" id="ring" aria-hidden="true"></div>
+<div class="ghost" id="ghost" aria-hidden="true">
+  <svg viewBox="0 0 24 24"><path d="M3 2 L3 19.5 L7.6 15.4 L10.7 22 L13.8 20.6 L10.8 14.2 L17 14 Z" fill="#fffaf0" stroke="#17120f" stroke-width="1.5" stroke-linejoin="round"/></svg>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var root = document.documentElement;
+  var sw = document.getElementById('sw');
+  var $ = function (id) { return document.getElementById(id); };
+  var skyDusk = $('skyDusk'), skyNight = $('skyNight'), wheel = $('wheel'), sunRays = $('sunRays');
+  var cloud1 = $('cloud1'), cloud2 = $('cloud2'), clouds = $('clouds'), spill = $('spill');
+  var capyHead = $('capyHead'), capyMouth = $('capyMouth'), capyLid = $('capyLid'), capySleep = $('capySleep'), capyEar = $('capyEar');
+  var zzz = $('zzz').children, lights = document.querySelectorAll('#lights .lit');
+  var ghost = $('ghost'), ring = $('ring');
+  var tDay = $('t-day'), tNight = $('t-night');
+
+  var mqReduce = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  var demoParam = /[?&]demo=1\b/.test(location.search);
+
+  // ---------- utilidades ----------
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function smooth(x, a, b) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
+  function bump(x, a, b) { if (x <= a || x >= b) return 0; return Math.sin(Math.PI * (x - a) / (b - a)); }
+  function easeIO(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function easeO(t) { return 1 - Math.pow(1 - t, 3); }
+
+  // ---------- estrelas (posições fixas, ordem embaralhada) ----------
+  var starData = [
+    [90,120,4],[180,240,3],[250,90,5],[330,180,3],[420,70,4],[470,260,2.5],[560,140,3.5],[640,60,4.5],
+    [700,220,3],[860,110,4],[930,250,3],[140,360,2.5],[300,320,4],[520,380,3],[610,300,2.5],[760,400,3.5],
+    [880,420,2.5],[60,470,3],[400,450,2.5],[680,480,3],[220,520,2.5],[960,520,3]
+  ];
+  var order = [6,1,10,3,15,8,0,12,19,4,17,9,2,14,21,7,11,18,5,20,13,16];
+  var NS = 'http://www.w3.org/2000/svg';
+  var starsG = $('stars'), stars = [];
+  var SPARK = 'M0 -1 L0.22 -0.22 L1 0 L0.22 0.22 L0 1 L-0.22 0.22 L-1 0 L-0.22 -0.22Z';
+  order.forEach(function (idx, i) {
+    var d = starData[idx], el = document.createElementNS(NS, 'path');
+    el.setAttribute('d', SPARK); el.setAttribute('fill', '#fff4d6'); el.setAttribute('opacity', '0');
+    starsG.appendChild(el);
+    stars.push({ el: el, x: d[0], y: d[1], s: d[2] * 2.2, i: i, per: 1800 + ((idx * 977) % 2200), ph: idx * 1.7 });
+  });
+
+  // ---------- estado ----------
+  var night = root.getAttribute('data-theme') === 'night';
+  var p = night ? 1 : 0;            // 0 dia, 1 noite
+  var dirNight = night;             // direção da última troca
+  var W_DUR = 1800, P_DUR = 2200;
+  var wFrom = night ? 180 : 0, wTo = wFrom, wT = 1; // progresso 0..1
+  var clock = 0;                    // ms de animação acumulados (pausa junto com o loop)
+
+  function reduce() { return mqReduce.matches; }
+
+  function applyTheme() {
+    root.setAttribute('data-theme', night ? 'night' : 'day');
+    sw.setAttribute('aria-checked', night ? 'true' : 'false');
+    tDay.setAttribute('aria-hidden', night ? 'true' : 'false');
+    tNight.setAttribute('aria-hidden', night ? 'false' : 'true');
+  }
+
+  function setTheme(toNight, fromUser) {
+    if (toNight === night) return;
+    night = toNight; dirNight = toNight;
+    applyTheme();
+    if (fromUser) { try { localStorage.setItem('inema-dia-noite', night ? 'night' : 'day'); } catch (e) {} }
+    if (reduce()) {
+      p = night ? 1 : 0; wFrom = wTo = night ? 180 : 0; wT = 1;
+    } else if (wT < 1) {                      // interrompido: volta pelo mesmo caminho
+      var f = wFrom; wFrom = wTo; wTo = f; wT = 1 - wT;
+    } else {                                  // gira sempre no mesmo sentido
+      wFrom = wTo % 360; wTo = wFrom + 180; wT = 0;
+    }
+    wake();
+  }
+
+  applyTheme();
+  requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.remove('no-trans'); }); });
+
+  sw.addEventListener('click', function () { setTheme(!night, true); });
+
+  // ---------- render da cena ----------
+  function render(dt) {
+    var R = reduce();
+    // progresso p
+    var target = night ? 1 : 0;
+    if (R) p = target;
+    else if (p !== target) p = target > p ? Math.min(target, p + dt / P_DUR) : Math.max(target, p - dt / P_DUR);
+    // roda
+    if (R) { wT = 1; } else if (wT < 1) wT = Math.min(1, wT + dt / W_DUR);
+    var ang = wFrom + (wTo - wFrom) * easeIO(wT);
+    wheel.setAttribute('transform', 'rotate(' + ang.toFixed(2) + ' 500 760)');
+    sunRays.setAttribute('transform', 'rotate(' + (R ? 0 : (clock * 0.006) % 360).toFixed(2) + ')');
+
+    // céu
+    skyDusk.setAttribute('opacity', R ? 0 : (Math.sin(Math.PI * p) * 0.85).toFixed(3));
+    skyNight.setAttribute('opacity', smooth(p, 0.15, 0.8).toFixed(3));
+
+    // nuvens
+    var cx1 = R ? 230 : ((clock * 0.012 + 230) % 1200) - 100;
+    var cx2 = R ? 690 : ((clock * 0.009 + 690) % 1200) - 100;
+    cloud1.setAttribute('transform', 'translate(' + cx1.toFixed(1) + ' 200)');
+    cloud2.setAttribute('transform', 'translate(' + cx2.toFixed(1) + ' 130)');
+    clouds.setAttribute('opacity', (1 - smooth(p, 0.05, 0.6)).toFixed(3));
+
+    // estrelas
+    for (var i = 0; i < stars.length; i++) {
+      var st = stars[i];
+      var a = R ? (p > 0.5 ? 1 : 0) : smooth(p, 0.25 + st.i * 0.022, 0.31 + st.i * 0.022);
+      var tw = R ? 1 : 0.8 + 0.2 * Math.sin(clock / st.per * 2 * Math.PI + st.ph);
+      var sc = st.s * (0.2 + 0.8 * easeO(a));
+      st.el.setAttribute('opacity', (a * tw).toFixed(3));
+      st.el.setAttribute('transform', 'translate(' + st.x + ' ' + st.y + ') scale(' + sc.toFixed(2) + ')');
+    }
+
+    // janelas
+    var lit = 0;
+    for (var j = 0; j < lights.length; j++) {
+      var lo = R ? (p > 0.5 ? 1 : 0) : smooth(p, 0.4 + j * 0.07, 0.43 + j * 0.07);
+      lights[j].setAttribute('opacity', lo.toFixed(3)); lit += lo;
+    }
+    spill.setAttribute('opacity', (lit / lights.length * 0.9).toFixed(3));
+
+    // capivara
+    var yawn = (!R && dirNight) ? bump(p, 0.3, 0.7) : 0;
+    var closed = R ? (night ? 1 : 0) : (dirNight ? smooth(p, 0.65, 0.85) : smooth(p, 0.3, 0.6));
+    var earA = (!R && !dirNight) ? Math.sin(p * 46) * bump(p, 0, 0.35) * 16 : 0;
+    capyHead.setAttribute('transform', 'rotate(' + (yawn * 9).toFixed(2) + ' 626 806)');
+    capyMouth.setAttribute('transform', 'translate(527 818) scale(1 ' + yawn.toFixed(3) + ')');
+    capyLid.setAttribute('transform', 'translate(574 769.5) scale(1 ' + closed.toFixed(3) + ') translate(-574 -769.5)');
+    capySleep.setAttribute('opacity', smooth(closed, 0.7, 1).toFixed(3));
+    capyEar.setAttribute('transform', 'rotate(' + earA.toFixed(2) + ' 608 768)');
+
+    // zzz
+    var sleepy = R ? 0 : smooth(p, 0.9, 1) * (night ? 1 : 0);
+    for (var k = 0; k < zzz.length; k++) {
+      var u = ((clock / 3000) + k / 3) % 1;
+      var zx = 556 + u * 26 + k * 4, zy = 748 - u * 110;
+      zzz[k].setAttribute('x', zx.toFixed(1)); zzz[k].setAttribute('y', zy.toFixed(1));
+      zzz[k].setAttribute('opacity', (sleepy * bump(u, 0, 1) * 0.85).toFixed(3));
+    }
+  }
+
+  // ---------- modo demonstração ----------
+  var CYCLE = 7600, CLICK1 = 1000, CLICK2 = 4600;
+  var demoOn = !reduce() || demoParam;
+  var demoE = 0, demoOffset = 0, demoFade = 1, demoStopping = false, lastC = -1, ringT = 1e9;
+  if (demoOn && night) demoOffset = 3600;
+
+  function stopDemo(e) {
+    if (demoParam || !demoOn || demoStopping) return;
+    if (e && e.isTrusted === false) return;
+    demoStopping = true;
+  }
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (ev) {
+    window.addEventListener(ev, stopDemo, { passive: true, capture: true });
+  });
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function demoPos(c, S, Rp) {
+    function mv(a, b, t0, t1) { var t = easeIO(clamp((c - t0) / (t1 - t0), 0, 1)); return [lerp(a[0], b[0], t), lerp(a[1], b[1], t)]; }
+    if (c < 200) return Rp;
+    if (c < 1000) return mv(Rp, S, 200, 1000);
+    if (c < 1300) return S;
+    if (c < 2100) return mv(S, Rp, 1300, 2100);
+    if (c < 3800) return Rp;
+    if (c < 4600) return mv(Rp, S, 3800, 4600);
+    if (c < 4900) return S;
+    if (c < 5700) return mv(S, Rp, 4900, 5700);
+    return Rp;
+  }
+  function crossed(prev, cur, mark) {
+    if (prev < 0) return false;
+    return prev <= cur ? (prev < mark && cur >= mark) : (prev < mark || cur >= mark);
+  }
+
+  function renderDemo(dt) {
+    if (!demoOn) return;
+    if (demoStopping) {
+      demoFade = Math.max(0, demoFade - dt / 300);
+      ghost.style.opacity = demoFade.toFixed(3);
+      if (demoFade <= 0) { demoOn = false; ghost.style.display = 'none'; ring.style.display = 'none'; }
+      return;
+    }
+    demoE += dt;
+    var c = (demoE + demoOffset) % CYCLE;
+    var r = sw.getBoundingClientRect();
+    var S = [r.left + r.width * 0.62, r.top + r.height * 0.55];
+    var Rp = [clamp(S[0] + 90, 20, innerWidth - 40), clamp(S[1] + 70, 20, innerHeight - 40)];
+    if (Rp[1] - S[1] < 30) Rp[1] = clamp(S[1] - 80, 20, innerHeight - 40);
+    var pos = demoPos(c, S, Rp);
+    var press = 1;
+    if (c >= CLICK1 && c < CLICK1 + 240) press = 1 - 0.15 * bump(c, CLICK1 - 1, CLICK1 + 240);
+    if (c >= CLICK2 && c < CLICK2 + 240) press = 1 - 0.15 * bump(c, CLICK2 - 1, CLICK2 + 240);
+    ghost.style.opacity = clamp(demoE / 300, 0, 1).toFixed(3);
+    ghost.style.transform = 'translate(' + (pos[0] - 4).toFixed(1) + 'px,' + (pos[1] - 3).toFixed(1) + 'px) scale(' + press.toFixed(3) + ')';
+    if (crossed(lastC, c, CLICK1)) { setTheme(true, false); ringT = 0; }
+    if (crossed(lastC, c, CLICK2)) { setTheme(false, false); ringT = 0; }
+    lastC = c;
+    ringT += dt;
+    if (ringT < 500) {
+      var k = ringT / 500;
+      ring.style.opacity = (0.9 * (1 - k)).toFixed(3);
+      ring.style.transform = 'translate(' + S[0].toFixed(1) + 'px,' + S[1].toFixed(1) + 'px) scale(' + (0.4 + 1.2 * easeO(k)).toFixed(3) + ')';
+    } else ring.style.opacity = '0';
+  }
+  if (!demoOn) { ghost.style.display = 'none'; ring.style.display = 'none'; }
+
+  // ---------- loop único ----------
+  var visible = true, rafId = 0, last = 0;
+  function frame(now) {
+    rafId = 0;
+    var dt = last ? Math.min(50, now - last) : 16;
+    last = now; clock += dt;
+    render(dt);
+    renderDemo(dt);
+    wake();
+  }
+  function running() { return visible && !document.hidden; }
+  function wake() {
+    if (!rafId && running()) rafId = requestAnimationFrame(frame);
+  }
+  function sleep() { if (rafId) { cancelAnimationFrame(rafId); rafId = 0; } last = 0; }
+
+  document.addEventListener('visibilitychange', function () { document.hidden ? sleep() : wake(); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      visible = entries[entries.length - 1].isIntersecting;
+      visible ? wake() : sleep();
+    }).observe(document.getElementById('piece'));
+  }
+  var onReduce = function () {
+    if (reduce() && !demoParam) { demoOn = false; ghost.style.display = 'none'; ring.style.display = 'none'; }
+    render(0);
+  };
+  if (mqReduce.addEventListener) mqReduce.addEventListener('change', onReduce);
+
+  render(0);
+  wake();
+})();
+</script>
+</body>
+</html>

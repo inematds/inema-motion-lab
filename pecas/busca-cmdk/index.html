@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Busca ⌘K</title>
+<meta name="description" content="Pílula de busca do INEMA.CLUB que cresce e vira uma paleta de comandos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Sora:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0b0d; --surface:#111114; --pal:#141418; --text:#f3efe7; --muted:#9a958c;
+  --line:rgba(243,239,231,.10); --line2:rgba(243,239,231,.08);
+  --amber:#E2A23B; --sky:#38bdf8;
+  --top:min(14vh,96px);
+  --sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --display:'Sora','Inter',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{
+  background:
+    radial-gradient(900px 420px at 50% -120px, rgba(226,162,59,.10), transparent 70%),
+    var(--bg);
+  color:var(--text);font:400 16px/1.55 var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px;border-radius:6px}
+
+/* ---------- página (cenário) ---------- */
+.stage{position:relative;height:100%;display:flex;flex-direction:column}
+.top{flex:none;height:56px;display:flex;align-items:center;gap:20px;padding:0 20px;border-bottom:1px solid var(--line2);background:rgba(11,11,13,.86)}
+.logo{flex:none;font:700 17px/1 var(--display);letter-spacing:-.01em;text-decoration:none;color:var(--text)}
+.logo b{color:var(--amber);font-weight:700}
+.pillwrap{flex:1;min-width:0;display:flex;justify-content:center}
+.pill{
+  position:relative;width:100%;max-width:440px;height:40px;border-radius:999px;
+  display:flex;align-items:center;gap:10px;padding:0 7px 0 14px;
+  background:var(--surface);border:1px solid var(--line);color:var(--muted);
+  font:400 14px/1 var(--sans);cursor:pointer;text-align:left;opacity:0;
+}
+.pill::after{content:"";position:absolute;inset:-1px;border-radius:inherit;border:1px solid rgba(226,162,59,.45);opacity:0;transition:opacity .16s;pointer-events:none}
+.pill:hover::after{opacity:1}
+.pill:focus-visible{border-radius:999px}
+.pill svg{flex:none}
+.pill .lbl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill .short{display:none}
+.kbd{font:500 12px/1 var(--mono);color:var(--text);background:#1a1a1f;border:1px solid rgba(243,239,231,.12);border-radius:6px;padding:5px 7px;white-space:nowrap}
+.nav{flex:none;display:flex;gap:18px;font:400 14px/1 var(--sans)}
+.nav a{color:var(--muted);text-decoration:none}
+.nav a:hover{color:var(--text)}
+
+.main{flex:1;min-height:0;display:flex}
+.side{flex:none;width:220px;padding:28px 16px;border-right:1px solid var(--line2);overflow:hidden}
+.side h4{margin:0 0 10px 10px;font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.side a{display:block;padding:7px 10px;border-radius:8px;font-size:14px;color:var(--muted);text-decoration:none}
+.side a.on{color:var(--text);background:rgba(243,239,231,.04)}
+.side .grp{margin-bottom:22px}
+.content{flex:1;min-width:0;overflow:hidden;padding:40px clamp(16px,5vw,64px)}
+.crumb{font:500 12px/1 var(--mono);color:var(--muted);letter-spacing:.02em}
+.crumb span{color:var(--amber)}
+h1{margin:14px 0 10px;font:700 clamp(26px,4vw,40px)/1.12 var(--display);letter-spacing:-.02em}
+.lead{max-width:60ch;margin:0 0 28px;color:#c9c3b8}
+.lead em{font-style:normal;color:var(--text)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;max-width:820px}
+.card{background:var(--surface);border:1px solid var(--line2);border-radius:14px;padding:18px}
+.card .k{font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--amber)}
+.card h3{margin:10px 0 6px;font:600 15px/1.3 var(--sans)}
+.card p{margin:0;font-size:13px;color:var(--muted)}
+
+/* ---------- paleta ---------- */
+.bd{position:fixed;inset:0;z-index:40;background:rgba(5,5,7,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;visibility:hidden}
+.pal{position:fixed;z-index:50;left:0;right:0;margin-inline:auto;top:var(--top);width:min(640px,calc(100vw - 24px));visibility:hidden;pointer-events:none}
+.pal.live{pointer-events:auto}
+.shell{
+  position:absolute;inset:0;border-radius:16px;background:var(--pal);border:1px solid var(--line);
+  box-shadow:0 24px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(243,239,231,.06);
+  transform-origin:50% 50%;opacity:0;will-change:transform,opacity;
+}
+.shell::before{content:"";position:absolute;left:18%;right:18%;top:-1px;height:1px;background:linear-gradient(90deg,transparent,rgba(226,162,59,.55),transparent)}
+.pc{position:relative;opacity:0;will-change:opacity,transform}
+.head{height:56px;display:flex;align-items:center;gap:12px;padding:0 14px 0 18px;border-bottom:1px solid var(--line2)}
+.head:focus-within{border-bottom-color:rgba(226,162,59,.6)}
+.head svg{flex:none;color:var(--amber)}
+.head input{flex:1;min-width:0;height:100%;background:transparent;border:0;outline:0;color:var(--text);font:400 16px/1 var(--sans);caret-color:var(--amber)}
+.head input::placeholder{color:var(--muted)}
+.list{position:relative;height:clamp(150px,calc(100vh - var(--top) - 56px - 38px - 32px),372px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(243,239,231,.14) transparent}
+.li{position:relative;padding:4px 0 8px}
+.hl{position:absolute;left:6px;right:6px;top:0;height:52px;border-radius:10px;background:rgba(226,162,59,.10);z-index:0;will-change:transform}
+.hl::before{content:"";position:absolute;left:0;top:13px;bottom:13px;width:2px;border-radius:2px;background:var(--amber)}
+.glabel{position:relative;z-index:1;padding:12px 18px 6px;font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.opt{position:relative;z-index:1;height:52px;margin:0 6px;padding:0 12px;display:flex;align-items:center;gap:12px;border-radius:10px;cursor:pointer;-webkit-user-select:none;user-select:none}
+.glabel,.opt{animation:optIn .18s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--d,0ms) + var(--i,0) * 22ms)}
+@keyframes optIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tile{flex:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center}
+.t-curso{background:rgba(226,162,59,.14);color:var(--amber)}
+.t-guia{background:rgba(243,239,231,.06);color:var(--text)}
+.t-evento{background:rgba(243,239,231,.05);color:#c9c3b8}
+.txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.ti{font:600 14px/1.2 var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.de{font:400 12px/1.2 var(--sans);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+mark{color:var(--amber);background:rgba(226,162,59,.14);font-weight:600;border-radius:3px;padding:0 1px}
+.rt{flex:none;display:grid;justify-items:end}
+.rt>*{grid-area:1/1;align-self:center}
+.meta{font:500 11px/1 var(--mono);color:var(--muted);transition:opacity .12s}
+.enter{font:500 12px/1 var(--mono);color:var(--amber);background:rgba(226,162,59,.12);border:1px solid rgba(226,162,59,.35);border-radius:6px;padding:4px 7px;opacity:0;transition:opacity .12s}
+.opt[aria-selected="true"] .meta{opacity:0}
+.opt[aria-selected="true"] .enter{opacity:1}
+.enter.pulse{animation:pulse .16s ease-out}
+@keyframes pulse{50%{transform:scale(.9)}}
+.empty{padding:56px 20px;text-align:center;color:var(--muted);font-size:14px}
+.empty b{color:var(--text);font-weight:500}
+.foot{height:38px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 16px;border-top:1px solid var(--line2);font:500 11px/1 var(--mono);color:var(--muted);white-space:nowrap}
+.foot a{color:var(--sky);text-decoration:none}
+.foot a:hover{text-decoration:underline}
+
+/* ---------- toast, demo ---------- */
+.toast{position:fixed;z-index:60;left:0;right:0;bottom:24px;margin-inline:auto;width:max-content;max-width:calc(100vw - 32px);display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;padding:12px 16px;background:var(--pal);border:1px solid rgba(226,162,59,.35);border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.55);font-size:14px;opacity:0;visibility:hidden}
+.toast .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 12px rgba(226,162,59,.7)}
+.toast b{font-weight:600}
+.toast .url{font:500 12px/1 var(--mono);color:var(--sky)}
+.keycast{position:fixed;z-index:70;right:16px;bottom:16px;font:500 15px/1 var(--mono);color:var(--text);background:#1a1a1f;border:1px solid rgba(226,162,59,.45);border-radius:9px;padding:9px 13px;box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;pointer-events:none}
+.ghost{position:fixed;z-index:80;left:0;top:0;width:24px;height:24px;pointer-events:none;opacity:0;transform-origin:3px 2px;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6))}
+.ripple{position:fixed;z-index:79;left:0;top:0;width:40px;height:40px;border-radius:50%;border:2px solid var(--amber);pointer-events:none;opacity:0}
+
+@media (max-width:759px){.nav,.side{display:none}.top{gap:14px;padding:0 16px}}
+@media (max-width:519px){.pill .full,.pill .kbd{display:none}.pill .short{display:inline}.content{padding-top:28px}}
+@media (max-width:600px){.keycast{bottom:104px}}
+@media (max-width:419px){.foot .h3{display:none}.meta{display:none}}
+@media (max-height:520px){:root{--top:12px}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <header class="top">
+    <a class="logo" href="#inicio" aria-label="INEMA.CLUB, início">INEMA<b>.CLUB</b></a>
+    <div class="pillwrap">
+      <button class="pill" id="pill" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="pal" aria-keyshortcuts="Meta+K Control+K">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14" stroke-linecap="round"/></svg>
+        <span class="lbl"><span class="full">Buscar cursos, guias e eventos…</span><span class="short">Buscar…</span></span>
+        <span class="kbd" id="pillKbd">⌘K</span>
+      </button>
+    </div>
+    <nav class="nav" aria-label="Seções">
+      <a href="#cursos">Cursos</a><a href="#guias">Guias</a><a href="#eventos">Eventos</a>
+    </nav>
+  </header>
+  <div class="main">
+    <aside class="side" aria-label="Documentação">
+      <div class="grp"><h4>Começar</h4><a class="on" href="#comece">Comece por aqui</a><a href="#trilhas">Trilhas</a><a href="#vip">Comunidade VIP</a></div>
+      <div class="grp"><h4>Ferramentas</h4><a href="#codex">Codex</a><a href="#claude">Claude Code</a><a href="#mods">Mods</a><a href="#skills">Skills</a></div>
+    </aside>
+    <main class="content">
+      <div class="crumb">docs / <span>começar</span></div>
+      <h1>Comece por aqui</h1>
+      <p class="lead">Cursos, guias e eventos do INEMA.CLUB são abertos e gratuitos. Não sabe por onde ir? <em>Busque.</em> A barra no topo encontra qualquer coisa em segundos.</p>
+      <div class="cards">
+        <div class="card"><div class="k">Cursos</div><h3>Trilhas do zero ao agente</h3><p>Codex, Claude Code, mods e runtime de agentes.</p></div>
+        <div class="card"><div class="k">Guias</div><h3>Projetos prontos para usar</h3><p>Ata, Arena da Capivara, filmarca e mais.</p></div>
+        <div class="card"><div class="k">Eventos</div><h3>Lives e áreas temáticas</h3><p>Skills, MODS e comparações ao vivo.</p></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="bd" id="bd" aria-hidden="true"></div>
+<div class="pal" id="pal" role="dialog" aria-modal="true" aria-label="Buscar no INEMA.CLUB">
+  <div class="shell" id="shell"></div>
+  <div class="pc" id="pc">
+    <div class="head">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14" stroke-linecap="round"/></svg>
+      <input id="q" type="text" role="combobox" aria-expanded="false" aria-controls="lb" aria-autocomplete="list" aria-label="Buscar cursos, guias e eventos" placeholder="Buscar cursos, guias e eventos…" autocomplete="off" spellcheck="false">
+      <span class="kbd" aria-hidden="true">esc</span>
+    </div>
+    <div class="list" id="list">
+      <div class="li" id="li">
+        <div class="hl" id="hl" aria-hidden="true"></div>
+        <div id="lb" role="listbox" aria-label="Resultados"></div>
+      </div>
+    </div>
+    <div class="foot">
+      <span>↑↓ navegar · ↵ abrir<span class="h3"> · esc fechar</span></span>
+      <a id="footLink" href="https://inema.club" target="_blank" rel="noopener">INEMA.CLUB</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span>Abrindo <b id="toastT"></b></span><span class="url" id="toastU"></span></div>
+<div class="keycast" id="keycast" aria-hidden="true"></div>
+<div class="ripple" id="ripple" aria-hidden="true"></div>
+<svg class="ghost" id="ghost" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v17.2l4.6-4.3 3 6.6 3-1.3-3-6.5 6.3-.2z" fill="#f3efe7" stroke="#0b0b0d" stroke-width="1.4" stroke-linejoin="round"/></svg>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const stage = $('stage'), pill = $('pill'), bd = $('bd'), pal = $('pal'), shell = $('shell'), pc = $('pc');
+  const input = $('q'), list = $('list'), hlEl = $('hl'), lb = $('lb'), footLink = $('footLink');
+  const toast = $('toast'), toastT = $('toastT'), toastU = $('toastU');
+  const keycast = $('keycast'), ghost = $('ghost'), ripple = $('ripple');
+
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DEMO_LOCK = new URLSearchParams(location.search).get('demo') === '1';
+  const isMac = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent || '');
+  const KEY = isMac ? '⌘K' : 'Ctrl K';
+  $('pillKbd').textContent = KEY;
+
+  const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const ease = (t) => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  /* ---------- dados ---------- */
+  const ICON = {
+    curso: '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.8v8.4L12.4 8z" fill="currentColor"/></svg>',
+    guia: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M4 2.5h5.3L12 5.2v8.3H4z"/><path d="M6.2 8h3.6M6.2 10.5h3.6" stroke-linecap="round"/></svg>',
+    evento: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="2"/><path d="M2.5 6.8h11M5.5 2v3M10.5 2v3" stroke-linecap="round"/></svg>'
+  };
+  const GROUPS = [
+    { id: 'curso', name: 'Cursos', items: [
+      { t: 'Curso Codex 18', d: '18 aulas do zero ao agente no terminal', m: '18 aulas', u: 'inema.club/cursos/codex-18' },
+      { t: 'Curso Claude Code', d: 'Do primeiro prompt ao fluxo com subagentes', m: 'v6', u: 'inema.club/cursos/claude-code' },
+      { t: 'Mods do Claude Code', d: 'Curso técnico: painéis, hooks e status line', m: 'técnico', u: 'inema.club/cursos/ccmods' },
+      { t: 'INEMA Agent Runtime', d: 'Kit, guia e curso para rodar agentes', m: 'PT·EN·ES', u: 'inema.club/cursos/agent-runtime' }
+    ]},
+    { id: 'guia', name: 'Guias', items: [
+      { t: 'Ata — notetaker local', d: 'Grava, transcreve e resume sem sair da máquina', m: 'local', u: 'inema.club/guias/ata' },
+      { t: 'Arena da Capivara', d: 'Benchmark de SVG com 19 modelos', m: '19 modelos', u: 'inema.club/guias/arena-capivara' },
+      { t: 'inema-mods', d: '18 mods em português para o Claude Code', m: '18 mods', u: 'inema.club/guias/inema-mods' },
+      { t: 'Kits de atendimento', d: 'Restaurante e hotel prontos para usar', m: '2 kits', u: 'inema.club/guias/kits-atendimento' },
+      { t: 'filmarca', d: 'Seu site vira o filme da marca', m: 'vídeo', u: 'inema.club/guias/filmarca' },
+      { t: 'CrunchLog', d: 'Notetaker do Skool rodando no Linux', m: 'guia', u: 'inema.club/guias/crunchlog' }
+    ]},
+    { id: 'evento', name: 'Eventos', items: [
+      { t: 'Área Skills', d: 'Criar, validar e publicar skills', m: 'PT·EN·ES', u: 'eventos.inema.pro/skills' },
+      { t: 'Área MODS', d: 'Tudo sobre mods do Claude Code', m: 'nova', u: 'eventos.inema.pro/mods' },
+      { t: 'Live: Codex × Claude', d: 'Comparação ao vivo, com perguntas', m: 'qui 20h', u: 'inema.club/eventos/codex-claude' }
+    ]}
+  ];
+  const normc = (c) => c.normalize('NFD').charAt(0).toLowerCase();
+  GROUPS.forEach((g) => g.items.forEach((it, k) => { it.g = g.id; it.k = k; it.n = it.t.split('').map(normc).join(''); }));
+
+  // retorna {s: pontuação, p: posições casadas} ou null
+  function match(it, q) {
+    if (!q) return { s: -it.k, p: [] };
+    const idx = it.n.indexOf(q);
+    if (idx >= 0) {
+      const p = []; for (let i = 0; i < q.length; i++) p.push(idx + i);
+      const ws = idx === 0 || /[\s\-—:(]/.test(it.n[idx - 1]);
+      return { s: 1000 - idx * 4 + (ws ? 60 : 0), p };
+    }
+    const qq = q.replace(/\s+/g, ''); const p = []; let j = 0;
+    for (let i = 0; i < it.n.length && j < qq.length; i++) if (it.n[i] === qq[j]) { p.push(i); j++; }
+    if (j < qq.length) return null;
+    return { s: 400 - (p[p.length - 1] - p[0]) * 3 - p[0], p };
+  }
+  function marked(t, p) {
+    if (!p.length) return esc(t);
+    const set = new Set(p); let out = '', open = false;
+    for (let i = 0; i < t.length; i++) {
+      const on = set.has(i);
+      if (on && !open) { out += '<mark>'; open = true; }
+      if (!on && open) { out += '</mark>'; open = false; }
+      out += esc(t[i]);
+    }
+    return out + (open ? '</mark>' : '');
+  }
+
+  /* ---------- molas ---------- */
+  class Spring {
+    constructor(x, k, c) { this.x = x; this.v = 0; this.t = x; this.k = k; this.c = c; }
+    set(k, c) { this.k = k; this.c = c; return this; }
+    step(s) {
+      const n = Math.max(1, Math.ceil(s / (1 / 240))), h = s / n;
+      for (let i = 0; i < n; i++) { const a = this.k * (this.t - this.x) - this.c * this.v; this.v += a * h; this.x += this.v * h; }
+      if (Math.abs(this.t - this.x) < 1e-4 && Math.abs(this.v) < 1e-3) { this.x = this.t; this.v = 0; }
+    }
+    snap() { this.x = this.t; this.v = 0; }
+  }
+  const morph = new Spring(0, 380, 30);
+  const hl = new Spring(0, 520, 40);
+  const toastS = new Spring(0, 300, 26);
+
+  /* ---------- estado ---------- */
+  const S = { open: false, byDemo: false, flat: [], opts: [], sel: 0, P: null, R: null, contentA: 0, intro: reduced ? 1 : 0, introT: 0, inside: false, toastHold: 0 };
+
+  function measure() { S.P = pill.getBoundingClientRect(); S.R = pal.getBoundingClientRect(); }
+
+  function renderList(delay) {
+    const q = input.value.trim().split('').map(normc).join('');
+    let html = '', n = 0; const flat = [];
+    for (const g of GROUPS) {
+      const res = [];
+      for (const it of g.items) { const m = match(it, q); if (m) res.push({ it, m }); }
+      if (!res.length) continue;
+      res.sort((a, b) => b.m.s - a.m.s);
+      html += `<div role="group" aria-labelledby="g-${g.id}"><div class="glabel" id="g-${g.id}" style="--i:${n}">${g.name}</div>`;
+      for (const { it, m } of res) {
+        html += `<div class="opt" role="option" id="o-${g.id}-${it.k}" aria-selected="false" data-i="${n}" style="--i:${n}">` +
+          `<span class="tile t-${g.id}">${ICON[g.id]}</span>` +
+          `<span class="txt"><span class="ti">${marked(it.t, m.p)}</span><span class="de">${esc(it.d)}</span></span>` +
+          `<span class="rt"><span class="meta">${esc(it.m)}</span><span class="enter" aria-hidden="true">↵</span></span></div>`;
+        flat.push(it); n++;
+      }
+      html += '</div>';
+    }
+    if (!flat.length) html = `<div class="empty">Nada encontrado para <b>“${esc(input.value.trim())}”</b></div>`;
+    lb.style.setProperty('--d', delay + 'ms');
+    lb.innerHTML = html;
+    S.flat = flat; S.opts = Array.from(lb.querySelectorAll('.opt'));
+    hlEl.style.opacity = flat.length ? '1' : '0';
+    if (!flat.length) input.removeAttribute('aria-activedescendant');
+    list.scrollTop = 0;
+  }
+
+  function setSel(i, instant) {
+    const el = S.opts[i]; if (!el) return;
+    const old = S.opts[S.sel]; if (old) old.setAttribute('aria-selected', 'false');
+    S.sel = i; el.setAttribute('aria-selected', 'true');
+    input.setAttribute('aria-activedescendant', el.id);
+    hl.t = el.offsetTop; if (instant || reduced) hl.snap();
+    // rola o mínimo para mostrar o item (inclui o rótulo do grupo se for o 1º)
+    const top = el.offsetTop - (el.previousElementSibling && el.previousElementSibling.classList.contains('glabel') ? 32 : 8);
+    const bottom = el.offsetTop + el.offsetHeight + 8, st = list.scrollTop, h = list.clientHeight;
+    let to = null;
+    if (top < st) to = Math.max(0, top); else if (bottom > st + h) to = bottom - h;
+    if (to !== null) list.scrollTo({ top: to, behavior: reduced || instant ? 'auto' : 'smooth' });
+  }
+  function moveSel(d) { const n = S.flat.length; if (n) setSel((S.sel + d + n) % n, false); }
+
+  function setAria(open) {
+    pill.setAttribute('aria-expanded', String(open));
+    input.setAttribute('aria-expanded', String(open));
+  }
+
+  function open(byDemo) {
+    if (S.open) return;
+    S.open = true; S.byDemo = !!byDemo;
+    measure();
+    morph.set(380, 30).t = 1;
+    input.value = '';
+    renderList(reduced ? 0 : 120);
+    setSel(0, true);
+    pal.classList.add('live'); pal.style.visibility = 'visible'; bd.style.visibility = 'visible';
+    setAria(true);
+    if (!byDemo) input.focus({ preventScroll: true });
+    if (reduced) morph.snap();
+    kick();
+  }
+  function close(restore) {
+    if (!S.open) return;
+    S.open = false;
+    morph.set(520, 46).t = 0;
+    pal.classList.remove('live');
+    setAria(false);
+    const inside = pal.contains(document.activeElement);
+    if (inside) { if (restore) pill.focus({ preventScroll: true }); else document.activeElement.blur(); }
+    if (reduced) morph.snap();
+    kick();
+  }
+  function choose(i) {
+    const it = S.flat[i], el = S.opts[i]; if (!it) return;
+    const chip = el.querySelector('.enter'); chip.classList.remove('pulse'); void chip.offsetWidth; chip.classList.add('pulse');
+    toastT.textContent = it.t; toastU.textContent = it.u;
+    toastS.set(300, 26).t = 1; S.toastHold = 1900; toast.style.visibility = 'visible';
+    if (reduced) toastS.snap();
+    close(!S.byDemo);
+  }
+  function onQuery() { renderList(0); setSel(0, false); }
+
+  /* ---------- eventos reais ---------- */
+  pill.addEventListener('click', () => open(false));
+  bd.addEventListener('click', () => close(true));
+  input.addEventListener('input', onQuery);
+  lb.addEventListener('mousedown', (e) => { if (e.target.closest('.opt')) e.preventDefault(); });
+  lb.addEventListener('mousemove', (e) => { const o = e.target.closest('.opt'); if (o && +o.dataset.i !== S.sel) setSel(+o.dataset.i, false); });
+  lb.addEventListener('click', (e) => { const o = e.target.closest('.opt'); if (o) choose(+o.dataset.i); });
+  document.addEventListener('pointermove', () => { S.inside = true; }, { passive: true });
+  document.documentElement.addEventListener('pointerleave', () => { S.inside = false; });
+
+  window.addEventListener('keydown', (e) => {
+    const k = e.key;
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && (k === 'k' || k === 'K')) {
+      if (!(S.inside || document.hasFocus())) return;
+      e.preventDefault(); S.open ? close(true) : open(false); return;
+    }
+    if (!S.open) return;
+    if (k === 'Escape') { e.preventDefault(); close(true); }
+    else if (k === 'ArrowDown' || k === 'ArrowUp') { if (S.flat.length) { e.preventDefault(); moveSel(k === 'ArrowDown' ? 1 : -1); } }
+    else if (k === 'Enter') { if (document.activeElement !== footLink && S.flat.length) { e.preventDefault(); choose(S.sel); } }
+    else if (k === 'Tab') {
+      e.preventDefault();
+      const f = [input, footLink], i = f.indexOf(document.activeElement);
+      (i < 0 ? input : f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length]).focus({ preventScroll: true });
+    }
+  });
+  window.addEventListener('resize', () => { measure(); const el = S.opts[S.sel]; if (el) { hl.t = el.offsetTop; hl.snap(); } });
+
+  /* ---------- modo demonstração ---------- */
+  const G = { on: !reduced, x: 0, y: 0, a: 0, mv: null, fd: null, press: 0, rip: -1, key: -1, t: 0, idx: 0 };
+  const startPt = () => ({ x: innerWidth * .86, y: innerHeight * .84 });
+  const pillPt = () => { const r = pill.getBoundingClientRect(); return { x: r.left + Math.min(r.width * .32, 120), y: r.top + r.height * .62 }; };
+  const sidePt = () => { const r = pal.getBoundingClientRect(); const x = r.right + 56 <= innerWidth - 16 ? r.right + 56 : r.right - 30; return { x, y: r.top + 150 }; };
+  const optPt = (i) => () => { const el = S.opts[i]; if (!el) return sidePt(); const r = el.getBoundingClientRect(); return { x: r.left + Math.min(170, r.width * .45), y: r.top + r.height * .62 }; };
+  const restPt = () => ({ x: innerWidth * .74, y: innerHeight * .46 });
+  const moveTo = (fn, dur, cb) => { G.mv = { fx: G.x, fy: G.y, fn, to: null, t: 0, dur, cb }; };
+  const fade = (to, dur) => { G.fd = { from: G.a, to, t: 0, dur }; };
+  const click = (fn) => { G.press = 120; G.rip = 0; fn && fn(); };
+  const key = (label, fn) => { keycast.textContent = label; G.key = 0; fn && fn(); };
+  const type = (ch) => () => { input.value += ch; onQuery(); };
+  const TL = [
+    [0, () => { if (S.open) { close(false); morph.snap(); } S.contentA = 0; toastS.t = 0; toastS.snap(); S.toastHold = 0; input.value = ''; const p = startPt(); G.x = p.x; G.y = p.y; G.a = 0; G.mv = null; }],
+    [100, () => fade(1, 200)],
+    [150, () => moveTo(pillPt, 850)],
+    [1050, () => click()],
+    [1150, () => open(true)],
+    [1650, type('c')], [1800, type('o')], [1950, type('d')],
+    [2200, () => moveTo(sidePt, 450)],
+    [2500, () => key('↓', () => moveSel(1))],
+    [2850, () => key('↓', () => moveSel(1))],
+    [3200, () => key('↑', () => moveSel(-1))],
+    [3550, () => moveTo(optPt(2), 450, () => setSel(2, false))],
+    [4250, () => click(() => choose(2))],
+    [4800, () => moveTo(restPt, 600)],
+    [5500, () => key(KEY, () => open(true))],
+    [6000, () => key('↓', () => moveSel(1))],
+    [6500, () => key('esc', () => close(false))],
+    [7100, () => fade(0, 400)]
+  ];
+  const CYCLE = 7800;
+
+  function stopDemo() {
+    if (!G.on || DEMO_LOCK) return;
+    G.on = false; fade(0, 150); G.key = -1; G.rip = -1; G.mv = null;
+    if (S.open && S.byDemo) close(false);
+  }
+  window.addEventListener('pointerdown', (e) => { if (e.isTrusted) stopDemo(); }, true);
+  window.addEventListener('keydown', (e) => { if (e.isTrusted) stopDemo(); }, true);
+
+  function demoStep(dt) {
+    if (G.on) {
+      G.t += dt;
+      while (G.idx < TL.length && TL[G.idx][0] <= G.t) { TL[G.idx][1](); G.idx++; }
+      if (G.t >= CYCLE) { G.t -= CYCLE; G.idx = 0; }
+    }
+    if (G.mv) {
+      const m = G.mv; if (!m.to) m.to = m.fn();
+      m.t += dt; const e = ease(clamp(m.t / m.dur));
+      G.x = lerp(m.fx, m.to.x, e); G.y = lerp(m.fy, m.to.y, e);
+      if (m.t >= m.dur) { G.mv = null; m.cb && m.cb(); }
+    }
+    if (G.fd) { const f = G.fd; f.t += dt; G.a = lerp(f.from, f.to, clamp(f.t / f.dur)); if (f.t >= f.dur) G.fd = null; }
+    if (G.press > 0) G.press = Math.max(0, G.press - dt);
+    if (G.rip >= 0) { G.rip += dt; if (G.rip > 420) G.rip = -1; }
+    if (G.key >= 0) { G.key += dt; if (G.key > 720) G.key = -1; }
+
+    ghost.style.opacity = G.a.toFixed(3);
+    ghost.style.transform = `translate3d(${(G.x - 3).toFixed(1)}px,${(G.y - 2).toFixed(1)}px,0) scale(${G.press > 0 ? .86 : 1})`;
+    if (G.rip >= 0) {
+      const r = G.rip / 420;
+      ripple.style.opacity = (.9 * (1 - r)).toFixed(3);
+      ripple.style.transform = `translate3d(${(G.x - 20).toFixed(1)}px,${(G.y - 20).toFixed(1)}px,0) scale(${(.3 + r * 1.1).toFixed(3)})`;
+    } else ripple.style.opacity = '0';
+    if (G.key >= 0) {
+      const a = G.key < 520 ? 1 : 1 - (G.key - 520) / 200;
+      keycast.style.opacity = clamp(a).toFixed(3);
+      keycast.style.transform = `scale(${G.key < 120 ? (.88 + .12 * G.key / 120).toFixed(3) : 1})`;
+    } else keycast.style.opacity = '0';
+  }
+
+  /* ---------- loop único ---------- */
+  function update(dt) {
+    const s = dt / 1000;
+    if (S.intro < 1) { S.introT += dt; S.intro = clamp((S.introT - 120) / 240); }
+    morph.step(s); hl.step(s); toastS.step(s);
+    if (S.toastHold > 0) { S.toastHold -= dt; if (S.toastHold <= 0) { toastS.set(520, 46).t = 0; } }
+    if (reduced) { morph.snap(); hl.snap(); toastS.snap(); }
+
+    const p = morph.x;
+    if (S.open) { if (p > .9 || reduced) S.contentA = reduced ? 1 : Math.min(1, S.contentA + dt / 200); }
+    else S.contentA = reduced ? 0 : Math.max(0, S.contentA - dt / 90);
+
+    if (S.P && S.R) {
+      const P = S.P, R = S.R;
+      const sx = Math.max(.02, lerp(P.width / R.width, 1, p)), sy = Math.max(.02, lerp(P.height / R.height, 1, p));
+      const dx = lerp(P.left + P.width / 2 - (R.left + R.width / 2), 0, p), dy = lerp(P.top + P.height / 2 - (R.top + R.height / 2), 0, p);
+      shell.style.transform = `translate3d(${dx.toFixed(2)}px,${dy.toFixed(2)}px,0) scale(${sx.toFixed(4)},${sy.toFixed(4)})`;
+      shell.style.opacity = clamp(p / .2).toFixed(3);
+      bd.style.opacity = clamp(p).toFixed(3);
+    }
+    pill.style.opacity = (S.intro * (1 - clamp(p / .33))).toFixed(3);
+    pc.style.opacity = S.contentA.toFixed(3);
+    pc.style.transform = `translateY(${((1 - S.contentA) * 8).toFixed(2)}px)`;
+    if (!S.open && p < .002 && S.contentA === 0) { pal.style.visibility = 'hidden'; bd.style.visibility = 'hidden'; }
+    hlEl.style.transform = `translateY(${hl.x.toFixed(2)}px)`;
+    const ta = toastS.x;
+    toast.style.opacity = clamp(ta).toFixed(3);
+    toast.style.transform = `translateY(${((1 - ta) * 24).toFixed(2)}px)`;
+    if (ta < .002 && S.toastHold <= 0) toast.style.visibility = 'hidden';
+    demoStep(dt);
+  }
+
+  let raf = 0, last = 0, inView = true;
+  function frame(now) {
+    if (!inView || document.hidden) { raf = 0; return; }
+    const dt = last ? Math.min(50, now - last) : 16; last = now;
+    update(dt);
+    raf = requestAnimationFrame(frame);
+  }
+  function kick() { if (!raf && inView && !document.hidden) { last = 0; raf = requestAnimationFrame(frame); } }
+  new IntersectionObserver((en) => { inView = en[0].isIntersecting; if (inView) kick(); }).observe(stage);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) kick(); });
+
+  /* ---------- início ---------- */
+  if (reduced) {
+    // estado final parado: paleta aberta com "cod", 2º resultado selecionado
+    open(true);
+    input.value = 'cod'; renderList(0); setSel(1, true);
+    S.contentA = 1;
+    update(0);
+  }
+  kick();
+})();
+</script>
+</body>
+</html>

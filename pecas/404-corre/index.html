@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Esta página fugiu · 404 · INEMA.CLUB</title>
+<meta name="description" content="Página 404 do INEMA.CLUB: uma capivara corre e pula obstáculos de código.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500;700&family=Sora:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg0: #0b0b0d; --bg1: #111114; --tx: #f3efe7; --amb: #E2A23B; --sky: #38bdf8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg0); color: var(--tx); }
+  body { font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .stage { position: relative; width: 100%; height: 100vh; height: 100dvh; overflow: hidden;
+           background: linear-gradient(180deg, var(--bg0) 0%, var(--bg1) 100%); }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+           touch-action: manipulation; cursor: pointer; outline: none; }
+  canvas:focus-visible { box-shadow: inset 0 0 0 3px var(--amb); }
+
+  .hud { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between;
+         align-items: flex-start; gap: 12px; pointer-events: none;
+         font: 500 13px/1.5 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; }
+  .hud .l, .hud .r { display: flex; flex-direction: column; gap: 4px; }
+  .hud .r { text-align: right; }
+  .hud .dim { color: rgba(243,239,231,.55); }
+  .hud b { color: var(--tx); font-weight: 500; }
+  .hud .rec b { color: var(--amb); }
+  .chip { align-self: flex-start; font-size: 10.5px; letter-spacing: .14em; color: var(--amb);
+          border: 1px solid rgba(226,162,59,.5); border-radius: 999px; padding: 2px 9px;
+          transition: opacity .3s ease; }
+  .chip::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+          background: var(--amb); margin-right: 7px; vertical-align: 1px; animation: blink 1.2s ease-in-out infinite; }
+  .chip.off { opacity: 0; }
+
+  .copy { position: absolute; left: 50%; top: 10%; transform: translateX(-50%); width: min(92%, 760px);
+          text-align: center; pointer-events: none; }
+  h1 { font: 700 clamp(28px, 5.2vw, 60px)/1.05 Sora, Inter, sans-serif; letter-spacing: -0.02em; margin: 0 0 .35em;
+       text-shadow: 0 2px 24px rgba(11,11,13,.9); }
+  .sub { margin: 0 auto 1.1em; max-width: 34em; font-size: clamp(14px, 1.6vw, 18px); line-height: 1.5;
+         color: rgba(243,239,231,.72); text-shadow: 0 1px 12px rgba(11,11,13,.9); }
+  .back { pointer-events: auto; display: inline-flex; align-items: center; gap: .45em; min-height: 44px;
+          padding: 10px 22px; border-radius: 999px; border: 1px solid var(--amb);
+          background: rgba(226,162,59,.12); color: var(--tx); text-decoration: none;
+          font: 500 clamp(14px, 1.4vw, 16px)/1 Inter, sans-serif;
+          transition: transform .2s ease, background-color .2s ease; }
+  .back:hover { background: rgba(226,162,59,.22); transform: translateY(-1px); }
+  .back:focus-visible { outline: 3px solid var(--amb); outline-offset: 3px; }
+  .back .site { color: var(--sky); font-weight: 500; }
+  .back .arw { color: var(--amb); }
+
+  .over { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%); text-align: center;
+          pointer-events: none; opacity: 0; transition: opacity .25s ease; width: min(92%, 640px);
+          background: rgba(11,11,13,.72); border: 1px solid rgba(226,162,59,.35); border-radius: 14px; padding: 16px 18px; }
+  .over.on { opacity: 1; }
+  .over strong { display: block; font: 700 clamp(18px, 2.6vw, 26px)/1.25 Sora, sans-serif; }
+  .over span { display: block; margin-top: 6px; font: 500 12px/1.4 "JetBrains Mono", monospace; letter-spacing: .12em;
+               color: rgba(243,239,231,.6); text-transform: uppercase; }
+
+  .rm-note { position: absolute; bottom: 12px; left: 0; right: 0; text-align: center; font-size: 12px;
+             color: rgba(243,239,231,.5); display: none; }
+
+  .in { opacity: 0; transform: translateY(12px); animation: rise .6s cubic-bezier(.2,.7,.2,1) forwards; }
+  .d1 { animation-delay: .12s; } .d2 { animation-delay: .24s; } .d3 { animation-delay: .36s; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  @keyframes blink { 50% { opacity: .25; } }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  @media (max-width: 520px) {
+    .hud { font-size: 11px; }
+    .copy { top: 15%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .in { opacity: 1; transform: none; animation: none; }
+    .chip::before { animation: none; }
+    .rm-note { display: block; }
+    .back, .over, .chip { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <canvas id="game" tabindex="0" role="img"
+    aria-label="Jogo: uma capivara corre por um chão de código e pula obstáculos. Toque, clique ou pressione espaço para pular."></canvas>
+
+  <div class="hud in d3" aria-hidden="true">
+    <div class="l">
+      <span class="dim">404 · INEMA.CLUB</span>
+      <span class="chip" id="chip">Piloto automático</span>
+    </div>
+    <div class="r">
+      <span class="dim">Distância <b id="dist">0000</b> m</span>
+      <span class="dim rec">Recorde <b id="rec">0000</b> m</span>
+    </div>
+  </div>
+
+  <div class="copy">
+    <h1 class="in">Esta página fugiu.</h1>
+    <p class="sub in d1">Erro 404 — mas a capivara continua correndo. Pule os bugs ou volte para a home.</p>
+    <a class="back in d2" href="https://inema.club"><span class="arw" aria-hidden="true">←</span><span>Voltar ao <span class="site">INEMA.CLUB</span></span></a>
+  </div>
+
+  <div class="over" id="over" aria-hidden="true">
+    <strong>Fim de jogo — toque para tentar de novo</strong>
+    <span id="overDist">0000 m · ou aperte espaço</span>
+  </div>
+  <p class="sr" id="live" aria-live="polite"></p>
+  <p class="rm-note">Movimento reduzido: o jogo fica parado.</p>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const stage = document.getElementById('stage');
+  const cv = document.getElementById('game');
+  const ctx = cv.getContext('2d');
+  const elDist = document.getElementById('dist');
+  const elRec = document.getElementById('rec');
+  const elChip = document.getElementById('chip');
+  const elOver = document.getElementById('over');
+  const elOverDist = document.getElementById('overDist');
+  const elLive = document.getElementById('live');
+
+  const C = { bg0: '#0b0b0d', bg1: '#111114', tx: '#f3efe7', amb: '#E2A23B',
+              body: '#9a6434', back: '#7a4b25', belly: '#b98252', head: '#8a5a2e', snout: '#6b4220', line: '#2a1a0e' };
+  const MONO = '"JetBrains Mono", ui-monospace, monospace';
+  const SANS = 'Inter, system-ui, sans-serif';
+
+  // Física (passos 2–5 do PROMPT)
+  const V0 = 600, G = 1600, AIR = 2 * V0 / G;          // 750 ms no ar, 112 u de altura
+  const SPEED0 = 300, ACC = 9, SPEED_MAX = 620;
+  const HB = { l: -22, r: 42, b: 3, t: 52 };            // caixa da capivara
+  const INSET = 3;
+  const METER = 25;
+
+  const params = new URLSearchParams(location.search);
+  const FORCE_DEMO = params.get('demo') === '1';
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = mq.matches;
+
+  // ---------- recorde ----------
+  let record = 0;
+  try { record = parseInt(localStorage.getItem('inema404-recorde') || '0', 10) || 0; } catch (e) { record = 0; }
+  const pad = n => String(Math.min(9999, Math.floor(n))).padStart(4, '0');
+  elRec.textContent = pad(record);
+
+  // ---------- tamanho ----------
+  let cssW = 0, cssH = 0, dpr = 1, scale = 1, W = 420, H = 380, groundY = 320, capX = 80;
+  function resize() {
+    const r = stage.getBoundingClientRect();
+    cssW = Math.max(1, r.width); cssH = Math.max(1, r.height);
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    const portrait = cssH / cssW > 1.3;
+    scale = portrait ? cssW / 340 : Math.min(cssH / 380, cssW / 420);
+    W = cssW / scale; H = cssH / scale;
+    groundY = H * (portrait ? 0.74 : 0.84);
+    capX = Math.max(70, Math.min(160, W * 0.18));
+    cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssH * dpr);
+    buildStars();
+    if (!raf) draw();
+  }
+
+  // ---------- estrelas ----------
+  let stars = [];
+  function buildStars() {
+    const n = Math.round(Math.min(140, W * H / 2600));
+    let s = 7;
+    const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    stars = [];
+    for (let i = 0; i < n; i++) stars.push({ x: rnd() * W, y: rnd() * groundY * 0.8, r: 0.4 + rnd() * 1.1, p: rnd() * 6.28, a: 0.25 + rnd() * 0.6 });
+  }
+
+  // ---------- estado ----------
+  const S = {
+    state: 'run', t: 0, runT: 0, speed: SPEED0, scroll: 0, dist: 0,
+    y: 0, vy: 0, grounded: true, airT: 0, landT: 1, buffer: -1,
+    rot: 0, crashT: 0, shake: 0,
+    obs: [], gapLeft: 0, dust: [],
+    autopilot: true, human: false, humanRun: false, crashes: 0, jumps: 0, started: false,
+    ghostPress: 1, ripples: [], ghostFade: 1
+  };
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  function resetRun(first) {
+    S.state = 'run'; S.runT = 0; S.speed = SPEED0; S.dist = 0;
+    S.y = 0; S.vy = 0; S.grounded = true; S.airT = 0; S.landT = 1; S.buffer = -1;
+    S.rot = 0; S.crashT = 0; S.shake = 0; S.obs = []; S.dust = [];
+    S.humanRun = !S.autopilot;
+    spawn(first ? W * 0.75 : W + 40);
+    elOver.classList.remove('on');
+    updateHud();
+  }
+
+  const TYPES = [
+    { k: 'braces', w: 34, h: 38 },
+    { k: '404', w: 46, h: 30 },
+    { k: 'cactus', w: 34, h: 44 }
+  ];
+  function spawn(x) {
+    const ty = TYPES[Math.floor(Math.random() * TYPES.length)];
+    S.obs.push({ k: ty.k, w: ty.w, h: ty.h, x, plan: null });
+    S.gapLeft = S.speed * (AIR + 0.5) + Math.random() * S.speed * 0.9;
+  }
+
+  // ---------- pulo ----------
+  function jump() {
+    if (S.state !== 'run') return false;
+    if (S.grounded) {
+      S.vy = V0; S.grounded = false; S.airT = 0; S.jumps++;
+      return true;
+    }
+    if (S.y < 0.25 * V0 * V0 / (2 * G) && S.vy < 0) S.buffer = 0.1; // pulo guardado (~100 ms)
+    return false;
+  }
+
+  // janela segura para o piloto
+  function plan(o) {
+    const he = Math.max(0, (o.h - INSET) - HB.b + 2);
+    const disc = Math.sqrt(Math.max(0, V0 * V0 - 2 * G * he));
+    const t1 = (V0 - disc) / G, t2 = (V0 + disc) / G;
+    const overlap = (HB.r - HB.l + o.w - 2 * INSET) / S.speed;
+    const slack = Math.max(0, (t2 - t1) - overlap);
+    const j = (Math.random() < 0.25 ? 0.42 : 0.3) * slack * (Math.random() < 0.5 ? -1 : 1) * Math.random() * 1.0;
+    return t1 + slack / 2 + j;
+  }
+
+  function autopilot() {
+    if (!S.grounded) return;
+    for (const o of S.obs) {
+      const right = o.x + o.w - INSET;
+      if (right < capX + HB.l) continue;
+      if (o.plan === null) o.plan = plan(o);
+      const ttc = (o.x + INSET - (capX + HB.r)) / S.speed;
+      if (ttc <= o.plan && ttc > -0.05) {
+        if (jump()) { S.ghostPress = 0; S.ripples.push(0); }
+      }
+      break;
+    }
+  }
+
+  // ---------- entrada humana ----------
+  function human() {
+    if (FORCE_DEMO) return;
+    if (S.autopilot) {
+      S.autopilot = false; S.human = true;
+      elChip.classList.add('off');
+      if (S.state !== 'run') { resetRun(false); return; }
+      jump(); return;
+    }
+    if (S.state === 'run') { jump(); return; }
+    if (S.state === 'over') resetRun(false); // batida: entradas ignoradas até o aviso (700 ms)
+  }
+
+  let hover = false;
+  stage.addEventListener('pointerenter', () => { hover = true; });
+  stage.addEventListener('pointerleave', () => { hover = false; });
+  stage.addEventListener('pointerdown', e => {
+    if (e.target.closest && e.target.closest('a,button')) return;
+    if (e.button !== undefined && e.button > 0) return;
+    human();
+  });
+  window.addEventListener('keydown', e => {
+    if (e.code !== 'Space' && e.key !== ' ' && e.code !== 'ArrowUp') return;
+    const ae = document.activeElement;
+    const focusIn = ae && ae !== document.body && stage.contains(ae);
+    if (ae && ae.closest && ae.closest('a,button,input,textarea,select')) return;
+    if (!(focusIn || hover)) return;
+    if (e.code === 'Space' || e.key === ' ') e.preventDefault();
+    if (e.repeat) return;
+    human();
+  });
+
+  // ---------- update ----------
+  function update(dt) {
+    S.t += dt;
+    if (!S.started) { if (S.t < 0.3) return; S.started = true; }
+
+    if (S.state === 'run') {
+      S.runT += dt;
+      S.speed = Math.min(SPEED_MAX, SPEED0 + ACC * S.runT);
+    } else {
+      S.speed = Math.max(0, S.speed - 900 * dt);
+    }
+    const dx = S.speed * dt;
+    S.scroll += dx;
+    if (S.state === 'run') S.dist += dx;
+
+    // obstáculos
+    for (const o of S.obs) o.x -= dx;
+    S.obs = S.obs.filter(o => o.x + o.w > -60);
+    if (S.state === 'run') {
+      S.gapLeft -= dx;
+      const last = S.obs[S.obs.length - 1];
+      if (S.gapLeft <= 0 && (!last || last.x < W)) spawn(Math.max(W + 40, last ? last.x + last.w + 40 : 0));
+    }
+
+    if (S.autopilot && S.state === 'run') autopilot();
+
+    // capivara
+    if (!S.grounded) {
+      S.airT += dt;
+      S.vy -= G * dt; S.y += S.vy * dt;
+      if (S.buffer > 0) S.buffer -= dt;
+      if (S.y <= 0) {
+        S.y = 0; S.vy = 0; S.grounded = true; S.landT = 0;
+        for (let i = 0; i < 6; i++) S.dust.push({ x: capX + rand(-26, 30), y: groundY - 2, vx: rand(-90, 10) - S.speed * 0.15, vy: rand(-60, -15), t: 0 });
+        if (S.buffer > 0 && S.state === 'run') { S.buffer = -1; jump(); }
+      }
+    } else {
+      S.landT += dt;
+    }
+
+    // colisão
+    if (S.state === 'run') {
+      const ax0 = capX + HB.l, ax1 = capX + HB.r, ay0 = S.y + HB.b, ay1 = S.y + HB.t;
+      for (const o of S.obs) {
+        const bx0 = o.x + INSET, bx1 = o.x + o.w - INSET, bh = o.h - INSET;
+        if (ax1 > bx0 && ax0 < bx1 && ay0 < bh && ay1 > 0) { crash(); break; }
+      }
+    } else {
+      S.crashT += dt;
+      S.rot = Math.min(0.6, S.rot + dt * (0.6 / 0.35));
+      if (S.shake > 0) S.shake -= dt;
+      if (S.state === 'crash' && S.crashT >= 0.7) {
+        S.state = 'over';
+        elOverDist.textContent = pad(S.dist / METER) + ' m · ou aperte espaço';
+        elOver.classList.add('on');
+        if (!S.autopilot) elLive.textContent = 'Fim de jogo. ' + Math.floor(S.dist / METER) + ' metros. Toque ou aperte espaço para tentar de novo.';
+      }
+      if (S.autopilot && S.crashT >= 1.4) resetRun(false);
+    }
+
+    // poeira
+    for (const p of S.dust) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; }
+    S.dust = S.dust.filter(p => p.t < 0.4);
+    if (S.grounded && S.state === 'run' && Math.random() < dt * 6) {
+      S.dust.push({ x: capX - 24, y: groundY - 1, vx: -S.speed * 0.3 + rand(-20, 20), vy: rand(-30, -8), t: 0.1 });
+    }
+
+    // dedo fantasma
+    S.ghostPress = Math.min(1, S.ghostPress + dt / 0.12);
+    S.ripples = S.ripples.map(r => r + dt).filter(r => r < 0.5);
+    S.ghostFade = S.autopilot ? Math.min(1, S.ghostFade + dt * 3) : Math.max(0, S.ghostFade - dt * 3);
+
+    updateHud();
+  }
+
+  function crash() {
+    S.state = 'crash'; S.crashT = 0; S.shake = 0.2; S.crashes++;
+    if (S.humanRun) {
+      const m = Math.floor(S.dist / METER);
+      if (m > record) {
+        record = m;
+        try { localStorage.setItem('inema404-recorde', String(record)); } catch (e) {}
+      }
+    }
+  }
+
+  let lastShown = '';
+  function updateHud() {
+    const d = pad(S.dist / METER);
+    if (d !== lastShown) { elDist.textContent = d; lastShown = d; }
+    elRec.textContent = pad(record);
+  }
+
+  // ---------- desenho ----------
+  function rr(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.closePath();
+  }
+
+  function hill(par, base, amp, f1, f2, fill, edge) {
+    const off = S.scroll * par;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    for (let x = 0; x <= W + 8; x += 8) {
+      const X = x + off;
+      const y = base - amp * (0.55 + 0.3 * Math.sin(X * f1) + 0.15 * Math.sin(X * f2 + 1.3));
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W + 8, groundY); ctx.closePath();
+    ctx.fillStyle = fill; ctx.fill();
+    if (edge) {
+      ctx.beginPath();
+      for (let x = 0; x <= W + 8; x += 8) {
+        const X = x + off;
+        const y = base - amp * (0.55 + 0.3 * Math.sin(X * f1) + 0.15 * Math.sin(X * f2 + 1.3));
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = edge; ctx.lineWidth = 1.2; ctx.stroke();
+    }
+  }
+
+  const GLYPHS = ['01', ';', '{}', '=>', '()', '0', '//', '1'];
+  function drawBackground() {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, C.bg0); g.addColorStop(1, C.bg1);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    // lua
+    const mx = W * 0.8, my = groundY * (H / W > 1.3 ? 0.62 : 0.36), mr = Math.min(34, W * 0.06);
+    const halo = ctx.createRadialGradient(mx, my, mr * 0.6, mx, my, mr * 3.2);
+    halo.addColorStop(0, 'rgba(226,162,59,0.10)'); halo.addColorStop(1, 'rgba(226,162,59,0)');
+    ctx.fillStyle = halo; ctx.fillRect(mx - mr * 3.2, my - mr * 3.2, mr * 6.4, mr * 6.4);
+    ctx.beginPath(); ctx.arc(mx, my, mr, 0, 6.283); ctx.fillStyle = 'rgba(226,162,59,0.08)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(226,162,59,0.18)'; ctx.lineWidth = 1; ctx.stroke();
+
+    // estrelas
+    const so = S.scroll * 0.04;
+    for (const s of stars) {
+      let x = (s.x - so) % W; if (x < 0) x += W;
+      const a = s.a * (0.65 + 0.35 * Math.sin(S.t * 1.7 + s.p));
+      ctx.fillStyle = `rgba(243,239,231,${a.toFixed(3)})`;
+      ctx.fillRect(x, s.y, s.r, s.r);
+    }
+
+    hill(0.15, groundY - 18, 90, 0.0062, 0.017, '#141418', null);
+    hill(0.35, groundY + 2, 52, 0.011, 0.029, '#19191f', 'rgba(226,162,59,0.10)');
+
+    // chão
+    ctx.fillStyle = '#101013'; ctx.fillRect(0, groundY, W, H - groundY);
+    ctx.strokeStyle = 'rgba(226,162,59,0.40)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(W, groundY); ctx.stroke();
+    ctx.fillStyle = 'rgba(226,162,59,0.18)';
+    const step = 46, o1 = S.scroll % step;
+    for (let x = -o1; x < W; x += step) ctx.fillRect(x, groundY + 6, 14, 1.5);
+    ctx.font = `500 9px ${MONO}`; ctx.textBaseline = 'middle';
+    const gs = 92, o2 = S.scroll % gs, base = Math.floor(S.scroll / gs);
+    for (let i = 0, x = -o2; x < W + gs; x += gs, i++) {
+      ctx.fillText(GLYPHS[(base + i) % GLYPHS.length], x + 20, groundY + 20 + ((base + i) % 3) * 7);
+    }
+  }
+
+  function drawObstacle(o) {
+    const x = o.x, y = groundY - o.h;
+    ctx.lineWidth = 2; ctx.strokeStyle = C.amb; ctx.fillStyle = '#16161b';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    if (o.k === 'cactus') {
+      const cx = x + o.w / 2;
+      // tronco
+      rr(cx - 7, y, 14, o.h + 1, 6); ctx.fill(); ctx.stroke();
+      // braço esquerdo
+      ctx.beginPath();
+      ctx.moveTo(cx - 7, y + 26); ctx.lineTo(cx - 13, y + 26); ctx.quadraticCurveTo(x + 1, y + 26, x + 1, y + 20);
+      ctx.lineTo(x + 1, y + 10); ctx.quadraticCurveTo(x + 1, y + 6, x + 4, y + 6); ctx.quadraticCurveTo(x + 7, y + 6, x + 7, y + 10);
+      ctx.lineTo(x + 7, y + 19); ctx.lineTo(cx - 7, y + 19);
+      ctx.fill(); ctx.stroke();
+      // braço direito
+      ctx.beginPath();
+      ctx.moveTo(cx + 7, y + 20); ctx.lineTo(x + o.w - 6, y + 20); ctx.quadraticCurveTo(x + o.w - 1, y + 20, x + o.w - 1, y + 14);
+      ctx.lineTo(x + o.w - 1, y + 4); ctx.quadraticCurveTo(x + o.w - 1, y + 1, x + o.w - 4, y + 1); ctx.quadraticCurveTo(x + o.w - 7, y + 1, x + o.w - 7, y + 4);
+      ctx.lineTo(x + o.w - 7, y + 14); ctx.lineTo(cx + 7, y + 14);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = C.amb;
+      ctx.font = `700 6.5px ${MONO}`;
+      ctx.fillText('</>', cx, y + 33);
+      ctx.font = `700 7px ${MONO}`;
+      ctx.fillText(';', cx, y + 10); ctx.fillText(';', x + 4, y + 14); ctx.fillText(';', x + o.w - 4, y + 9);
+    } else {
+      rr(x, y, o.w, o.h + 1, 5); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = C.amb;
+      ctx.font = `700 ${o.k === '404' ? 15 : 17}px ${MONO}`;
+      ctx.fillText(o.k === '404' ? '404' : '{ }', x + o.w / 2, y + o.h / 2 + 1);
+    }
+    ctx.textAlign = 'start';
+  }
+
+  function drawCapy() {
+    const crashed = S.state !== 'run';
+    let sx = 1, sy = 1;
+    if (!S.grounded && !crashed) {
+      const k = Math.max(0, 1 - S.airT / 0.18);
+      sy = 1 + 0.16 * k; sx = 1 - 0.10 * k;
+    } else if (S.landT < 0.18) {
+      const k = 1 - S.landT / 0.18;
+      sy = 1 - 0.20 * k; sx = 1 + 0.14 * k;
+    }
+    const cyc = crashed ? 0 : (S.scroll / (SPEED0 * 0.26)) * Math.PI * 2;
+    const bob = (S.grounded && !crashed) ? Math.sin(cyc * 2) * 1.5 : 0;
+    const air = !S.grounded;
+
+    ctx.save();
+    ctx.translate(capX, groundY - S.y);
+    // sombra no chão
+    ctx.save();
+    ctx.translate(0, S.y);
+    const sh = Math.max(0.35, 1 - S.y / 140);
+    ctx.fillStyle = `rgba(0,0,0,${(0.35 * sh).toFixed(3)})`;
+    ctx.beginPath(); ctx.ellipse(10, 1, 36 * sh, 4 * sh, 0, 0, 6.283); ctx.fill();
+    ctx.restore();
+
+    if (crashed) { ctx.translate(46, 0); ctx.rotate(S.rot); ctx.translate(-46, 0); }
+    ctx.scale(sx, sy);
+    ctx.translate(0, -bob);
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.lineWidth = 2; ctx.strokeStyle = C.line;
+
+    // pernas (atrás do corpo)
+    const legs = [[-22, 0], [-11, Math.PI], [14, Math.PI], [25, 0]];
+    for (let i = 0; i < 4; i++) {
+      const [lx, ph] = legs[i];
+      let lift = 0, swing = 0;
+      if (air) { swing = i < 2 ? -5 : 5; lift = 5; }
+      else if (!crashed) { const s = Math.sin(cyc + ph); lift = Math.max(0, s) * 5; swing = Math.cos(cyc + ph) * 4; }
+      ctx.fillStyle = i === 1 || i === 2 ? C.back : C.body;
+      rr(lx - 4 + swing, -16 - lift, 8, 15, 3.5); ctx.fill(); ctx.stroke();
+    }
+
+    // corpo-barril
+    ctx.fillStyle = C.body;
+    rr(-34, -52, 66, 40, 19); ctx.fill(); ctx.stroke();
+    // dorso escuro
+    ctx.save(); rr(-34, -52, 66, 40, 19); ctx.clip();
+    ctx.fillStyle = C.back; ctx.beginPath(); ctx.ellipse(-4, -52, 38, 12, 0, 0, 6.283); ctx.fill();
+    ctx.fillStyle = C.belly; ctx.beginPath(); ctx.ellipse(0, -12, 26, 9, 0, 0, 6.283); ctx.fill();
+    // pelagem
+    ctx.strokeStyle = 'rgba(42,26,14,0.35)'; ctx.lineWidth = 1.2;
+    for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(-22 + i * 11, -44); ctx.lineTo(-19 + i * 11, -40); ctx.stroke(); }
+    ctx.restore();
+    ctx.lineWidth = 2; ctx.strokeStyle = C.line;
+    rr(-34, -52, 66, 40, 19); ctx.stroke();
+
+    // cabeça: retangular, focinho alto e rombudo
+    ctx.fillStyle = C.head;
+    ctx.beginPath();
+    ctx.moveTo(14, -48);
+    ctx.quadraticCurveTo(18, -64, 34, -64);
+    ctx.lineTo(50, -62);
+    ctx.quadraticCurveTo(60, -60, 60, -50);
+    ctx.lineTo(60, -38);
+    ctx.quadraticCurveTo(60, -30, 52, -30);
+    ctx.lineTo(28, -28);
+    ctx.quadraticCurveTo(16, -30, 14, -40);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    // ponta do focinho
+    ctx.save(); ctx.clip();
+    ctx.fillStyle = C.snout; ctx.fillRect(50, -66, 14, 40);
+    ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(14, -48); ctx.quadraticCurveTo(18, -64, 34, -64); ctx.lineTo(50, -62);
+    ctx.quadraticCurveTo(60, -60, 60, -50); ctx.lineTo(60, -38); ctx.quadraticCurveTo(60, -30, 52, -30);
+    ctx.lineTo(28, -28); ctx.quadraticCurveTo(16, -30, 14, -40); ctx.closePath(); ctx.stroke();
+    // orelha
+    ctx.fillStyle = C.back;
+    ctx.beginPath(); ctx.arc(24, -63, 5, 0, 6.283); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = C.snout; ctx.beginPath(); ctx.arc(24, -63, 2, 0, 6.283); ctx.fill();
+    // bochecha
+    ctx.fillStyle = 'rgba(226,162,59,0.25)';
+    ctx.beginPath(); ctx.ellipse(38, -38, 6, 4, 0, 0, 6.283); ctx.fill();
+    // olho
+    if (crashed) {
+      ctx.strokeStyle = C.line; ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.moveTo(37, -53); ctx.lineTo(43, -47); ctx.moveTo(43, -53); ctx.lineTo(37, -47); ctx.stroke();
+    } else {
+      ctx.fillStyle = '#1a100a'; ctx.beginPath(); ctx.arc(40, -50, 3, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgba(243,239,231,0.9)'; ctx.beginPath(); ctx.arc(41, -51.2, 1, 0, 6.283); ctx.fill();
+    }
+    // narina e boca
+    ctx.fillStyle = '#1a100a';
+    ctx.beginPath(); ctx.ellipse(56.5, -48, 1.6, 2.2, 0, 0, 6.283); ctx.fill();
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(57, -36); ctx.quadraticCurveTo(54, -33, 50, -35); ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawDust() {
+    for (const p of S.dust) {
+      const a = 0.45 * (1 - p.t / 0.4);
+      ctx.fillStyle = `rgba(226,162,59,${a.toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 1.6 + p.t * 5, 0, 6.283); ctx.fill();
+    }
+  }
+
+  function drawGhost() {
+    if (S.ghostFade <= 0.01 || reduced) return;
+    const gx = capX + 96, gy = groundY + Math.min(34, (H - groundY) * 0.42);
+    ctx.save();
+    ctx.globalAlpha = S.ghostFade;
+    for (const r of S.ripples) {
+      const k = r / 0.5;
+      ctx.strokeStyle = `rgba(226,162,59,${(0.7 * (1 - k)).toFixed(3)})`; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.arc(gx, gy, 9 + 36 * k, 0, 6.283); ctx.stroke();
+    }
+    const idle = 0.5 + 0.5 * Math.sin(S.t * (6.283 / 1.2));
+    ctx.strokeStyle = `rgba(226,162,59,${(0.25 + 0.25 * idle).toFixed(3)})`; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(gx, gy, 13 + idle * 3, 0, 6.283); ctx.stroke();
+    const p = S.ghostPress;
+    const sc = 0.82 + 0.18 * p;
+    ctx.translate(gx, gy); ctx.scale(sc, sc);
+    ctx.fillStyle = 'rgba(243,239,231,0.85)';
+    ctx.beginPath(); ctx.arc(0, 0, 9, 0, 6.283); ctx.fill();
+    ctx.strokeStyle = C.amb; ctx.lineWidth = 2; ctx.stroke();
+    ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+    ctx.globalAlpha = S.ghostFade * 0.7;
+    ctx.fillStyle = C.tx; ctx.font = `500 11px ${SANS}`; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText('toque para pular', gx + 18, gy + 1);
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+    ctx.save();
+    if (S.shake > 0) ctx.translate(rand(-4, 4) * (S.shake / 0.2), rand(-4, 4) * (S.shake / 0.2));
+    drawBackground();
+    for (const o of S.obs) drawObstacle(o);
+    drawDust();
+    drawCapy();
+    ctx.restore();
+    drawGhost();
+  }
+
+  // ---------- loop ----------
+  let raf = 0, last = 0, inView = true;
+  function frame(now) {
+    raf = 0;
+    let dt = (now - last) / 1000; last = now;
+    if (dt > 0.05) dt = 0.05; if (dt < 0) dt = 0;
+    update(dt);
+    draw();
+    if (running()) raf = requestAnimationFrame(frame);
+  }
+  function running() { return !reduced && inView && !document.hidden; }
+  function start() { if (raf || !running()) return; last = performance.now(); raf = requestAnimationFrame(frame); }
+  function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
+
+  // cena parada (movimento reduzido): capivara no ápice sobre um bloco "404"
+  function staticScene() {
+    stop();
+    S.state = 'run'; S.dist = 0; S.scroll = 0; S.t = 1.2;
+    S.grounded = false; S.airT = 0.375; S.y = V0 * V0 / (2 * G); S.vy = 0; S.landT = 1;
+    S.obs = [{ k: '404', w: 46, h: 30, x: capX - 10, plan: 0 }, { k: 'braces', w: 34, h: 38, x: capX + W * 0.45, plan: 0 }];
+    S.dust = []; S.ripples = []; S.ghostFade = 0;
+    elChip.classList.add('off');
+    updateHud();
+    draw();
+  }
+
+  function applyMotionPref() {
+    reduced = mq.matches;
+    if (reduced) staticScene();
+    else { S.ghostFade = S.autopilot ? 1 : 0; if (S.autopilot) elChip.classList.remove('off'); resetRun(true); S.started = false; S.t = 0; start(); }
+  }
+  if (mq.addEventListener) mq.addEventListener('change', applyMotionPref);
+  else if (mq.addListener) mq.addListener(applyMotionPref);
+
+  document.addEventListener('visibilitychange', () => { document.hidden ? stop() : start(); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(es => { inView = es[0].isIntersecting; inView ? start() : stop(); }, { threshold: 0 }).observe(stage);
+  }
+  if ('ResizeObserver' in window) new ResizeObserver(() => { resize(); if (reduced) staticScene(); }).observe(stage);
+  else window.addEventListener('resize', () => { resize(); if (reduced) staticScene(); });
+
+  // gancho de teste
+  window.__inema404 = {
+    get state() { return S.state; }, get distance() { return Math.floor(S.dist / METER); },
+    get crashes() { return S.crashes; }, get jumps() { return S.jumps; }, get jumping() { return !S.grounded; },
+    get autopilot() { return S.autopilot; }, get running() { return !!raf; }, get speed() { return S.speed; }
+  };
+
+  resize();
+  if (reduced) staticScene();
+  else { resetRun(true); start(); }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rodapé INEMA</title>
+<meta name="description" content="Rodapé de site com as letras INEMA em blocos que caem com física, empilham e podem ser arremessados.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&family=Sora:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --painel: #111114;
+    --linha: #24242a;
+    --texto: #f3efe7;
+    --texto-2: rgba(243, 239, 231, .6);
+    --ambar: #E2A23B;
+    --sky: #38bdf8;
+    --h: 160px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow-x: hidden; background: var(--bg); color: var(--texto); }
+  body { font-family: Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+  .rodape {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--painel);
+    border-top: 1px solid var(--linha);
+    overflow: hidden;
+  }
+
+  /* ---------- topo: colunas de links ---------- */
+  .topo { flex: none; padding: clamp(18px, 4.5vh, 44px) clamp(16px, 4vw, 56px) 0; }
+  .cabeca {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+    font: 500 11px/1.2 "JetBrains Mono", ui-monospace, monospace;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--texto-2);
+    padding-bottom: 14px; margin-bottom: clamp(14px, 3vh, 26px);
+    border-bottom: 1px solid var(--linha);
+  }
+  .cabeca b { color: var(--texto); font-weight: 500; }
+  .colunas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(14px, 2.5vw, 36px); }
+  .col { min-width: 0; }
+  .rotulo {
+    display: block; font: 500 11px/1.2 "JetBrains Mono", ui-monospace, monospace;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--ambar); margin-bottom: 8px;
+  }
+  .col a {
+    display: inline-block; color: var(--texto); text-decoration: none; border-radius: 6px;
+  }
+  .col a .titulo {
+    display: block; font: 600 22px/1.15 Sora, sans-serif; letter-spacing: -.01em;
+  }
+  .col a .titulo::after { content: " ↗"; font-size: .7em; color: var(--ambar); opacity: 0; transition: opacity .2s; }
+  .col a:hover .titulo::after { opacity: 1; }
+  .col a .dominio {
+    display: block; font: 500 12px/1.4 "JetBrains Mono", ui-monospace, monospace; color: var(--texto-2); margin-top: 2px;
+  }
+  .col a:hover .dominio { color: var(--ambar); }
+  .col p { margin: 8px 0 0; font-size: 14px; color: var(--texto-2); max-width: 26ch; }
+
+  a:focus-visible, .arrumar:focus-visible { outline: 2px solid var(--ambar); outline-offset: 3px; }
+
+  /* ---------- meio: área das letras ---------- */
+  .meio { flex: 1 1 auto; min-height: 140px; }
+
+  /* ---------- barra inferior (o chão fica no topo dela) ---------- */
+  .barra {
+    position: relative; flex: none;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px;
+    min-height: 56px; padding: 10px clamp(16px, 4vw, 56px);
+    border-top: 2px solid rgba(226, 162, 59, .35);
+    font-size: 13px; color: var(--texto-2);
+  }
+  .barra p { margin: 0; }
+  .barra .sky { color: var(--sky); text-decoration: none; font-weight: 500; border-radius: 4px; }
+  .barra .sky:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .chao {
+    position: absolute; right: clamp(16px, 4vw, 56px); bottom: calc(100% + 6px);
+    font: 500 10px/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .12em;
+    color: rgba(243, 239, 231, .4); pointer-events: none; white-space: nowrap;
+  }
+  .arrumar {
+    font: 500 13px/1 Inter, sans-serif; color: var(--ambar); background: transparent;
+    border: 1.5px solid var(--ambar); border-radius: 999px; padding: 9px 16px; cursor: pointer;
+    transition: background-color .2s, color .2s;
+  }
+  .arrumar:hover, .arrumar.apertado { background: var(--ambar); color: var(--bg); }
+
+  /* ---------- palco: letras + fantasma ---------- */
+  .palco { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 2; }
+  .letra {
+    position: absolute; left: 0; top: 0;
+    width: calc(var(--h) * .86); height: var(--h);
+    display: grid; place-items: center; padding: 0 0 calc(var(--h) * .03);
+    font: 800 calc(var(--h) * .62)/1 Sora, sans-serif; letter-spacing: -.02em;
+    border: 3px solid #0b0b0d; border-radius: calc(var(--h) * .22);
+    box-shadow: 6px 6px 0 #000, inset 0 calc(var(--h) * -.08) 0 rgba(0, 0, 0, .18);
+    pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none;
+    cursor: grab; transform-origin: 50% 50%; will-change: transform; visibility: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .letra:active { cursor: grabbing; }
+  .letra:focus-visible { outline: 3px dashed var(--texto); outline-offset: 4px; }
+  .pronto .letra { visibility: visible; }
+  .l-i { background: #E2A23B; color: #0b0b0d; }
+  .l-n { background: #f3efe7; color: #0b0b0d; }
+  .l-e { background: #2a2a31; color: #E2A23B; border-color: #4a4a54; }
+  .l-m { background: #F2C76E; color: #0b0b0d; }
+  .l-a { background: #C9821F; color: #f3efe7; }
+
+  .fantasma {
+    position: absolute; left: 0; top: 0; width: 30px; height: 30px; pointer-events: none;
+    opacity: 0; transition: opacity .3s; z-index: 3; will-change: transform;
+    filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, .55));
+  }
+  .fantasma.visivel { opacity: 1; }
+  .fantasma svg { display: block; width: 100%; height: 100%; transform-origin: 3px 2px; transition: transform .12s; }
+  .fantasma.aperta svg { transform: scale(.85); }
+
+  @media (max-width: 640px) {
+    .colunas { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; }
+    .col a .titulo { font-size: 17px; }
+    .col p { font-size: 13px; }
+    .cabeca .so-largo { display: none; }
+    .barra { font-size: 12px; }
+    .arrumar { padding: 8px 13px; font-size: 12px; }
+  }
+  @media (max-width: 420px) {
+    .col p { display: none; }
+  }
+</style>
+</head>
+<body>
+<footer class="rodape" id="rodape">
+  <div class="topo" id="topo">
+    <div class="cabeca"><span><b>INEMA</b> · ecossistema</span><span class="so-largo">IA aplicada, de graça</span></div>
+    <nav class="colunas" aria-label="Ecossistema INEMA">
+      <div class="col">
+        <span class="rotulo">01 · Cursos</span>
+        <a href="https://inema.club"><span class="titulo">Cursos</span><span class="dominio">inema.club</span></a>
+        <p>Trilhas abertas de IA, do zero ao projeto.</p>
+      </div>
+      <div class="col">
+        <span class="rotulo">02 · Eventos</span>
+        <a href="https://eventos.inema.pro"><span class="titulo">Eventos</span><span class="dominio">eventos.inema.pro</span></a>
+        <p>Lives, áreas temáticas e materiais.</p>
+      </div>
+      <div class="col">
+        <span class="rotulo">03 · Buscas</span>
+        <a href="https://buscas.inema.club"><span class="titulo">Buscas</span><span class="dominio">buscas.inema.club</span></a>
+        <p>Ache curso, guia ou ferramenta.</p>
+      </div>
+      <div class="col">
+        <span class="rotulo">04 · PRO</span>
+        <a href="https://inema.pro"><span class="titulo">PRO</span><span class="dominio">inema.pro</span></a>
+        <p>Comunidade e projetos avançados.</p>
+      </div>
+    </nav>
+  </div>
+
+  <div class="meio" id="meio"></div>
+
+  <div class="barra" id="barra">
+    <span class="chao" aria-hidden="true">CHÃO · ARRASTE AS LETRAS</span>
+    <p>© 2026 <a class="sky" href="https://inema.club">INEMA.CLUB</a> · conteúdo aberto e gratuito</p>
+    <button type="button" class="arrumar" id="arrumar">Arrumar letras</button>
+  </div>
+
+  <div class="palco" id="palco">
+    <button type="button" class="letra l-i" aria-label="Letra I — arraste ou aperte Enter para pular">I</button>
+    <button type="button" class="letra l-n" aria-label="Letra N — arraste ou aperte Enter para pular">N</button>
+    <button type="button" class="letra l-e" aria-label="Letra E — arraste ou aperte Enter para pular">E</button>
+    <button type="button" class="letra l-m" aria-label="Letra M — arraste ou aperte Enter para pular">M</button>
+    <button type="button" class="letra l-a" aria-label="Letra A — arraste ou aperte Enter para pular">A</button>
+    <div class="fantasma" id="fantasma" aria-hidden="true">
+      <svg viewBox="0 0 30 30"><path d="M3 2 L3 24 L9 18.5 L13 27 L17 25.2 L13 16.8 L21 16.8 Z" fill="#f3efe7" stroke="#0b0b0d" stroke-width="2" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  /* ===== parâmetros (espelham o PROMPT.md) ===== */
+  const STEP = 1000 / 60;          // passo fixo de física (ms)
+  const DROP_GAP = 120;            // intervalo entre letras na entrada
+  const DEMO_START = 1800;         // início do fantasma após a 1ª letra
+  const RESTORE_MS = 700;          // volta à casa
+  const RESTORE_GAP = 60;          // atraso entre letras na volta
+  const MAX_SPEED = 35;            // px por passo no arremesso
+  const SAMPLE_MS = 80;            // janela de velocidade do ponteiro
+  const WALL = 200;                // espessura das paredes
+
+  const rodape = document.getElementById('rodape');
+  const palco = document.getElementById('palco');
+  const topo = document.getElementById('topo');
+  const barra = document.getElementById('barra');
+  const btnArrumar = document.getElementById('arrumar');
+  const fantasma = document.getElementById('fantasma');
+  const letras = Array.from(palco.querySelectorAll('.letra'));
+
+  const reduz = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const M = window.Matter;
+  const estatico = reduz || !M;
+  const demoForcado = new URLSearchParams(location.search).get('demo') === '1';
+
+  /* ===== medidas ===== */
+  let W = 0, H = 0, floorY = 0, h = 100, w = 86, gap = 8, homes = [];
+
+  function medir() {
+    const r = palco.getBoundingClientRect();
+    W = r.width; H = r.height;
+    floorY = barra.getBoundingClientRect().top - r.top;
+    const topoBase = topo.getBoundingClientRect().bottom - r.top;
+    const area = Math.max(48, floorY - topoBase);
+    h = Math.floor(Math.min((W * 0.92) / 4.62, H * 0.30, 200, area * 0.9));
+    h = Math.max(h, 34);
+    w = Math.round(h * 0.86);
+    gap = h * 0.08;
+    const total = 5 * w + 4 * gap;
+    const x0 = (W - total) / 2 + w / 2;
+    homes = letras.map((_, i) => ({ x: x0 + i * (w + gap), y: floorY - h / 2 }));
+    palco.style.setProperty('--h', h + 'px');
+  }
+
+  function pintar(i, x, y, a) {
+    letras[i].style.transform =
+      `translate3d(${(x - w / 2).toFixed(2)}px, ${(y - h / 2).toFixed(2)}px, 0) rotate(${a.toFixed(4)}rad)`;
+  }
+
+  /* ===== modo estático (movimento reduzido ou sem Matter) ===== */
+  if (estatico) {
+    const desenhar = () => { medir(); homes.forEach((p, i) => pintar(i, p.x, p.y, 0)); palco.classList.add('pronto'); };
+    const pronto = () => {
+      desenhar();
+      let t = null;
+      window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(desenhar, 120); });
+    };
+    Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 1200))]).then(pronto);
+    return;
+  }
+
+  /* ===== física ===== */
+  const { Engine, Bodies, Body, Composite } = M;
+  const engine = Engine.create({ positionIterations: 8, velocityIterations: 6 });
+  engine.gravity.y = 1.6;
+
+  let corpos = [];             // corpos das letras
+  let noMundo = [];            // já soltos?
+  let simT = 0;                // relógio da simulação (ms), pausa junto com o loop
+  let dropInicio = 0;
+  const pegas = new Map();     // id -> {i, ox, oy, tx, ty, amostras}
+  let volta = [];              // entradas de "arrumar"
+  const MASK_PADRAO = 0xFFFFFFFF;
+
+  let teto = null, tetoBaixo = false;
+  const TETO_MS = 1200;        // depois da entrada, o teto desce para rente ao topo
+  function montar(assentado) {
+    Composite.clear(engine.world, false);
+    tetoBaixo = assentado;
+    pegas.clear(); volta = [];
+    const ceuY = -1.5 * h;
+    const altura = floorY - ceuY + 2 * WALL;
+    const meioY = (floorY + ceuY) / 2;
+    const opt = { isStatic: true, friction: 0.6, restitution: 0.2 };
+    Composite.add(engine.world, [
+      Bodies.rectangle(W / 2, floorY + WALL / 2, W + 2 * WALL, WALL, opt),            // chão
+      teto = Bodies.rectangle(W / 2, assentado ? -WALL / 2 : ceuY - WALL / 2, W + 2 * WALL, WALL, opt), // teto invisível
+      Bodies.rectangle(-WALL / 2, meioY, WALL, altura, opt),                          // parede esq.
+      Bodies.rectangle(W + WALL / 2, meioY, WALL, altura, opt)                        // parede dir.
+    ]);
+    corpos = homes.map((p, i) => {
+      const x = assentado ? p.x : p.x + (Math.random() * 2 - 1) * 0.06 * W;
+      const y = assentado ? p.y : -h * 0.75;
+      const b = Bodies.rectangle(Math.min(Math.max(x, w / 2), W - w / 2), y, w, h, {
+        chamfer: { radius: h * 0.22 },
+        restitution: 0.35, friction: 0.6, frictionAir: 0.012, density: 0.002
+      });
+      if (!assentado) Body.setAngle(b, (Math.random() * 2 - 1) * 0.25);
+      return b;
+    });
+    noMundo = corpos.map(() => assentado);
+    if (assentado) Composite.add(engine.world, corpos);
+    dropInicio = simT;
+  }
+
+  function soltarEntrada() {
+    if (!tetoBaixo && simT - dropInicio >= TETO_MS) { tetoBaixo = true; Body.setPosition(teto, { x: W / 2, y: -WALL / 2 }); }
+    for (let i = 0; i < corpos.length; i++) {
+      if (!noMundo[i] && simT - dropInicio >= i * DROP_GAP) {
+        noMundo[i] = true;
+        Composite.add(engine.world, corpos[i]);
+      }
+    }
+  }
+
+  /* ===== agarrar / mover / soltar (usado pelo ponteiro real e pelo fantasma) ===== */
+  function agarrar(id, i, px, py, t) {
+    const b = corpos[i];
+    if (!noMundo[i]) { noMundo[i] = true; Composite.add(engine.world, b); }
+    volta = volta.filter(v => { if (v.i === i) { b.collisionFilter.mask = MASK_PADRAO; return false; } return true; });
+    for (const [k, p] of pegas) if (p.i === i) pegas.delete(k);
+    pegas.set(id, { i, ox: px - b.position.x, oy: py - b.position.y, tx: px, ty: py, amostras: [{ x: px, y: py, t }] });
+  }
+  function mover(id, px, py, t) {
+    const p = pegas.get(id); if (!p) return;
+    p.tx = px; p.ty = py;
+    p.amostras.push({ x: px, y: py, t });
+    while (p.amostras.length > 2 && t - p.amostras[0].t > SAMPLE_MS * 1.5) p.amostras.shift();
+  }
+  function soltar(id, t) {
+    const p = pegas.get(id); if (!p) return;
+    pegas.delete(id);
+    const am = p.amostras;
+    const ult = am[am.length - 1];
+    let pri = am[0];
+    for (const s of am) { if (ult.t - s.t <= SAMPLE_MS) { pri = s; break; } }
+    const dt = ult.t - pri.t;
+    let vx = 0, vy = 0;
+    if (dt > 4) { vx = (ult.x - pri.x) / dt * STEP; vy = (ult.y - pri.y) / dt * STEP; }
+    const sp = Math.hypot(vx, vy);
+    if (sp > MAX_SPEED) { vx *= MAX_SPEED / sp; vy *= MAX_SPEED / sp; }
+    const b = corpos[p.i];
+    Body.setVelocity(b, { x: vx, y: vy });
+    Body.setAngularVelocity(b, Math.max(-0.25, Math.min(0.25, vx * 0.006)));
+  }
+  function passoPegas() {
+    for (const p of pegas.values()) {
+      const b = corpos[p.i];
+      const dx = (p.tx - p.ox) - b.position.x;
+      const dy = (p.ty - p.oy) - b.position.y;
+      const lim = 45;
+      Body.setVelocity(b, { x: Math.max(-lim, Math.min(lim, dx * 0.35)), y: Math.max(-lim, Math.min(lim, dy * 0.35)) });
+      Body.setAngularVelocity(b, b.angularVelocity * 0.8);
+    }
+  }
+
+  function pulinho(i) {
+    const b = corpos[i];
+    if (!noMundo[i]) return;
+    Body.setVelocity(b, { x: b.velocity.x, y: -11 });
+    Body.setAngularVelocity(b, (Math.random() < 0.5 ? -1 : 1) * 0.08);
+  }
+
+  /* ===== arrumar ===== */
+  const normAng = a => { const d = Math.PI * 2; return ((a + Math.PI) % d + d) % d - Math.PI; };
+  const easeOutCubic = p => 1 - Math.pow(1 - p, 3);
+  function arrumar() {
+    pegas.clear();
+    volta = corpos.map((b, i) => {
+      if (!noMundo[i]) { noMundo[i] = true; Composite.add(engine.world, b); }
+      b.collisionFilter.mask = 0;
+      return { i, x: b.position.x, y: b.position.y, a: normAng(b.angle), ini: simT + i * RESTORE_GAP };
+    });
+  }
+  function passoVolta() {
+    if (!volta.length) return;
+    volta = volta.filter(v => {
+      const b = corpos[v.i];
+      const p = Math.max(0, Math.min(1, (simT - v.ini) / RESTORE_MS));
+      const e = easeOutCubic(p);
+      const hm = homes[v.i];
+      Body.setPosition(b, { x: v.x + (hm.x - v.x) * e, y: v.y + (hm.y - v.y) * e });
+      Body.setAngle(b, v.a * (1 - e));
+      Body.setVelocity(b, { x: 0, y: 0 });
+      Body.setAngularVelocity(b, 0);
+      if (p >= 1) { b.collisionFilter.mask = MASK_PADRAO; return false; }
+      return true;
+    });
+  }
+
+  /* ===== proteção: nada escapa ===== */
+  function guarda() {
+    corpos.forEach((b, i) => {
+      if (!noMundo[i]) return;
+      const { x, y } = b.position;
+      const fora = !isFinite(x) || !isFinite(y) || x < -w || x > W + w || y > floorY + h * 0.25 || y < (tetoBaixo ? -h * 0.25 : -2 * h);
+      if (fora) {
+        for (const [k, p] of pegas) if (p.i === i) pegas.delete(k);
+        Body.setPosition(b, { x: homes[i].x, y: homes[i].y - h * 0.1 });
+        Body.setAngle(b, 0);
+        Body.setVelocity(b, { x: 0, y: 0 });
+        Body.setAngularVelocity(b, 0);
+      }
+    });
+  }
+
+  /* ===== modo demonstração (cursor fantasma) ===== */
+  let demoLigado = true;
+  const G = { x: 0, y: 0, esc: 1 };
+  const easeInOut = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  const easeIn = p => p * p;
+  const ptLetra = i => ({ x: corpos[i].position.x, y: corpos[i].position.y });
+  const ptBotao = () => {
+    const r = btnArrumar.getBoundingClientRect(), s = palco.getBoundingClientRect();
+    return { x: r.left - s.left + r.width * 0.5, y: r.top - s.top + r.height * 0.55 };
+  };
+  const limitar = p => ({ x: Math.max(24, Math.min(W - 24, p.x)), y: Math.max(24, Math.min(floorY - h * 0.6, p.y)) });
+  const roteiro = [
+    { d: 900, k: 'ir', alvo: () => ptLetra(2) },
+    { d: 150, k: 'aperta', i: 2 },
+    { d: 600, k: 'arrasta', por: () => ({ x: -0.25 * W, y: -0.35 * H }) },
+    { d: 900, k: 'ir', alvo: () => ptLetra(3) },
+    { d: 150, k: 'aperta', i: 3 },
+    { d: 550, k: 'arrasta', por: () => ({ x: 0.3 * W, y: -0.3 * H }) },
+    { d: 800, k: 'ir', alvo: () => ptLetra(0) },
+    { d: 150, k: 'aperta', i: 0 },
+    { d: 450, k: 'arrasta', por: () => ({ x: 0.02 * W, y: -0.4 * H }) },
+    { d: 600, k: 'espera' },
+    { d: 900, k: 'ir', alvo: ptBotao },
+    { d: 200, k: 'clica' },
+    { d: 1300, k: 'espera' }
+  ];   // total 7650 ms
+  let seg = -1, segIni = 0, de = null, ate = null, clicou = false;
+
+  function iniciarSeg(n) {
+    seg = n % roteiro.length; segIni = simT; de = { x: G.x, y: G.y }; clicou = false;
+    const s = roteiro[seg];
+    if (s.k === 'arrasta') { const v = s.por(); ate = limitar({ x: de.x + v.x, y: de.y + v.y }); }
+  }
+  function passoDemo() {
+    if (!demoLigado || simT - dropInicio < DEMO_START) return;
+    if (seg < 0) {
+      G.x = W * 0.86; G.y = Math.max(40, floorY - h * 1.9);
+      fantasma.classList.add('visivel');
+      iniciarSeg(0);
+    }
+    const s = roteiro[seg];
+    const p = Math.min(1, (simT - segIni) / s.d);
+    if (s.k === 'ir') {
+      const a = s.alvo(), e = easeInOut(p);
+      G.x = de.x + (a.x - de.x) * e; G.y = de.y + (a.y - de.y) * e;
+    } else if (s.k === 'aperta') {
+      fantasma.classList.add('aperta');
+      if (p >= 1) agarrar('fantasma', s.i, G.x, G.y, simT);
+    } else if (s.k === 'arrasta') {
+      const e = easeIn(p);
+      G.x = de.x + (ate.x - de.x) * e; G.y = de.y + (ate.y - de.y) * e;
+      mover('fantasma', G.x, G.y, simT);
+      if (p >= 1) { soltar('fantasma', simT); fantasma.classList.remove('aperta'); }
+    } else if (s.k === 'clica') {
+      fantasma.classList.add('aperta'); btnArrumar.classList.add('apertado');
+      if (!clicou && p >= 0.5) { clicou = true; arrumar(); }
+      if (p >= 1) { fantasma.classList.remove('aperta'); btnArrumar.classList.remove('apertado'); }
+    }
+    if (p >= 1) iniciarSeg(seg + 1);
+  }
+  function pararDemo() {
+    if (demoForcado || !demoLigado) return;
+    demoLigado = false;
+    soltar('fantasma', simT);
+    fantasma.classList.remove('visivel', 'aperta');
+    btnArrumar.classList.remove('apertado');
+  }
+  window.addEventListener('pointerdown', pararDemo, { passive: true });
+  window.addEventListener('keydown', pararDemo, { passive: true });
+
+  /* ===== ponteiro real ===== */
+  const local = e => { const r = palco.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  letras.forEach((el, i) => {
+    el.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
+      const q = local(e);
+      agarrar(e.pointerId, i, q.x, q.y, e.timeStamp);
+    });
+    el.addEventListener('pointermove', e => {
+      if (!pegas.has(e.pointerId)) return;
+      const q = local(e);
+      mover(e.pointerId, q.x, q.y, e.timeStamp);
+    });
+    const fim = e => soltar(e.pointerId, e.timeStamp);
+    el.addEventListener('pointerup', fim);
+    el.addEventListener('pointercancel', fim);
+    el.addEventListener('lostpointercapture', fim);
+    // Enter/Espaço geram click com detail 0 (teclado); clique de mouse não pula
+    el.addEventListener('click', e => { if (e.detail === 0) pulinho(i); });
+  });
+  btnArrumar.addEventListener('click', arrumar);
+
+  /* ===== loop único, pausado fora da tela e com aba oculta ===== */
+  let raf = 0, ultimo = null, acc = 0, visivelNaTela = true;
+  function quadro(t) {
+    raf = requestAnimationFrame(quadro);
+    if (ultimo === null) ultimo = t;
+    const dt = Math.min(50, t - ultimo);
+    ultimo = t; acc += dt;
+    while (acc >= STEP) {
+      simT += STEP;
+      soltarEntrada();
+      passoDemo();
+      passoPegas();
+      passoVolta();
+      Engine.update(engine, STEP);
+      acc -= STEP;
+    }
+    guarda();
+    corpos.forEach((b, i) => pintar(i, b.position.x, b.position.y, b.angle));
+    fantasma.style.transform = `translate3d(${(G.x - 3).toFixed(1)}px, ${(G.y - 2).toFixed(1)}px, 0)`;
+  }
+  function ligar() {
+    const deve = visivelNaTela && !document.hidden;
+    if (deve && !raf) { ultimo = null; raf = requestAnimationFrame(quadro); }
+    else if (!deve && raf) { cancelAnimationFrame(raf); raf = 0; }
+  }
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(es => { visivelNaTela = es[0].isIntersecting; ligar(); }).observe(rodape);
+  }
+  document.addEventListener('visibilitychange', ligar);
+
+  /* ===== início e redimensionamento ===== */
+  function iniciar() {
+    medir();
+    montar(false);
+    corpos.forEach((b, i) => pintar(i, b.position.x, b.position.y, b.angle));
+    palco.classList.add('pronto');
+    ligar();
+    let t = null, lw = W, lh = H;
+    window.addEventListener('resize', () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        medir();
+        if (Math.abs(W - lw) < 1 && Math.abs(H - lh) < 1) return;
+        lw = W; lh = H;
+        // reassenta as letras na casa; se o fantasma estava rodando, recomeça o ciclo do início
+        fantasma.classList.remove('aperta'); btnArrumar.classList.remove('apertado');
+        seg = -1;
+        montar(true);
+        dropInicio = simT - DEMO_START;
+      }, 150);
+    });
+  }
+  Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 1200))]).then(iniciar);
+})();
+</script>
+</body>
+</html>

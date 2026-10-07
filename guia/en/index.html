@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INEMA Motion Lab — website animations from a single prompt</title>
+<meta name="description" content="A prompt template for website animations, 5 ready-made interactive pieces in the INEMA style (⌘K search, bento grid, playable 404, physics footer, day and night) and a short video of each one. Open and free.">
+<link rel="alternate" hreflang="pt-BR" href="https://inematds.github.io/inema-motion-lab/guia/">
+<link rel="alternate" hreflang="en" href="https://inematds.github.io/inema-motion-lab/guia/en/">
+<link rel="alternate" hreflang="es" href="https://inematds.github.io/inema-motion-lab/guia/es/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0c10; --bg2:#14141b; --card:#16161e; --line:#272730;
+    --txt:#e9e9ee; --mut:#9a9aa6; --amb:#E2A23B; --amb2:#f0c070; --sky:#38bdf8; --pro:#cbd5e1;
+    color-scheme:dark;
+  }
+  body.light{
+    --bg:#f6f7f9; --bg2:#eceef2; --card:#ffffff; --line:#e1e3ea;
+    --txt:#1a1a22; --mut:#5b5b68; --amb:#b9791d; --amb2:#a16207; --sky:#0369a1; --pro:#b45309;
+    color-scheme:light;
+  }
+  body.light .hero .glow{opacity:.5}
+  body.light pre{background:#0e0e14;color:#d6d6e0}
+  body.light pre .c{color:#8a8a98}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.65 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:Sora,sans-serif;line-height:1.15;margin:0}
+  a{color:var(--amb);text-decoration:none}
+  code,pre{font-family:"JetBrains Mono",monospace}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
+  .mut{color:var(--mut)} .amb{color:var(--amb)}
+  .chip{display:inline-block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amb);font-weight:600;font-family:Sora}
+  nav{position:sticky;top:0;z-index:30;backdrop-filter:blur(12px);background:rgba(12,12,16,.78);border-bottom:1px solid var(--line)}
+  nav .wrap{display:flex;align-items:center;gap:22px;height:60px}
+  nav .brand{display:flex;align-items:center;gap:8px;font-family:Sora;font-weight:800;letter-spacing:-.02em;color:var(--amb)}
+  nav .brand .emoji{font-size:1.25rem}
+  nav .sep{color:var(--mut);opacity:.45}
+  nav .inema{color:var(--sky);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .inema:hover{filter:brightness(1.15)}
+  nav .pro{color:var(--pro);font-weight:600;font-size:.88rem;font-family:Sora}
+  nav .pro:hover{filter:brightness(1.15)}
+  nav .clubpro{display:inline-flex;align-items:center;gap:6px}
+  nav .links{margin-left:auto;display:flex;align-items:center;gap:20px;font-size:.92rem}
+  nav .links a.sec{color:var(--mut)} nav .links a.sec:hover{color:var(--txt)}
+  .lang{display:inline-flex;gap:2px;font-family:Sora;font-size:.78rem}
+  .lang a{color:var(--mut);padding:.2em .45em;border-radius:6px} .lang a.on{color:var(--amb);background:rgba(226,162,59,.12)}
+  .tgl{background:var(--bg2);border:1px solid var(--line);color:var(--txt);width:38px;height:38px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:1.05rem}
+  .tgl:hover{border-color:var(--amb)}
+  .btn{display:inline-block;background:var(--amb);color:#1a1206;font-weight:600;padding:.6em 1.05em;border-radius:10px;font-family:Sora}
+  .btn.ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+  @media(max-width:760px){nav .links a.sec{display:none}}
+  @media(max-width:520px){nav .wrap{gap:8px;padding:8px 14px;height:auto;flex-wrap:wrap} nav .links{gap:8px;margin-left:0;width:100%;justify-content:space-between} nav .btn{padding:.45em .7em;font-size:.82rem} .tgl{width:34px;height:34px}}
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+  .hero .glow{position:absolute;inset:-40% -20% auto auto;width:70%;height:600px;background:radial-gradient(closest-side,rgba(226,162,59,.22),transparent 70%);pointer-events:none}
+  .hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:74px 22px}
+  .hero h1{font-size:clamp(2.2rem,5vw,3.5rem);font-weight:800;letter-spacing:-.025em}
+  .hero p.lead{font-size:1.18rem;color:var(--mut);margin:1.1em 0 1.6em;max-width:34ch}
+  .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .hero figure{margin:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000}
+  .hero figure img{width:100%;display:block}
+  .resumo{padding:38px 0 34px;border-bottom:1px solid var(--line)}
+  .resumo p{font-size:1.12rem;line-height:1.7;max-width:74ch;margin:.55em 0 0}
+  @media(max-width:780px){.hero .wrap{grid-template-columns:1fr;padding:48px 22px}}
+  section{padding:62px 0;border-bottom:1px solid var(--line)}
+  section h2{font-size:clamp(1.5rem,3.4vw,2.1rem);font-weight:800;letter-spacing:-.02em}
+  section .sub{color:var(--mut);margin:.6em 0 2em;max-width:62ch}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:820px){.g3,.g4{grid-template-columns:1fr 1fr}}
+  @media(max-width:540px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h3{font-size:1.05rem;margin-bottom:.4em}
+  .card p{color:var(--mut);font-size:.92rem;margin:0}
+  .num{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;border-radius:8px;background:rgba(226,162,59,.14);color:var(--amb);font-family:Sora;font-weight:800;font-size:.9rem;margin-bottom:.7em}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+  .flow span{background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:.45em .9em;font-size:.85rem;font-family:Sora;font-weight:600}
+  .flow .arr{color:var(--amb);border:none;background:none;padding:0 .1em}
+  pre{background:#0a0a0e;border:1px solid var(--line);border-radius:12px;padding:16px 18px;overflow:auto;font-size:.86rem;line-height:1.6;color:#d6d6e0}
+  pre .c{color:#6f6f7c} pre .k{color:var(--amb2)} pre .s{color:#9ece6a}
+  .step{display:grid;grid-template-columns:46px minmax(0,1fr);gap:16px;margin-bottom:26px}
+  .step>div,.card{min-width:0}
+  p code,li code,td code{overflow-wrap:anywhere}
+  .step .b{width:46px;height:46px;border-radius:12px;background:var(--amb);color:#1a1206;font-family:Sora;font-weight:800;font-size:1.25rem;display:flex;align-items:center;justify-content:center}
+  .step h3{font-size:1.12rem;margin-bottom:.3em}
+  .step p{color:var(--mut);margin:.2em 0 .7em}
+  .phase{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .phase:last-child{border:none}
+  .phase .tag{flex:0 0 92px;font-family:Sora;font-weight:800;color:var(--amb)}
+  .phase .d strong{display:block;margin-bottom:.2em}
+  .phase .d span{color:var(--mut);font-size:.92rem}
+  footer{padding:46px 0;text-align:center;color:var(--mut);font-size:.9rem}
+  .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:.3em .8em;font-size:.78rem;color:var(--mut);margin:0 4px}
+  /* pieces: 16:9 stage with a video that turns into the live piece */
+  .peca{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:26px;align-items:start;margin-bottom:46px}
+  .peca:last-child{margin-bottom:0}
+  @media(max-width:860px){.peca{grid-template-columns:1fr;gap:16px}}
+  .palco{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#0b0b0d;box-shadow:0 30px 80px -30px #000}
+  .palco video,.palco iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;object-fit:cover}
+  .peca h3{font-size:1.3rem;margin:.35em 0 .4em}
+  .peca p{color:var(--mut);margin:0 0 1em;font-size:.95rem}
+  .peca .acoes{display:flex;flex-wrap:wrap;gap:8px}
+  .peca .acoes .btn{font-size:.86rem;padding:.5em .9em;cursor:pointer;border:0}
+  .peca .acoes .btn.ghost{border:1px solid var(--line)}
+  .peca details{margin-top:14px}
+  .peca summary{cursor:pointer;color:var(--amb);font-family:Sora;font-weight:600;font-size:.9rem}
+  .peca details pre{max-height:360px;white-space:pre-wrap;font-size:.8rem;margin-top:10px}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.8em}
+  .tags span{font:500 .72rem/1 "JetBrains Mono",monospace;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:.45em .7em}
+  table.tb{width:100%;border-collapse:collapse;font-size:.92rem}
+  table.tb th,table.tb td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  table.tb th{font-family:Sora;color:var(--amb);font-weight:600}
+  table.tb td:first-child{font-weight:600;white-space:nowrap}
+  @media(max-width:600px){table.tb td:first-child{white-space:normal}}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#top"><span class="emoji">✨</span> Motion Lab</a>
+  <span class="sep">|</span>
+  <span class="clubpro">
+    <a class="inema" href="https://inema.club" target="_blank" rel="noopener">INEMA.CLUB</a>
+    <span class="sep">-</span>
+    <a class="pro" href="https://inema.pro" target="_blank" rel="noopener">PRO</a>
+  </span>
+  <div class="links">
+    <a class="sec" href="#oque">What it is</a>
+    <a class="sec" href="#pecas">Pieces</a>
+    <a class="sec" href="#molde">Template</a>
+    <a class="sec" href="#guia">How to use</a>
+    <a class="sec" href="#roadmap">Next steps</a>
+    <span class="lang"><a href="../">PT</a><a class="on" href="./">EN</a><a href="../es/">ES</a></span>
+    <button class="tgl" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">🌙</button>
+    <a class="btn" href="https://github.com/inematds/inema-motion-lab" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</div></nav>
+
+<header class="hero" id="top">
+  <div class="glow"></div>
+  <div class="wrap">
+    <div>
+      <span class="chip">Website animation with AI · open and free</span>
+      <h1>Website animations that come out <span class="amb">ready</span> from a prompt</h1>
+      <p class="lead">One prompt template, five interactive pieces in the INEMA style and a short video of each one. Copy, adapt and use.</p>
+      <div class="cta">
+        <a class="btn" href="#pecas">See the pieces</a>
+        <a class="btn ghost" href="https://github.com/inematds/inema-motion-lab" target="_blank" rel="noopener">View on GitHub</a>
+      </div>
+    </div>
+    <figure><img src="../assets/banner-en.jpg" alt="INEMA Motion Lab banner: website animations from a single prompt"></figure>
+  </div>
+</header>
+
+<section id="resumo" class="resumo"><div class="wrap">
+  <span class="chip">In short</span>
+  <p>INEMA Motion Lab teaches you how to ask an AI (Claude, Codex or another one) for website animations and get something with a professional finish, not a generic effect. It brings a three-part prompt template (appearance, motion and rules) and five real examples made with it: a ⌘K search, a features grid, a playable 404 page, a footer with falling letters and a day/night theme button. Each piece is a single HTML file that you open in the browser and paste into your site, and it comes with the prompt that generated it and a short video. It is for anyone who builds pages, guides or courses and wants motion without relying on a heavy library.</p>
+</div></section>
+
+<section id="oque"><div class="wrap">
+  <span class="chip">What it is</span>
+  <h2>Three things in a single repository</h2>
+  <p class="sub">The template is the most valuable part: it is what makes the next animation come out well. The pieces and the videos are the proof that it works.</p>
+  <figure style="margin:0 0 26px;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000"><img src="../assets/banner-grade-en.jpg" alt="Prompt template, ⌘K search, bento grid, playable 404, physics footer, day and night" loading="lazy" style="width:100%;display:block"></figure>
+  <div class="grid g3">
+    <div class="card"><h3>📐 Prompt template</h3><p>Appearance with exact values, motion in numbered steps with timing in milliseconds, and technical rules that prevent the most common mistakes.</p></div>
+    <div class="card"><h3>🧩 5 ready-made pieces</h3><p>One HTML file each, no build step, in INEMA colors and fonts. They work on mobile, with the keyboard and with reduced motion.</p></div>
+    <div class="card"><h3>🎬 8-second videos</h3><p>Each piece has a demo mode with a ghost cursor, recorded in WebM and MP4, ready to use as supporting footage in videos and posts.</p></div>
+  </div>
+</div></section>
+
+<section id="fluxo"><div class="wrap">
+  <span class="chip">How it works</span>
+  <h2>From request to video, no magic step</h2>
+  <p class="sub">All five pieces went through this same path. The test and the recording are scripts in this repository.</p>
+  <div class="flow">
+    <span>Template</span><span class="arr">→</span>
+    <span>The piece's PROMPT.md</span><span class="arr">→</span>
+    <span>AI writes the index.html</span><span class="arr">→</span>
+    <span>Browser test</span><span class="arr">→</span>
+    <span>Demo recording</span><span class="arr">→</span>
+    <span>Your site / your video</span>
+  </div>
+</div></section>
+
+<section id="pecas"><div class="wrap">
+  <span class="chip">The pieces</span>
+  <h2>Five pieces, each with prompt, code and video</h2>
+  <p class="sub">The video shows the automatic demo. Click "Open live" to play with the piece right here.</p>
+
+  <div class="peca" data-peca="busca-cmdk">
+    <div class="palco"><video src="../../videos/busca-cmdk.mp4" poster="../../videos/busca-cmdk.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the ⌘K search"></video></div>
+    <div>
+      <span class="chip">01 · Navigation</span>
+      <h3>⌘K search</h3>
+      <div class="tags"><span>no library</span><span>keyboard</span><span>⌘K / Ctrl+K</span></div>
+      <p>The search pill grows and turns into a command palette. Typing filters courses, guides and events, the arrow keys move a sliding highlight and Enter opens the item.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/busca-cmdk/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/busca-cmdk.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="bento-glide">
+    <div class="palco"><video src="../../videos/bento-glide.mp4" poster="../../videos/bento-glide.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the bento grid"></video></div>
+    <div>
+      <span class="chip">02 · Features section</span>
+      <h3>Bento grid with a sliding frame</h3>
+      <div class="tags"><span>no library</span><span>Tab moves the frame</span></div>
+      <p>"What INEMA.CLUB has" in blocks of different sizes. An amber frame slides to the block under the mouse and the block wakes up with its own mini-animation.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/bento-glide/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/bento-glide.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="404-corre">
+    <div class="palco"><video src="../../videos/404-corre.mp4" poster="../../videos/404-corre.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the playable 404 page"></video></div>
+    <div>
+      <span class="chip">03 · Error page</span>
+      <h3>A 404 that turns into a game</h3>
+      <div class="tags"><span>canvas</span><span>space / tap</span><span>high score saved</span></div>
+      <p>"This page ran away." A capybara runs and jumps over bugs while the visitor decides whether to go back to INEMA.CLUB. It starts on autopilot; the first tap hands over control.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/404-corre/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/404-corre.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="rodape-inema">
+    <div class="palco"><video src="../../videos/rodape-inema.mp4" poster="../../videos/rodape-inema.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the physics footer"></video></div>
+    <div>
+      <span class="chip">04 · Footer</span>
+      <h3>INEMA footer with physics</h3>
+      <div class="tags"><span>Matter.js</span><span>drag and throw</span></div>
+      <p>The letters I N E M A fall one by one and pile up on the footer floor. You can grab and throw them; "Tidy letters" puts everything back.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/rodape-inema/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/rodape-inema.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="dia-noite">
+    <div class="palco"><video src="../../videos/dia-noite.mp4" poster="../../videos/dia-noite.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the day and night theme"></video></div>
+    <div>
+      <span class="chip">05 · Light/dark theme</span>
+      <h3>Day and night</h3>
+      <div class="tags"><span>no library</span><span>role="switch"</span><span>CSS variables</span></div>
+      <p>The theme button is a scene: the sun goes down, the moon comes up, the school windows light up and the capybara falls asleep. The colors of the whole page change along with it.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/dia-noite/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/dia-noite.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+</div></section>
+
+<section id="molde"><div class="wrap">
+  <span class="chip">The template</span>
+  <h2>The prompt in three parts</h2>
+  <p class="sub">Copy it, replace what is between &lt; &gt; and paste it into Claude, Codex or any AI that writes code.</p>
+<pre>Build &lt;WHAT IT IS, in one sentence: the piece + what the person does with it&gt;.
+
+<span class="k">Appearance:</span>
+- Background, colors and typography with exact values (hex, font, weight, relative size).
+- Layout: where each block goes and how much of the area it takes (%).
+- Details that give it personality (outline, shadow, texture, icons).
+
+<span class="k">Motion:</span>
+1. &lt;What happens when it enters the screen&gt; — duration in ms, order, delay between items.
+2. &lt;What happens when the person interacts&gt; — hover, click, drag, type.
+3. &lt;The physical response&gt; — spring, bounce, inertia, the "weight" of things.
+4. &lt;The final / resting state&gt;.
+5. Demo mode: until someone touches it, a ghost cursor demonstrates the interaction on its own.
+
+<span class="k">Rules:</span>
+- Plain JavaScript and CSS, no library (or: "&lt;library&gt; only for &lt;function&gt;").
+- A single requestAnimationFrame loop, paused when the piece leaves the screen (IntersectionObserver).
+- Animate only transform and opacity; cap devicePixelRatio at 2 on canvas.
+- Never hijack page scrolling; keyboard shortcuts only when the piece is focused or under the mouse.
+- Accessible: real elements (button, a, input) with visible focus; the keyboard does the same as the mouse.
+- prefers-reduced-motion: show the final state, still (describe what it is).
+- A single self-contained HTML file.</pre>
+  <h3 style="margin:34px 0 14px;font-size:1.15rem">Why each part matters</h3>
+  <table class="tb">
+    <tr><th>Part</th><th>Without it</th><th>With it</th></tr>
+    <tr><td>Appearance with exact values</td><td>"default AI" colors and fonts</td><td>the piece comes out looking like the brand</td></tr>
+    <tr><td>Numbered motion with timings</td><td>vague animation, too fast or too slow</td><td>intentional rhythm, easy to adjust ("step 2 slower")</td></tr>
+    <tr><td>Demo mode</td><td>nobody finds out it is interactive</td><td>the piece explains itself and becomes a video effortlessly</td></tr>
+    <tr><td>Pause off screen</td><td>heavy page, drained battery</td><td>zero cost when nobody is watching</td></tr>
+    <tr><td>Don't hijack scrolling</td><td>the page "freezes" when the mouse passes over it</td><td>the piece lives alongside the rest of the site</td></tr>
+    <tr><td>Reduced motion</td><td>people who get motion sick suffer</td><td>everyone sees the content</td></tr>
+  </table>
+</div></section>
+
+<section id="pre"><div class="wrap">
+  <span class="chip">Requirements</span>
+  <h2>To use the pieces, all you need is a browser</h2>
+  <p class="sub">Testing and re-recording the videos requires Node, Playwright and ffmpeg. To just use them, none of that is needed.</p>
+  <div class="grid g3">
+    <div class="card"><h3>Use a piece</h3><p>Open the piece's <code>index.html</code> in the browser or copy the file into your site.</p><pre><span class="c"># no command needed</span>
+open pecas/dia-noite/index.html</pre></div>
+    <div class="card"><h3>Local server</h3><p>To test it like on a real site (and for the scripts), serve the folder over HTTP.</p><pre><span class="k">python3</span> -m http.server 8850 \
+  --directory . --bind 127.0.0.1</pre></div>
+    <div class="card"><h3>Test and record</h3><p>Node 18+, the <code>playwright</code> package and <code>ffmpeg</code> on the system.</p><pre><span class="k">npm</span> i playwright
+<span class="k">npx</span> playwright install chromium</pre></div>
+  </div>
+</div></section>
+
+<section id="guia"><div class="wrap">
+  <span class="chip">How to use · step by step</span>
+  <h2>From a ready-made piece to your own animation</h2>
+  <p class="sub">Steps 1 to 3 use what is already done. Steps 4 and 5 are for creating a new piece with the template.</p>
+
+  <div class="step"><div class="b">1</div><div>
+    <h3>Download the repository</h3>
+    <p>Everything is static: pieces, prompts, videos and the two scripts.</p>
+<pre><span class="k">git clone</span> <span class="s">https://github.com/inematds/inema-motion-lab</span>
+<span class="k">cd</span> inema-motion-lab</pre>
+  </div></div>
+
+  <div class="step"><div class="b">2</div><div>
+    <h3>Open a piece and play with it</h3>
+    <p>Each piece starts in demo mode. The first tap, click or key press hands control over to you. Add <code>?demo=1</code> to the URL so the demo never stops.</p>
+<pre><span class="k">python3</span> -m http.server 8850 --directory . --bind 127.0.0.1
+<span class="c"># open http://127.0.0.1:8850/pecas/busca-cmdk/</span>
+<span class="c"># or   http://127.0.0.1:8850/pecas/busca-cmdk/?demo=1</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">3</div><div>
+    <h3>Put it on your site</h3>
+    <p>Each piece fills the whole screen of its own file. The simplest way is to embed it in an <code>&lt;iframe&gt;</code>; for a real integration, copy the piece's HTML, CSS and JS into your page and change the texts and links.</p>
+<pre>&lt;iframe src=<span class="s">"pecas/bento-glide/index.html"</span> title=<span class="s">"What INEMA.CLUB has"</span>
+        style=<span class="s">"width:100%;aspect-ratio:16/9;border:0"</span> loading=<span class="s">"lazy"</span>&gt;&lt;/iframe&gt;</pre>
+  </div></div>
+
+  <div class="step"><div class="b">4</div><div>
+    <h3>Create your own piece with the template</h3>
+    <p>Fill in the template (<code>molde/MOLDE-PROMPT-ANIMACAO.md</code>), save it as <code>pecas/&lt;name&gt;/PROMPT.md</code> and ask the AI to write the <code>index.html</code> from it. Use the five <code>PROMPT.md</code> files as examples of the level of detail. To adjust, ask by step number: "in step 1, 80 ms instead of 120".</p>
+<pre><span class="c"># example with Claude Code, in the repository folder</span>
+<span class="k">claude</span> <span class="s">"Read pecas/minha-peca/PROMPT.md and write pecas/minha-peca/index.html following the prompt."</span></pre>
+  </div></div>
+
+  <div class="step"><div class="b">5</div><div>
+    <h3>Test and record the video</h3>
+    <p>The test checks, across all pieces: no JavaScript errors, no horizontal scrolling at 1280 and 360 px, the reduced-motion version, and whether the piece locks page scrolling. The recording produces, for each piece, 8 s in WebM and MP4 plus a cover image in <code>videos/</code>.</p>
+<pre><span class="k">python3</span> -m http.server 8850 --directory . --bind 127.0.0.1 &amp;
+<span class="k">node</span> tools/testar-pecas.cjs 8850     <span class="c"># 5/5 pieces OK</span>
+<span class="k">node</span> tools/gravar-videos.cjs 8850    <span class="c"># OK busca-cmdk: webm 285 KB, mp4 349 KB …</span>
+<span class="k">node</span> tools/gravar-videos.cjs 8850 dia-noite   <span class="c"># just one piece</span></pre>
+  </div></div>
+</div></section>
+
+<section id="roadmap"><div class="wrap">
+  <span class="chip">Next steps</span>
+  <h2>What comes next</h2>
+  <p class="sub">The lab is ready to use. These are the possible next stages, not done yet.</p>
+  <div class="phase"><div class="tag">Done</div><div class="d"><strong>Template, 5 pieces, tests and videos</strong><span>Everything in this repository, in PT/EN/ES. The template also went into the INEMA guides skill, so the next guides are born with it.</span></div></div>
+  <div class="phase"><div class="tag">Next</div><div class="d"><strong>Pieces on the INEMA sites</strong><span>⌘K search on the portal and on buscas, playable 404 on inema.club, bento grid on the guide landing pages.</span></div></div>
+  <div class="phase"><div class="tag">Later</div><div class="d"><strong>More pieces and a vertical version of the videos</strong><span>A menu that takes over the screen, a loader that reveals the page, a ring gallery; 9:16 videos for shorts.</span></div></div>
+</div></section>
+
+<footer>
+  <div class="wrap">
+    <div class="pill">HTML + CSS + JS</div><div class="pill">Matter.js</div><div class="pill">Playwright + ffmpeg</div>
+    <p style="margin-top:18px">INEMA Motion Lab · ideas inspired by popular effects from the community; code written from scratch ·
+      <a href="https://github.com/inematds/inema-motion-lab">inematds/inema-motion-lab</a> ·
+      <a href="https://inema.club">INEMA.CLUB</a></p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var KEY='inema-motion-lab-theme';
+    var b=document.body, t=document.getElementById('themeToggle');
+    try{ if(localStorage.getItem(KEY)==='light'){ b.classList.add('light'); t.textContent='☀️'; } }catch(e){}
+    t.addEventListener('click',function(){
+      var light=b.classList.toggle('light');
+      t.textContent=light?'☀️':'🌙';
+      try{ localStorage.setItem(KEY, light?'light':'dark'); }catch(e){}
+    });
+    var ROOT='../../';
+    document.querySelectorAll('.peca').forEach(function(el){
+      var nome=el.getAttribute('data-peca'), palco=el.querySelector('.palco'), btn=el.querySelector('.vivo');
+      btn.addEventListener('click',function(){
+        var f=document.createElement('iframe');
+        f.src=ROOT+'pecas/'+nome+'/index.html'; f.title=el.querySelector('h3').textContent; f.loading='lazy';
+        palco.innerHTML=''; palco.appendChild(f); btn.disabled=true; btn.style.opacity=.5; f.focus();
+      });
+      var det=el.querySelector('details'), pre=el.querySelector('pre.prompt');
+      det.addEventListener('toggle',function(){
+        if(!det.open||pre.dataset.ok) return;
+        fetch(ROOT+'pecas/'+nome+'/PROMPT.md').then(function(r){return r.text();}).then(function(md){
+          var m=md.match(/```text\n([\s\S]*?)```/); pre.textContent=m?m[1].trim():md; pre.dataset.ok=1;
+        }).catch(function(){ pre.textContent='Open pecas/'+nome+'/PROMPT.md on GitHub.'; });
+      });
+    });
+    // videos only play when they appear on screen
+    var parado=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(parado) document.querySelectorAll('.palco video').forEach(function(v){v.removeAttribute('autoplay');v.pause();});
+    else if('IntersectionObserver' in window){
+      var io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;if(e.isIntersecting){v.preload='auto';v.play().catch(function(){});}else v.pause();});},{rootMargin:'200px'});
+      document.querySelectorAll('.palco video').forEach(function(v){io.observe(v);});
+    }
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bento Glide · INEMA Motion Lab</title>
+<meta name="description" content="Grade bento do INEMA.CLUB com moldura âmbar que desliza com mola até o bloco ativo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0b0d; --card:#111114; --mini:#16161a; --ink:#f3efe7; --ink2:rgba(243,239,231,.62);
+  --line:rgba(243,239,231,.07); --amber:#E2A23B; --amber-hi:#ffd48a; --sky:#38bdf8;
+  --gap:12px; --r:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink)}
+body{font:400 clamp(11px,1.05vw,13.5px)/1.45 Inter,system-ui,sans-serif;overflow-x:hidden;
+  background:radial-gradient(900px 520px at 0% 0%,rgba(226,162,59,.07),transparent 70%) var(--bg)}
+.stage{height:100vh;height:100dvh;display:flex;flex-direction:column;gap:clamp(10px,1.8vh,18px);
+  padding:clamp(14px,2.4vw,30px) clamp(16px,2.6vw,34px)}
+.head{flex:none}
+.kicker{font:500 10.5px/1 "JetBrains Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(226,162,59,.85)}
+.head h1{font:700 clamp(20px,3.2vw,34px)/1.1 Sora,sans-serif;margin:.35em 0 .2em;letter-spacing:-.01em}
+.head h1 em{font-style:normal;color:var(--amber)}
+.head p{margin:0;color:var(--ink2)}
+.head a{color:var(--sky);text-decoration:none;border-bottom:1px solid rgba(56,189,248,.35)}
+.head a:focus-visible{outline:2px solid var(--sky);outline-offset:3px;border-radius:4px}
+
+.grid{position:relative;flex:1;min-height:0;display:grid;gap:var(--gap);
+  grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))}
+.t-cursos{grid-column:1/3;grid-row:1/3}
+.t-guias{grid-column:3;grid-row:1}
+.t-eventos{grid-column:4;grid-row:1}
+.t-buscas{grid-column:3/5;grid-row:2}
+.t-vip{grid-column:1;grid-row:3}.t-pro{grid-column:2;grid-row:3}
+.t-videos{grid-column:3;grid-row:3}.t-kits{grid-column:4;grid-row:3}
+
+.tile{position:relative;display:flex;flex-direction:column;justify-content:space-between;min-width:0;min-height:0;
+  padding:clamp(10px,1.3vw,18px);border-radius:var(--r);background:var(--card);border:1px solid var(--line);
+  color:var(--ink);text-decoration:none;overflow:hidden;
+  animation:rise 520ms cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i)*60ms)}
+.tile::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
+  background:radial-gradient(120% 90% at 85% 10%,rgba(226,162,59,.10),transparent 60%);transition:opacity 300ms}
+.tile::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
+  box-shadow:inset 0 0 0 1px rgba(243,239,231,.14);transition:opacity 300ms}
+.tile.awake::before,.tile.awake::after,.rm .tile::before{opacity:1}
+.tile:focus{outline:none}
+.tile:focus-visible{outline:2px dashed rgba(226,162,59,.9);outline-offset:-7px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.lbl{position:relative;z-index:1;font:500 10px/1 "JetBrains Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(226,162,59,.85)}
+.txt{position:relative;z-index:1;max-width:52%}
+.t-cursos .txt{max-width:44%}.t-buscas .txt{max-width:46%}
+.txt h2{font:600 clamp(14px,1.5vw,18px)/1.15 Sora,sans-serif;margin:0 0 .25em}
+.txt p{margin:0;color:var(--ink2)}
+.mini{position:absolute;z-index:1;right:clamp(10px,1.3vw,18px);top:clamp(10px,1.3vw,18px);
+  width:42%;height:calc(100% - 2*clamp(10px,1.3vw,18px));border-radius:12px;background:var(--mini);
+  border:1px solid rgba(243,239,231,.05);overflow:hidden}
+.mini *{position:absolute}
+
+/* ---------- Cursos ---------- */
+.t-cursos .mini{width:50%}
+.m-count{left:10%;top:12%;font:700 clamp(36px,6.4vw,84px)/1 Sora,sans-serif;color:var(--amber);letter-spacing:-.03em;display:flex;align-items:baseline;position:absolute}
+.m-count .num,.m-count .pct{position:static}
+.m-count .pct{font-size:.42em;margin-left:.06em;color:var(--amber-hi)}
+.m-sub{left:10%;top:calc(12% + clamp(40px,6.8vw,90px));font:500 10px/1 "JetBrains Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--ink2)}
+.chip{left:10%;right:10%;height:clamp(22px,3.4vh,30px);bottom:calc(10% + var(--k)*clamp(28px,4.2vh,38px));border-radius:9px;
+  background:#1d1d22;border:1px solid rgba(226,162,59,.25);font:500 clamp(10px,.95vw,12px)/1 Inter,sans-serif;color:var(--ink);
+  display:flex;align-items:center;padding-left:12px;gap:8px;
+  transform:translateY(calc(var(--k)*clamp(28px,4.2vh,38px)));opacity:calc(1 - var(--k)*.35);
+  transition:transform 420ms cubic-bezier(.3,1.4,.5,1),opacity 300ms;transition-delay:0ms}
+.chip::before{content:"";position:static;width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.tile.awake .chip,.rm .chip{transform:none;opacity:1;transition-delay:calc(var(--k)*90ms)}
+
+/* ---------- Guias ---------- */
+.track{left:12%;right:12%;top:46%;height:6px;border-radius:6px;background:#24242a}
+.fill{left:12%;right:12%;top:46%;height:6px;border-radius:6px;background:linear-gradient(90deg,#b77a1f,var(--amber),var(--amber-hi));
+  transform-origin:0 50%;transform:scaleX(0);transition:transform 400ms ease}
+.tile.awake .fill,.rm .fill{transform:scaleX(1);transition:transform 900ms cubic-bezier(.4,0,.2,1)}
+.step{top:calc(46% - 5px);width:16px;height:16px;margin-left:-8px;border-radius:50%;background:#24242a;border:2px solid #2e2e35}
+.step.on{background:var(--amber);border-color:var(--amber-hi);opacity:0;transform:scale(.4);transition:opacity 200ms,transform 200ms}
+.tile.awake .step.on,.rm .step.on{opacity:1;transform:none;transition:opacity 220ms calc(var(--d)*1ms),transform 320ms cubic-bezier(.3,1.6,.5,1) calc(var(--d)*1ms)}
+.g-cap{left:12%;bottom:14%;font:500 9.5px/1 "JetBrains Mono",monospace;letter-spacing:.12em;color:var(--ink2);text-transform:uppercase}
+
+/* ---------- Eventos ---------- */
+.live{left:12%;top:16%;white-space:nowrap;display:flex;align-items:center;gap:7px;font:500 9.5px/1 "JetBrains Mono",monospace;letter-spacing:.14em;color:var(--ink)}
+.live *{position:relative}
+.dot{width:8px;height:8px;border-radius:50%;background:#ff5a4f}
+.ring{position:absolute;left:0;top:0;width:8px;height:8px;border-radius:50%;border:2px solid #ff5a4f;opacity:0;box-sizing:border-box}
+.eq{left:12%;right:12%;bottom:16%;height:46%;display:flex;align-items:flex-end;gap:12%}
+.eq i{position:relative;flex:1;height:100%;border-radius:3px;background:linear-gradient(180deg,var(--amber-hi),var(--amber));transform-origin:50% 100%;transform:scaleY(.18)}
+
+/* ---------- Buscas ---------- */
+.t-buscas .mini{width:50%}
+.sbox{left:8%;right:8%;top:14%;height:clamp(26px,4.4vh,36px);border-radius:10px;background:#1d1d22;border:1px solid rgba(226,162,59,.35);display:flex;align-items:center}
+.sbox *{position:relative}
+.lupa{width:16px;height:16px;margin:0 8px 0 10px;flex:none;transition:transform 300ms}
+.typed{font:500 clamp(10px,1vw,12.5px)/1 "JetBrains Mono",monospace;color:var(--ink);white-space:nowrap}
+.caret{width:2px;height:14px;background:var(--amber);margin-left:2px;opacity:0}
+.res{left:8%;height:clamp(7px,1.2vh,9px);border-radius:5px;background:#2a2a31;top:calc(14% + clamp(26px,4.4vh,36px) + 10px + var(--k)*clamp(13px,2.3vh,19px));
+  opacity:0;transform:translateX(-14px);transition:opacity 250ms,transform 300ms}
+.res{right:calc(20% + var(--k)*13%)}.res[style*="--k:0"]{background:rgba(226,162,59,.55)}
+.tile.awake .res,.rm .res{opacity:1;transform:none;transition:opacity 260ms calc(500ms + var(--k)*80ms),transform 360ms cubic-bezier(.2,.8,.2,1) calc(500ms + var(--k)*80ms)}
+
+/* ---------- VIP ---------- */
+.av{left:12%;top:30%;width:clamp(26px,3.2vw,36px);height:clamp(26px,3.2vw,36px);border-radius:50%;border:2px solid var(--mini);
+  display:grid;place-items:center;font:600 11px/1 Sora,sans-serif;color:#1a1206;
+  transform:translate(calc(var(--k)*clamp(16px,1.9vw,24px)),calc(var(--y)*1px));opacity:.45;
+  transition:transform 380ms cubic-bezier(.3,1.3,.5,1),opacity 300ms}
+.tile.awake .av,.rm .av{transform:translateX(calc(var(--k)*clamp(12px,1.4vw,17px)));opacity:1;transition-delay:calc(var(--k)*70ms)}
+.badge{left:14%;bottom:16%;padding:4px 8px;border-radius:6px;background:var(--amber);color:#1a1206;font:500 10px/1 "JetBrains Mono",monospace;letter-spacing:.14em;
+  transform:scale(.6);opacity:0;transition:transform 200ms,opacity 200ms}
+.tile.awake .badge,.rm .badge{transform:none;opacity:1;transition:transform 380ms cubic-bezier(.3,1.8,.5,1) 300ms,opacity 200ms 300ms}
+
+/* ---------- PRO ---------- */
+.dia{left:50%;top:30%;width:clamp(22px,2.6vw,30px);height:clamp(22px,2.6vw,30px);margin-left:calc(clamp(22px,2.6vw,30px)/-2);
+  border:2px solid var(--amber);background:rgba(226,162,59,.12);transform:rotate(45deg);transition:transform 600ms cubic-bezier(.4,1.4,.5,1)}
+.tile.awake .dia,.rm .dia{transform:rotate(135deg)}
+.pro{left:50%;bottom:14%;width:64px;margin-left:-32px;height:24px;border-radius:7px;border:1px solid rgba(226,162,59,.55);overflow:hidden;
+  display:grid;place-items:center;font:700 12px/1 Sora,sans-serif;letter-spacing:.12em;color:var(--amber-hi)}
+.pro span{position:static}
+.shine{left:0;top:0;width:100%;height:100%;background:linear-gradient(100deg,transparent 30%,rgba(255,226,170,.6) 50%,transparent 70%);transform:translateX(-120%)}
+.tile.awake .shine{transform:translateX(120%);transition:transform 700ms ease-in-out 200ms}
+
+/* ---------- Vídeos ---------- */
+.play{left:50%;top:22%;width:clamp(30px,3.6vw,42px);height:clamp(30px,3.6vw,42px);margin-left:calc(clamp(30px,3.6vw,42px)/-2);border-radius:50%;background:var(--amber);display:grid;place-items:center}
+.play svg{position:static;width:42%;height:42%;margin-left:8%}
+.tile.awake .play{animation:pop 420ms cubic-bezier(.3,1.4,.5,1)}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.18)}100%{transform:scale(1)}}
+.tl{left:12%;right:12%;bottom:20%;height:4px;border-radius:4px;background:#24242a}
+.tlf{left:12%;right:12%;bottom:20%;height:4px;border-radius:4px;background:var(--amber);transform-origin:0 50%;transform:scaleX(0);transition:transform 400ms}
+.tile.awake .tlf,.rm .tlf{transform:scaleX(1);transition:transform 1400ms linear}
+.tc{right:12%;bottom:calc(20% + 10px);font:500 9px/1 "JetBrains Mono",monospace;color:var(--ink2)}
+
+/* ---------- Kits ---------- */
+.card{left:50%;top:50%;width:clamp(34px,4vw,48px);height:clamp(46px,5.4vw,64px);margin:calc(clamp(46px,5.4vw,64px)/-2) 0 0 calc(clamp(34px,4vw,48px)/-2);
+  border-radius:7px;background:#1d1d22;border:1px solid rgba(226,162,59,.45);transform-origin:50% 120%;
+  transform:translate(calc(var(--k)*2px),calc(var(--k)*-2px));transition:transform 380ms cubic-bezier(.3,1.3,.5,1)}
+.card::before{content:"";position:absolute;left:18%;right:18%;top:18%;height:3px;border-radius:2px;background:var(--amber)}
+.card::after{content:"";position:absolute;left:18%;right:34%;top:32%;height:3px;border-radius:2px;background:#3a3a42}
+.tile.awake .card,.rm .card{transform:translateX(calc(var(--f)*clamp(14px,1.6vw,20px))) rotate(calc(var(--f)*10deg))}
+
+/* ---------- Moldura ---------- */
+.frame{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;z-index:5;opacity:0;
+  filter:drop-shadow(0 0 5px rgba(226,162,59,.8)) drop-shadow(0 0 16px rgba(226,162,59,.55))}
+.frame i{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+.eh{width:1px;height:2px;background:var(--amber)}
+.ev{width:2px;height:1px;background:var(--amber)}
+.c{width:22px;height:22px;border:0 solid var(--amber-hi)}
+.ctl{border-top-width:2px;border-left-width:2px;border-top-left-radius:22px}
+.ctr{border-top-width:2px;border-right-width:2px;border-top-right-radius:22px}
+.cbl{border-bottom-width:2px;border-left-width:2px;border-bottom-left-radius:22px}
+.cbr{border-bottom-width:2px;border-right-width:2px;border-bottom-right-radius:22px}
+
+/* ---------- Cursor fantasma ---------- */
+.ghost{position:absolute;left:0;top:0;width:26px;height:26px;z-index:6;pointer-events:none;opacity:0;transition:opacity 250ms;
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.55));will-change:transform}
+.ghost.on{opacity:1}
+
+/* ---------- Responsivo ---------- */
+@media (max-height:540px) and (min-width:721px){ .txt p{display:none} .stage{gap:8px} .head p{display:none}
+  .dia{top:12%;width:18px;height:18px;margin-left:-9px} .pro{bottom:10%;height:20px;width:52px;margin-left:-26px;font-size:10px}
+  .live{top:12%;font-size:8px;gap:5px} .eq{bottom:12%;height:42%} .g-cap{display:none} .step{width:12px;height:12px;margin-left:-6px;top:calc(46% - 3px)} }
+@media (max-width:720px){
+  .stage{height:auto;min-height:100vh}
+  .grid{flex:none;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;grid-auto-rows:minmax(132px,auto)}
+  .tile{grid-column:auto!important;grid-row:auto!important;min-height:132px}
+  .t-cursos,.t-buscas{grid-column:1/3!important}
+  .t-cursos{min-height:200px}
+  .txt{max-width:56%} .t-cursos .txt,.t-buscas .txt{max-width:48%}
+  .mini{width:40%}
+}
+@media (max-width:400px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .t-cursos,.t-buscas{grid-column:1!important}
+  .t-cursos{min-height:180px}
+  .txt,.t-cursos .txt,.t-buscas .txt{max-width:52%}
+  .mini,.t-cursos .mini,.t-buscas .mini{width:44%}
+  .m-count{font-size:40px}.m-sub{top:calc(12% + 46px)}
+}
+
+/* ---------- Movimento reduzido ---------- */
+.rm .tile{animation:none}
+.rm *,.rm *::before,.rm *::after{transition:none!important;animation:none!important}
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <header class="head">
+    <div class="kicker">Mapa do ecossistema</div>
+    <h1>O que tem no <em>INEMA.CLUB</em></h1>
+    <p>Tudo aberto e gratuito em <a href="https://inema.club" target="_blank" rel="noopener">inema.club</a> — passe o mouse ou use Tab nos blocos.</p>
+  </header>
+
+  <div class="grid" id="grid">
+    <a class="tile t-cursos" style="--i:0" data-mini="cursos" href="https://inema.club" target="_blank" rel="noopener" aria-label="Cursos gratuitos: trilhas completas, abertas e sem custo">
+      <span class="lbl">01 · Cursos</span>
+      <div class="mini" aria-hidden="true">
+        <div class="m-count"><span class="num">0</span><span class="pct">%</span></div>
+        <div class="m-sub">gratuito</div>
+        <div class="chip" style="--k:2">Vídeo com IA</div>
+        <div class="chip" style="--k:1">Agentes de IA</div>
+        <div class="chip" style="--k:0">Claude Code</div>
+      </div>
+      <div class="txt"><h2>Cursos gratuitos</h2><p>Trilhas e módulos completos, do primeiro passo ao projeto pronto. Abertos, sem custo.</p></div>
+    </a>
+
+    <a class="tile t-guias" style="--i:1" data-mini="guias" href="https://inema.club" target="_blank" rel="noopener" aria-label="Guias de projeto: passo a passo de cada projeto">
+      <span class="lbl">02 · Guias</span>
+      <div class="mini" aria-hidden="true">
+        <div class="track"></div><div class="fill"></div>
+        <div class="step" style="left:12%"></div><div class="step" style="left:37.3%"></div><div class="step" style="left:62.6%"></div><div class="step" style="left:88%"></div>
+        <div class="step on" style="left:12%;--d:0"></div><div class="step on" style="left:37.3%;--d:260"></div><div class="step on" style="left:62.6%;--d:520"></div><div class="step on" style="left:88%;--d:780"></div>
+        <div class="g-cap">passo 4/4</div>
+      </div>
+      <div class="txt"><h2>Guias de projeto</h2><p>Do clone ao uso.</p></div>
+    </a>
+
+    <a class="tile t-eventos" style="--i:2" data-mini="eventos" href="https://inema.club" target="_blank" rel="noopener" aria-label="Eventos e lives">
+      <span class="lbl">03 · Ao vivo</span>
+      <div class="mini" aria-hidden="true">
+        <div class="live"><span class="dot"><span class="ring"></span></span>AO VIVO</div>
+        <div class="eq"><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="txt"><h2>Eventos e lives</h2><p>Aprender junto.</p></div>
+    </a>
+
+    <a class="tile t-buscas" style="--i:3" data-mini="buscas" href="https://inema.club" target="_blank" rel="noopener" aria-label="Buscas: encontre curso, guia ou vídeo">
+      <span class="lbl">04 · Buscas</span>
+      <div class="mini" aria-hidden="true">
+        <div class="sbox">
+          <svg class="lupa" viewBox="0 0 24 24" fill="none" stroke="#E2A23B" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+          <span class="typed"></span><span class="caret"></span>
+        </div>
+        <div class="res" style="--k:0"></div><div class="res" style="--k:1"></div><div class="res" style="--k:2"></div>
+      </div>
+      <div class="txt"><h2>Buscas</h2><p>Um campo para achar curso, guia ou vídeo por assunto.</p></div>
+    </a>
+
+    <a class="tile t-vip" style="--i:4" data-mini="vip" href="https://inema.club" target="_blank" rel="noopener" aria-label="Comunidade VIP">
+      <span class="lbl">05 · VIP</span>
+      <div class="mini" aria-hidden="true">
+        <div class="av" style="--k:0;--y:-7;background:#ffd48a">A</div>
+        <div class="av" style="--k:1;--y:6;background:#E2A23B">N</div>
+        <div class="av" style="--k:2;--y:-4;background:#c98a2a">L</div>
+        <div class="av" style="--k:3;--y:8;background:#f0b85a">+</div>
+        <div class="badge">VIP</div>
+      </div>
+      <div class="txt"><h2>Comunidade VIP</h2><p>Grupo próximo.</p></div>
+    </a>
+
+    <a class="tile t-pro" style="--i:5" data-mini="pro" href="https://inema.club" target="_blank" rel="noopener" aria-label="INEMA.PRO">
+      <span class="lbl">06 · PRO</span>
+      <div class="mini" aria-hidden="true">
+        <div class="dia"></div>
+        <div class="pro"><span>PRO</span><div class="shine"></div></div>
+      </div>
+      <div class="txt"><h2>INEMA.PRO</h2><p>Mais fundo.</p></div>
+    </a>
+
+    <a class="tile t-videos" style="--i:6" data-mini="videos" href="https://inema.club" target="_blank" rel="noopener" aria-label="Vídeos">
+      <span class="lbl">07 · Vídeos</span>
+      <div class="mini" aria-hidden="true">
+        <div class="play"><svg viewBox="0 0 24 24"><path d="M6 4 20 12 6 20Z" fill="#1a1206"/></svg></div>
+        <div class="tl"></div><div class="tlf"></div>
+        <div class="tc">02:48</div>
+      </div>
+      <div class="txt"><h2>Vídeos</h2><p>Explicativos.</p></div>
+    </a>
+
+    <a class="tile t-kits" style="--i:7" data-mini="kits" href="https://inema.club" target="_blank" rel="noopener" aria-label="Kits prontos">
+      <span class="lbl">08 · Kits</span>
+      <div class="mini" aria-hidden="true">
+        <div class="card" style="--k:0;--f:-1"></div>
+        <div class="card" style="--k:1;--f:0"></div>
+        <div class="card" style="--k:2;--f:1"></div>
+      </div>
+      <div class="txt"><h2>Kits</h2><p>Prontos p/ usar.</p></div>
+    </a>
+
+    <div class="frame" id="frame" aria-hidden="true">
+      <i class="eh" data-e="t"></i><i class="eh" data-e="b"></i><i class="ev" data-e="l"></i><i class="ev" data-e="r"></i>
+      <i class="c ctl"></i><i class="c ctr"></i><i class="c cbl"></i><i class="c cbr"></i>
+    </div>
+    <svg class="ghost" id="ghost" viewBox="0 0 26 26" aria-hidden="true">
+      <path d="M4 2.5v18.2l4.9-4.6 3.4 7.6 3.3-1.5-3.3-7.4h6.8z" fill="#fff" stroke="#0b0b0d" stroke-width="1.6" stroke-linejoin="round"/>
+    </svg>
+  </div>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const stage = document.getElementById('stage');
+  const grid = document.getElementById('grid');
+  const frameEl = document.getElementById('frame');
+  const ghostEl = document.getElementById('ghost');
+  const DEMO_FORCE = new URLSearchParams(location.search).get('demo') === '1';
+  const mq = matchMedia('(prefers-reduced-motion: reduce)');
+  let reduced = mq.matches;
+  const setRM = () => { reduced = mq.matches; root.classList.toggle('rm', reduced); };
+  setRM();
+  mq.addEventListener ? mq.addEventListener('change', setRM) : mq.addListener(setRM);
+
+  /* ---------- blocos ---------- */
+  const TEXT = 'agente de IA';
+  const UP = { cursos: 900, buscas: TEXT.length * 55 };
+  const EQ_FIXED = [.5, .85, .6, 1, .45];
+  const tiles = [...grid.querySelectorAll('.tile')].map(el => {
+    const t = { el, kind: el.dataset.mini, p: 0, last: -1 };
+    if (t.kind === 'cursos') t.num = el.querySelector('.num');
+    if (t.kind === 'buscas') { t.typed = el.querySelector('.typed'); t.caret = el.querySelector('.caret'); t.lupa = el.querySelector('.lupa'); }
+    if (t.kind === 'eventos') { t.ring = el.querySelector('.ring'); t.bars = [...el.querySelectorAll('.eq i')]; t.eq = t.bars.map(() => .18); }
+    return t;
+  });
+  const byKind = Object.fromEntries(tiles.map(t => [t.kind, t]));
+
+  /* ---------- alvo da moldura ---------- */
+  let active = null;      // bloco acordado
+  let geom = null;        // bloco cuja geometria a moldura segue (fica mesmo esmaecendo)
+  let frameOn = false, snap = false, leaveTimer = 0;
+  function setTarget(t) {
+    clearTimeout(leaveTimer);
+    if (active !== t) { if (active) active.el.classList.remove('awake'); active = t; t.el.classList.add('awake'); }
+    if (fr.op < .05) snap = true;
+    geom = t; frameOn = true; kick();
+  }
+  function scheduleLeave(t) {
+    if (active !== t) return;
+    clearTimeout(leaveTimer);
+    leaveTimer = setTimeout(() => {
+      if (active !== t) return;
+      t.el.classList.remove('awake'); active = null; frameOn = false; kick();
+    }, 110);
+  }
+  tiles.forEach(t => {
+    t.el.addEventListener('pointerenter', () => setTarget(t));
+    t.el.addEventListener('pointerleave', () => scheduleLeave(t));
+    t.el.addEventListener('focus', () => setTarget(t));
+    t.el.addEventListener('blur', () => scheduleLeave(t));
+  });
+
+  /* ---------- moldura: molas em x, y, w, h ---------- */
+  const OFF = 4, R = 22, K = 210, C = 23;
+  const fr = { x: 0, y: 0, w: 0, h: 0, vx: 0, vy: 0, vw: 0, vh: 0, op: 0 };
+  const parts = {};
+  frameEl.querySelectorAll('i').forEach(i => {
+    const k = i.dataset.e || [...i.classList].find(c => c !== 'c'); parts[k] = i;
+  });
+  function geomOf(t) {
+    const e = t.el;
+    return { x: e.offsetLeft - OFF, y: e.offsetTop - OFF, w: e.offsetWidth + OFF * 2, h: e.offsetHeight + OFF * 2 };
+  }
+  function stepSpring(key, target, dt) {
+    const v = 'v' + key;
+    const a = -K * (fr[key] - target) - C * fr[v];
+    fr[v] += a * dt; fr[key] += fr[v] * dt;
+  }
+  let lastOp = -1;
+  function updateFrame(dt) {
+    if (geom) {
+      const g = geomOf(geom);
+      if (snap || reduced) {
+        Object.assign(fr, { x: g.x, y: g.y, w: g.w, h: g.h, vx: 0, vy: 0, vw: 0, vh: 0 }); snap = false;
+      } else {
+        const sub = 2, h = dt / sub;
+        for (let s = 0; s < sub; s++) { stepSpring('x', g.x, h); stepSpring('y', g.y, h); stepSpring('w', g.w, h); stepSpring('h', g.h, h); }
+      }
+    }
+    const target = frameOn ? 1 : 0;
+    fr.op = reduced ? target : fr.op + (target - fr.op) * (1 - Math.exp(-dt / .075));
+    if (Math.abs(fr.op - target) < .002) fr.op = target;
+    if (fr.op !== lastOp) { frameEl.style.opacity = fr.op.toFixed(3); lastOp = fr.op; }
+    if (fr.op <= 0) return;
+    const { x, y } = fr, w = Math.max(fr.w, R * 2), hh = Math.max(fr.h, R * 2);
+    const lw = w - 2 * R, lh = hh - 2 * R;
+    parts.t.style.transform = `translate(${x + R}px,${y}px) scaleX(${lw})`;
+    parts.b.style.transform = `translate(${x + R}px,${y + hh - 2}px) scaleX(${lw})`;
+    parts.l.style.transform = `translate(${x}px,${y + R}px) scaleY(${lh})`;
+    parts.r.style.transform = `translate(${x + w - 2}px,${y + R}px) scaleY(${lh})`;
+    parts.ctl.style.transform = `translate(${x}px,${y}px)`;
+    parts.ctr.style.transform = `translate(${x + w - R}px,${y}px)`;
+    parts.cbl.style.transform = `translate(${x}px,${y + hh - R}px)`;
+    parts.cbr.style.transform = `translate(${x + w - R}px,${y + hh - R}px)`;
+  }
+
+  /* ---------- minis guiadas por JS ---------- */
+  const easeOut = p => 1 - Math.pow(1 - p, 3);
+  function updateMinis(dt, now) {
+    for (const t of tiles) {
+      const awake = reduced || t.el.classList.contains('awake');
+      if (reduced) t.p = 1;
+      else t.p = Math.min(1, Math.max(0, t.p + (awake ? dt * 1000 / (UP[t.kind] || 400) : -dt * 1000 / 400)));
+      if (t.kind === 'cursos') {
+        const n = Math.round(100 * easeOut(t.p));
+        if (n !== t.last) { t.num.textContent = n; t.last = n; }
+      } else if (t.kind === 'buscas') {
+        const n = Math.round(TEXT.length * t.p);
+        if (n !== t.last) { t.typed.textContent = TEXT.slice(0, n); t.last = n; }
+        t.caret.style.opacity = awake ? (reduced ? 1 : (Math.floor(now / 530) % 2 ? 0 : 1)) : 0;
+        t.lupa.style.transform = awake && !reduced && t.p < 1 ? `rotate(${Math.sin(now / 90) * 12}deg)` : 'rotate(0deg)';
+      } else if (t.kind === 'eventos') {
+        if (awake && !reduced) {
+          const f = (now % 1200) / 1200;
+          t.ring.style.transform = `scale(${1 + .8 * f})`; t.ring.style.opacity = ((1 - f) * .9).toFixed(3);
+        } else { t.ring.style.opacity = 0; }
+        t.bars.forEach((b, i) => {
+          let s;
+          if (reduced) s = EQ_FIXED[i];
+          else if (awake) s = .3 + .7 * Math.abs(Math.sin(now / 1000 * (4.2 + i * 1.3) + i * 1.7));
+          else s = t.eq[i] + (.18 - t.eq[i]) * (1 - Math.exp(-dt / .12));
+          if (Math.abs(s - t.eq[i]) > .002 || reduced) { t.eq[i] = s; b.style.transform = `scaleY(${s.toFixed(3)})`; }
+        });
+      }
+    }
+  }
+
+  /* ---------- cursor fantasma ---------- */
+  const ORDER = ['cursos', 'guias', 'eventos', 'buscas', 'kits', 'videos', 'pro', 'vip'];
+  const MOVE = .38, DWELL = .57, SEG = MOVE + DWELL, START = .3;
+  const gh = { alive: !reduced, clock: 0, cycle: -1, stops: [], first: true, tile: null, shown: false };
+  function pointIn(t) { const e = t.el; return { x: e.offsetLeft + e.offsetWidth * .58, y: e.offsetTop + e.offsetHeight * .56 }; }
+  function visibleStops() {
+    const vh = innerHeight;
+    const list = ORDER.map(k => byKind[k]).filter(t => {
+      const r = t.el.getBoundingClientRect();
+      const vis = Math.min(r.bottom, vh) - Math.max(r.top, 0);
+      return vis >= r.height * .6;
+    });
+    return list.length ? list : [byKind.cursos];
+  }
+  function hit(px, py) {
+    for (const t of tiles) {
+      const e = t.el;
+      if (px >= e.offsetLeft && px <= e.offsetLeft + e.offsetWidth && py >= e.offsetTop && py <= e.offsetTop + e.offsetHeight) return t;
+    }
+    return null;
+  }
+  const ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  function updateGhost(dt) {
+    if (!gh.alive || reduced) return;
+    gh.clock += dt;
+    const t = gh.clock - START;
+    if (t < 0) return;
+    if (!gh.shown) { ghostEl.classList.add('on'); gh.shown = true; }
+    const n0 = gh.stops.length || 8;
+    const cyc = Math.floor(t / (SEG * n0));
+    if (cyc !== gh.cycle) { gh.cycle = cyc; gh.stops = visibleStops(); if (cyc > 0) gh.first = false; }
+    const n = gh.stops.length;
+    const tt = t - cyc * SEG * n0;
+    const i = Math.min(n - 1, Math.floor(tt / SEG));
+    const local = tt - i * SEG;
+    const to = pointIn(gh.stops[i]);
+    let from;
+    if (i === 0 && gh.first) from = { x: grid.clientWidth * .2, y: -34 };
+    else from = pointIn(gh.stops[(i - 1 + n) % n]);
+    const p = ease(Math.min(1, local / MOVE));
+    const x = from.x + (to.x - from.x) * p, y = from.y + (to.y - from.y) * p;
+    ghostEl.style.transform = `translate(${(x - 4).toFixed(1)}px,${(y - 2.5).toFixed(1)}px)`;
+    const h = hit(x, y);
+    if (h !== gh.tile) { if (gh.tile) scheduleLeave(gh.tile); gh.tile = h; if (h) setTarget(h); }
+  }
+  function stopGhost() {
+    if (!gh.alive || DEMO_FORCE) return;
+    gh.alive = false; ghostEl.classList.remove('on');
+    if (gh.tile && !gh.tile.el.matches(':hover') && document.activeElement !== gh.tile.el) scheduleLeave(gh.tile);
+    gh.tile = null;
+  }
+  addEventListener('pointermove', e => { if (e.isTrusted && e.pointerType !== 'touch') stopGhost(); }, { passive: true });
+  addEventListener('pointerdown', e => { if (e.isTrusted) stopGhost(); }, { passive: true });
+  addEventListener('keydown', e => { if (e.isTrusted) stopGhost(); });
+  mq.addEventListener && mq.addEventListener('change', () => { if (reduced) { ghostEl.classList.remove('on'); } });
+
+  /* ---------- loop único ---------- */
+  let raf = 0, last = 0, onScreen = true;
+  function loop(now) {
+    const dt = Math.min(.05, (now - last) / 1000 || 0); last = now;
+    updateGhost(dt);
+    updateFrame(dt);
+    updateMinis(dt, now);
+    raf = (onScreen && !document.hidden) ? requestAnimationFrame(loop) : 0;
+  }
+  function kick() { if (!raf && onScreen && !document.hidden) { last = performance.now(); raf = requestAnimationFrame(loop); } }
+  new IntersectionObserver(es => { onScreen = es[0].isIntersecting; if (onScreen) kick(); }).observe(stage);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) kick(); });
+  addEventListener('resize', kick, { passive: true });
+  if (reduced) updateMinis(0, 0);
+  kick();
+})();
+</script>
+</body>
+</html>
