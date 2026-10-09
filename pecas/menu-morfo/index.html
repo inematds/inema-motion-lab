@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu que se transforma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<script>
+  // ?demo=1 demonstração contínua · ?motion=off parado no estado final · ?motion=xray raio-X
+  (function () {
+    var q = location.search, m = (q.match(/[?&]motion=([a-z]+)/) || [])[1] || '';
+    window.MOTION = { demo: /[?&]demo=1\b/.test(q), off: m === 'off', xray: m === 'xray' };
+    if (MOTION.off) document.documentElement.classList.add('motion-off');
+  })();
+</script>
+<style>
+  :root {
+    --bg: #0b0b0d; --surface: #111114; --fg: #f3efe7; --fg-2: rgba(243,239,231,.6);
+    --accent: #E2A23B; --ink: #0b0b0d;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--fg); font-family: Inter, system-ui, sans-serif; }
+  a { color: inherit; text-decoration: none; }
+
+  main { position: relative; height: 100vh; height: 100dvh; width: 100%; overflow: hidden; isolation: isolate; }
+
+  /* manchas de luz atrás do vidro */
+  .blob { position: absolute; border-radius: 50%; pointer-events: none; z-index: -1; will-change: transform; }
+  .blob.a { width: 62vmax; height: 62vmax; left: -6vmax; top: -24vmax; background: radial-gradient(circle, rgba(226,162,59,.34), rgba(226,162,59,0) 66%); }
+  .blob.b { width: 56vmax; height: 56vmax; right: -14vmax; top: -6vmax; background: radial-gradient(circle, rgba(92,108,160,.28), rgba(92,108,160,0) 66%); }
+  .grain { position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .5;
+    background-image: radial-gradient(rgba(243,239,231,.05) 1px, transparent 1px); background-size: 4px 4px; }
+
+  /* ---------- topo ---------- */
+  header {
+    position: relative; z-index: 5; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+    gap: 16px; padding: 22px clamp(16px, 4vw, 48px);
+  }
+  .logo { font-family: Sora, sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -.02em; justify-self: start; }
+  .logo span { color: var(--accent); }
+  .menu {
+    position: relative; display: flex; gap: 2px; padding: 5px;
+    background: rgba(24,24,28,.55); border: 1px solid rgba(243,239,231,.1); border-radius: 999px;
+    -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
+  }
+  .item {
+    position: relative; z-index: 1; appearance: none; border: 0; background: transparent; color: var(--fg);
+    font: 500 14.5px/1 Inter, system-ui, sans-serif; padding: 10px 16px; border-radius: 999px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .item svg { width: 10px; height: 10px; opacity: .55; transition: transform 200ms ease; }
+  .item[aria-expanded="true"] svg { transform: rotate(180deg); opacity: .9; }
+  .item:focus-visible, .actions a:focus-visible, .content a:focus-visible, .hero a:focus-visible {
+    outline: 3px solid var(--accent); outline-offset: 2px;
+  }
+  .hl { position: absolute; left: 0; top: 5px; width: 100px; border-radius: 999px; background: rgba(243,239,231,.09);
+    transform-origin: 0 0; opacity: 0; pointer-events: none; will-change: transform, opacity; }
+  .actions { justify-self: end; display: flex; align-items: center; gap: 8px; }
+  .actions .ghost-link { font-size: 14.5px; font-weight: 500; padding: 10px 12px; border-radius: 999px; color: var(--fg-2); }
+  .actions .ghost-link:hover { color: var(--fg); }
+  .cta { background: var(--accent); color: var(--ink); font-weight: 600; font-size: 14.5px; padding: 11px 18px; border-radius: 999px; white-space: nowrap; }
+  .cta:hover { background: #f0b552; }
+
+  /* ---------- painel único que se transforma ---------- */
+  .panel { position: absolute; left: 0; top: 0; z-index: 6; pointer-events: none; opacity: 0; transform-origin: 0 0; }
+  .panel.live { pointer-events: auto; }
+  .shadow { position: absolute; left: 0; top: 0; border-radius: 18px; transform-origin: 0 0;
+    box-shadow: 0 30px 70px rgba(0,0,0,.55), 0 8px 20px rgba(0,0,0,.35); pointer-events: none; }
+  .clip { position: absolute; left: 0; top: 0; overflow: hidden; border-radius: 18px; }
+  .glass {
+    position: absolute; inset: 0; border-radius: 18px;
+    background: linear-gradient(180deg, #1f1f25, #121216);
+    box-shadow: inset -1px -1px 0 rgba(243,239,231,.08);
+  }
+  .edge { position: absolute; left: 0; top: 0; border-radius: 18px; box-shadow: inset 1px 1px 0 rgba(243,239,231,.12); pointer-events: none; }
+  .stack { position: absolute; left: 0; top: 0; }
+  .caret { position: absolute; left: 0; top: -6px; width: 13px; height: 13px; border-radius: 3px 0 0 0;
+    background: rgba(40,40,46,.96); box-shadow: inset 1px 1px 0 rgba(243,239,231,.12); }
+  .content { position: absolute; left: 0; top: 0; padding: 18px; opacity: 0; }
+  .content.on { opacity: 1; }
+
+  .content .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; }
+  .content .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .content .list { display: grid; gap: 2px; }
+  .link { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border-radius: 12px; }
+  .link:hover { background: rgba(243,239,231,.06); }
+  .ic { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+    background: rgba(226,162,59,.12); border: 1px solid rgba(226,162,59,.28); }
+  .ic svg { width: 17px; height: 17px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .link b { display: block; font-weight: 600; font-size: 14.5px; }
+  .link small { display: block; color: var(--fg-2); font-size: 13px; line-height: 1.4; margin-top: 3px; }
+  .kicker { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); padding: 2px 10px 10px; }
+  .tile { display: block; padding: 14px; border-radius: 14px; background: rgba(243,239,231,.04); border: 1px solid rgba(243,239,231,.07); }
+  .tile:hover { background: rgba(243,239,231,.08); }
+  .tile b { display: block; margin-top: 12px; font-weight: 600; font-size: 14.5px; }
+  .tile small { display: block; color: var(--fg-2); font-size: 13px; line-height: 1.4; margin-top: 4px; }
+  .split { display: grid; grid-template-columns: 1fr 190px; gap: 10px; }
+  .card { display: flex; flex-direction: column; justify-content: space-between; padding: 16px; border-radius: 14px;
+    background: linear-gradient(160deg, rgba(226,162,59,.3), rgba(226,162,59,.06)); border: 1px solid rgba(226,162,59,.35); }
+  .card b { font-family: Sora, sans-serif; font-weight: 600; font-size: 17px; line-height: 1.2; }
+  .card small { color: var(--fg-2); font-size: 13px; margin-top: 6px; display: block; }
+  .card span { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .12em; color: var(--accent); margin-top: 14px; }
+
+  /* ---------- herói ---------- */
+  .hero { position: relative; z-index: 1; text-align: center; padding: clamp(60px, 15vh, 150px) 16px 0; }
+  .label { font-family: "JetBrains Mono", monospace; font-weight: 500; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+  h1 {
+    margin: 18px auto 0; max-width: 11em; font-family: Sora, sans-serif; font-weight: 700;
+    font-size: clamp(2.6rem, 8.4vw, 6.6rem); line-height: .98; letter-spacing: -.055em;
+    background: linear-gradient(180deg, #f3efe7 30%, #8d877d); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lead { margin: 22px auto 0; max-width: 32em; color: var(--fg-2); font-size: clamp(1rem, 1.9vw, 1.18rem); line-height: 1.55; }
+
+  /* cursor fantasma */
+  .ghost { position: fixed; left: 0; top: 0; width: 30px; height: 30px; pointer-events: none; z-index: 20; opacity: 0; will-change: transform, opacity; }
+  .ghost svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 4px rgba(0,0,0,.45)); }
+
+  @media (max-width: 860px) {
+    header { grid-template-columns: 1fr auto; row-gap: 14px; padding: 16px; }
+    .menu { grid-column: 1 / -1; grid-row: 2; justify-self: center; }
+    .actions { grid-column: 2; grid-row: 1; }
+  }
+  @media (max-width: 460px) {
+    .actions .ghost-link { display: none; }
+    .item { font-size: 12.5px; padding: 9px 7.5px; gap: 4px; }
+    .menu { gap: 0; }
+    .item svg { display: none; }
+    .menu { padding: 4px; }
+    .hl { top: 4px; }
+    .cta { padding: 10px 14px; font-size: 13.5px; }
+    .content { padding: 10px; }
+    .content .grid2, .content .grid3, .split { grid-template-columns: 1fr; }
+    .tile { display: flex; gap: 12px; align-items: center; padding: 10px; }
+    .tile b { margin-top: 0; }
+    .card span { margin-top: 8px; }
+    .link { padding: 8px; }
+    .hide-sm { display: none !important; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+  .motion-off *, .motion-off *::before, .motion-off *::after { transition: none !important; }
+</style>
+</head>
+<body>
+<main id="piece">
+  <div class="blob a" id="blobA" aria-hidden="true" data-xray="luz âmbar · deriva devagar para o vidro ter o que desfocar" data-xray-tool="code"></div>
+  <div class="blob b" id="blobB" aria-hidden="true" data-xray="luz azul · deriva no sentido oposto da âmbar" data-xray-tool="code"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header>
+    <a class="logo" href="https://inema.club">INEMA<span>.CLUB</span></a>
+    <nav class="menu" id="menu" aria-label="Menu principal">
+      <span class="hl" id="hl" aria-hidden="true" data-xray="realce · desliza sob o item em mola (rigidez 420)" data-xray-tool="code"></span>
+      <button class="item" type="button" aria-expanded="false" aria-controls="panel">Cursos<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+      <button class="item" type="button" aria-expanded="false" aria-controls="panel">Eventos<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+      <button class="item" type="button" aria-expanded="false" aria-controls="panel">Comunidade<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+      <button class="item" type="button" aria-expanded="false" aria-controls="panel">Ferramentas<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 5 6.5 8 3.5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+    </nav>
+    <div class="actions">
+      <a class="ghost-link" href="https://inema.pro">Entrar</a>
+      <a class="cta" href="https://inema.club">Comece grátis</a>
+    </div>
+  </header>
+
+  <div class="panel" id="panel" role="region" aria-label="Submenu">
+    <div class="shadow" id="shadow" data-xray="painel único · posição, largura e altura em mola (260/28), recortado por 4 cantos" data-xray-tool="code"></div>
+    <div class="clip first" id="c1"><div class="clip" id="c2"><div class="clip" id="c3"><div class="clip" id="c4">
+      <div class="glass"></div>
+      <div class="edge" id="edge"></div>
+      <div class="stack" id="stack">
+        <div class="content" data-w="560">
+          <div class="kicker">Aprender</div>
+          <div class="grid2">
+            <a class="link" href="https://inema.club"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 19V6l8-3 8 3v13l-8-3z"/><path d="M12 3v13"/></svg></span><span><b>Trilhas para começar</b><small>Do zero ao primeiro projeto com IA.</small></span></a>
+            <a class="link" href="https://inema.club"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></span><span><b>Aulas de 15 minutos</b><small>Um passo por vez, com imagem em cada um.</small></span></a>
+            <a class="link" href="https://inema.club"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c3 3 3 13 0 16M12 4c-3 3-3 13 0 16"/></svg></span><span><b>Em três idiomas</b><small>Português, inglês e espanhol.</small></span></a>
+            <a class="link" href="https://inema.club"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6L3.4 9.3l6-.7z"/></svg></span><span><b>Novos da semana</b><small>O que acabou de entrar no clube.</small></span></a>
+          </div>
+        </div>
+        <div class="content" data-w="330">
+          <div class="kicker">Ao vivo</div>
+          <div class="list">
+            <a class="link" href="https://eventos.inema.pro"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg></span><span><b>Lives da semana</b><small>Agenda e link para entrar.</small></span></a>
+            <a class="link" href="https://eventos.inema.pro"><span class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></span><span><b>Áreas temáticas</b><small>Agentes, vídeo, gestão e mais.</small></span></a>
+            <a class="link" href="https://eventos.inema.pro"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M10 9l5 3-5 3z"/></svg></span><span><b>Gravações</b><small>Perdeu ao vivo? Assista depois.</small></span></a>
+          </div>
+        </div>
+        <div class="content" data-w="500">
+          <div class="kicker">Juntos</div>
+          <div class="split">
+            <div class="list">
+              <a class="link" href="https://inema.club"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.5"/><circle cx="17" cy="10" r="2.5"/><path d="M3 19c1-3.5 3.4-5 6-5s5 1.5 6 5M15 15c2.6-.4 4.6.8 5.5 3.5"/></svg></span><span><b>Comunidade VIP</b><small>Grupo fechado no Telegram.</small></span></a>
+              <a class="link" href="https://inema.pro"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 4v5c0 4.2-3 7.5-7 9-4-1.5-7-4.8-7-9V7z"/></svg></span><span><b>INEMA.PRO</b><small>Conteúdo avançado e projetos.</small></span></a>
+            </div>
+            <a class="card" href="https://inema.club"><div><b>Tire dúvidas com quem já fez.</b><small>Pergunte, mostre o seu projeto, ajude alguém.</small></div><span>ENTRAR →</span></a>
+          </div>
+        </div>
+        <div class="content" data-w="620">
+          <div class="kicker">Ferramentas</div>
+          <div class="grid3">
+            <a class="tile" href="https://buscas.inema.club"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg></span><span><b>Buscas</b><small>Ache aulas e guias em segundos.</small></span></a>
+            <a class="tile" href="https://inema.club"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 8l8-4 8 4-8 4z"/><path d="M4 8v8l8 4 8-4V8M12 12v8"/></svg></span><span><b>Kits prontos</b><small>Baixe, rode e adapte.</small></span></a>
+            <a class="tile" href="https://inema.club"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3z"/></svg></span><span><b>Vídeos</b><small>Explicações curtas e diretas.</small></span></a>
+          </div>
+        </div>
+      </div>
+    </div></div></div></div>
+    <div class="caret" id="caret" aria-hidden="true" data-xray="setinha · segue o item em mola 260/28" data-xray-tool="code"></div>
+  </div>
+
+  <section class="hero">
+    <div class="label">Aberto e gratuito</div>
+    <h1>Aprenda IA no seu ritmo.</h1>
+    <p class="lead">Cursos, lives e uma comunidade para quem quer usar inteligência artificial de verdade no dia a dia.</p>
+  </section>
+</main>
+
+<div class="ghost" id="ghost" aria-hidden="true">
+  <svg viewBox="0 0 24 24"><path d="M3 2 L3 19.5 L7.6 15.4 L10.7 22 L13.8 20.6 L10.8 14.2 L17 14 Z" fill="#fffaf0" stroke="#17120f" stroke-width="1.5" stroke-linejoin="round"/></svg>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var piece = $('piece'), menu = $('menu'), hl = $('hl'), panel = $('panel'), shadow = $('shadow');
+  var c1 = $('c1'), c2 = $('c2'), c3 = $('c3'), c4 = $('c4'), edge = $('edge'), stack = $('stack'), caret = $('caret');
+  var blobA = $('blobA'), blobB = $('blobB'), ghost = $('ghost');
+  var items = [].slice.call(menu.querySelectorAll('.item'));
+  var contents = [].slice.call(stack.querySelectorAll('.content'));
+  var mq = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  var DEMO = MOTION.demo;
+  function reduce() { return mq.matches || MOTION.off; }
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeIO(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+
+  // ---------- medidas ----------
+  var sizes = [], BW = 600, BH = 300, itemC = [], itemL = [], itemW = [], panelTop = 0, vw = 1280, hlH = 34;
+  function measure() {
+    var pr = piece.getBoundingClientRect(); vw = pr.width;
+    var maxW = vw - 32;
+    contents.forEach(function (c) { c.style.width = Math.min(+c.getAttribute('data-w'), maxW) + 'px'; });
+    sizes = contents.map(function (c) { return { w: c.offsetWidth, h: c.offsetHeight }; });
+    BW = Math.max.apply(null, sizes.map(function (s) { return s.w; })) + 2;
+    BH = Math.max.apply(null, sizes.map(function (s) { return s.h; })) + 2;
+    [c1, c2, c3, c4, edge].forEach(function (el) { el.style.width = BW + 'px'; el.style.height = BH + 'px'; });
+    shadow.style.width = BW + 'px'; shadow.style.height = BH + 'px';
+    var mr = menu.getBoundingClientRect();
+    items.forEach(function (it, i) {
+      var r = it.getBoundingClientRect();
+      itemC[i] = r.left - pr.left + r.width / 2;
+      itemL[i] = r.left - mr.left - menu.clientLeft; itemW[i] = r.width;
+    });
+    hlH = items[0].offsetHeight; hl.style.height = hlH + 'px';
+    panelTop = mr.bottom - pr.top + 14;
+    panel.style.top = panelTop + 'px';
+  }
+  function targetX(i) { return clamp(itemC[i] - sizes[i].w / 2, 16, vw - 16 - sizes[i].w); }
+
+  // ---------- estado ----------
+  var open = false, active = -1, hover = -1;
+  var px = { x: 0, v: 0 }, pw = { x: 300, v: 0 }, ph = { x: 200, v: 0 }, pc = { x: 0, v: 0 };
+  var hx = { x: 0, v: 0 }, hw = { x: 100, v: 0 }, hA = 0;
+  var vis = 0;              // 0 fechado .. 1 aberto
+  var closeTimer = 0, lastPointer = 'mouse', clock = 0;
+
+  function spring(s, target, k, d, dt) {
+    var steps = 2, h = dt / steps;
+    for (var n = 0; n < steps; n++) { var a = -k * (s.x - target) - d * s.v; s.v += a * h; s.x += s.v * h; }
+  }
+
+  function showContent(i, from) {
+    var dir = from < 0 ? 0 : (i > from ? 1 : -1);
+    contents.forEach(function (c, k) {
+      if (k === i) {
+        c.inert = false; c.classList.add('on');
+        if (reduce() || !dir) { c.style.transition = 'none'; c.style.transform = 'none'; c.style.opacity = '1'; }
+        else {
+          c.style.transition = 'none'; c.style.opacity = '0'; c.style.transform = 'translateX(' + (dir * 12) + 'px)';
+          void c.offsetWidth;
+          c.style.transition = 'opacity 180ms ease, transform 180ms ease';
+          c.style.opacity = '1'; c.style.transform = 'none';
+        }
+      } else {
+        c.inert = true; c.classList.remove('on');
+        if (k === from && dir && !reduce()) {
+          c.style.transition = 'opacity 180ms ease, transform 180ms ease';
+          c.style.opacity = '0'; c.style.transform = 'translateX(' + (-dir * 12) + 'px)';
+        } else { c.style.transition = 'none'; c.style.opacity = '0'; c.style.transform = 'none'; }
+      }
+    });
+  }
+
+  function openItem(i) {
+    clearTimeout(closeTimer);
+    if (open && active === i) return;
+    var from = open ? active : -1;
+    if (!open || vis < 0.05) {        // abre já no tamanho certo
+      px.x = targetX(i); pw.x = sizes[i].w; ph.x = sizes[i].h; pc.x = itemC[i]; px.v = pw.v = ph.v = pc.v = 0;
+    }
+    open = true; active = i;
+    items.forEach(function (it, k) { it.setAttribute('aria-expanded', k === i ? 'true' : 'false'); });
+    showContent(i, from);
+    panel.classList.add('live');
+    wake();
+  }
+  function closeMenu() {
+    clearTimeout(closeTimer);
+    if (!open) return;
+    open = false;
+    items.forEach(function (it) { it.setAttribute('aria-expanded', 'false'); });
+    contents.forEach(function (c) { c.inert = true; });
+    panel.classList.remove('live');
+    wake();
+  }
+  function scheduleClose() { clearTimeout(closeTimer); closeTimer = setTimeout(function () { closeMenu(); hover = -1; wake(); }, 150); }
+  contents.forEach(function (c) { c.inert = true; });
+
+  items.forEach(function (it, i) {
+    it.addEventListener('pointerdown', function (e) { lastPointer = e.pointerType; });
+    it.addEventListener('pointerenter', function (e) {
+      if (e.pointerType === 'touch') return;
+      hover = i; openItem(i);
+    });
+    it.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch') scheduleClose(); });
+    it.addEventListener('click', function () {
+      var viaMouse = lastPointer === 'mouse'; lastPointer = 'key';
+      if (open && active === i && !viaMouse) { closeMenu(); hover = -1; }
+      else { hover = i; openItem(i); }
+    });
+    it.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); openItem(i); var a = contents[i].querySelector('a'); if (a) setTimeout(function () { a.focus(); }, 0); }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        var n = (i + (e.key === 'ArrowRight' ? 1 : -1) + items.length) % items.length;
+        items[n].focus(); if (open) { hover = n; openItem(n); }
+      }
+    });
+  });
+  panel.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'touch') clearTimeout(closeTimer); });
+  panel.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch') scheduleClose(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && open) { var k = active; closeMenu(); hover = -1; items[k].focus(); }
+  });
+  document.addEventListener('focusin', function (e) {
+    if (open && !menu.contains(e.target) && !panel.contains(e.target)) { closeMenu(); hover = -1; }
+  });
+  document.addEventListener('pointerdown', function (e) {
+    if (open && !menu.contains(e.target) && !panel.contains(e.target)) { closeMenu(); hover = -1; }
+  }, { passive: true });
+
+  // ---------- render ----------
+  function render(dt) {
+    if (!sizes.length) return;
+    var R = reduce(), s = dt / 1000;
+    // manchas
+    if (!R) {
+      blobA.style.transform = 'translate(' + (Math.sin(clock / 7000) * 6).toFixed(2) + 'vmax,' + (Math.cos(clock / 9000) * 4).toFixed(2) + 'vmax)';
+      blobB.style.transform = 'translate(' + (Math.cos(clock / 8000) * 5).toFixed(2) + 'vmax,' + (Math.sin(clock / 6500) * 5).toFixed(2) + 'vmax)';
+    }
+    // painel
+    if (active >= 0) {
+      var tx = targetX(active), tw = sizes[active].w, th = sizes[active].h;
+      if (R) { px.x = tx; pw.x = tw; ph.x = th; pc.x = itemC[active]; px.v = pw.v = ph.v = pc.v = 0; }
+      else { spring(px, tx, 260, 28, s); spring(pw, tw, 260, 28, s); spring(ph, th, 260, 28, s); spring(pc, itemC[active], 260, 28, s); }
+    }
+    var tv = open ? 1 : 0;
+    if (R) vis = tv; else vis = tv > vis ? Math.min(1, vis + dt / 160) : Math.max(0, vis - dt / 160);
+    var x = px.x, w = clamp(pw.x, 40, BW), h = clamp(ph.x, 40, BH);
+    var sc = 0.98 + 0.02 * vis, ox = x + w / 2;
+    panel.style.opacity = vis >= 1 ? '1' : vis.toFixed(3);
+    panel.style.transform = 'translate(' + ox.toFixed(2) + 'px,0) scale(' + sc.toFixed(4) + ') translate(' + (-ox).toFixed(2) + 'px,0)';
+    panel.style.visibility = vis > 0 ? 'visible' : 'hidden';
+    // recorte por quatro cantos: só translate
+    c1.style.transform = 'translate(' + x.toFixed(2) + 'px,0)';
+    c2.style.transform = 'translate(' + (w - BW).toFixed(2) + 'px,0)';
+    c3.style.transform = 'translate(' + (BW - w).toFixed(2) + 'px,' + (h - BH).toFixed(2) + 'px)';
+    c4.style.transform = 'translate(' + (w - BW).toFixed(2) + 'px,0)';
+    var inner = 'translate(' + (BW - w).toFixed(2) + 'px,' + (BH - h).toFixed(2) + 'px)';
+    edge.style.transform = inner; stack.style.transform = inner;
+    shadow.style.transform = 'translate(' + x.toFixed(2) + 'px,0) scale(' + (w / BW).toFixed(4) + ',' + (h / BH).toFixed(4) + ')';
+    caret.style.transform = 'translate(' + (pc.x - 6.5).toFixed(2) + 'px,0) rotate(45deg)';
+
+    // realce sob o item
+    var hi = hover >= 0 ? hover : (open ? active : -1);
+    if (hi >= 0) {
+      if (hA < 0.02 || R) { hx.x = itemL[hi]; hw.x = itemW[hi]; hx.v = hw.v = 0; }
+      else { spring(hx, itemL[hi], 420, 34, s); spring(hw, itemW[hi], 420, 34, s); }
+    }
+    var ht = hi >= 0 ? 1 : 0;
+    hA = R ? ht : (ht > hA ? Math.min(1, hA + dt / 120) : Math.max(0, hA - dt / 200));
+    hl.style.opacity = hA.toFixed(3);
+    hl.style.transform = 'translateX(' + hx.x.toFixed(2) + 'px) scaleX(' + (hw.x / 100).toFixed(4) + ')';
+    if (window.xrayTick) xrayTick();
+  }
+
+  // ---------- modo demonstração ----------
+  var demoOn = !reduce() || DEMO, demoE = 0, demoFade = 1, demoStopping = false;
+  var SEG = 2000, LOOP = SEG * items.length + 1400;
+  function stopDemo(e) {
+    if (DEMO || !demoOn || demoStopping) return;
+    if (e && e.isTrusted === false) return;
+    demoStopping = true;
+  }
+  ['pointerdown', 'keydown', 'wheel', 'touchstart', 'pointermove'].forEach(function (ev) {
+    window.addEventListener(ev, function (e) { if (ev !== 'pointermove' || demoE > 400) stopDemo(e); }, { passive: true, capture: true });
+  });
+  function itemPt(i) { var r = items[i].getBoundingClientRect(); return [r.left + r.width * 0.55, r.top + r.height * 0.6]; }
+  function panelPt(i) {
+    var pr = piece.getBoundingClientRect();
+    var x = pr.left + targetX(i) + sizes[i].w * (0.3 + 0.12 * i), y = pr.top + panelTop + sizes[i].h * 0.55;
+    return [x, y];
+  }
+  var ghostPos = null, demoHover = -2;
+  function renderDemo(dt) {
+    if (!demoOn || !sizes.length) return;
+    if (demoStopping) {
+      demoFade = Math.max(0, demoFade - dt / 300);
+      ghost.style.opacity = demoFade.toFixed(3);
+      if (demoFade <= 0) { demoOn = false; ghost.style.display = 'none'; if (hover === -9) hover = -1; }
+      return;
+    }
+    demoE += dt;
+    var t = (demoE + 600) % LOOP, idx = Math.floor(t / SEG), u = t - idx * SEG;
+    var pr = piece.getBoundingClientRect();
+    var rest = [pr.left + pr.width * 0.5 + 90, pr.top + Math.min(pr.height * 0.62, panelTop + 280)];
+    var pos, want;
+    if (idx >= items.length) {          // sai e o painel fecha
+      var last = items.length - 1, from = itemPt(last);
+      pos = [lerp(from[0], rest[0], easeIO(clamp(u / 700, 0, 1))), lerp(from[1], rest[1], easeIO(clamp(u / 700, 0, 1)))];
+      want = u < 150 ? last : -1;
+    } else {
+      var a = idx === 0 ? rest : itemPt(idx - 1), b = itemPt(idx), c = panelPt(idx);
+      if (idx > 0 && u < 0) a = itemPt(idx - 1);
+      if (u < 450) { var k = easeIO(u / 450); pos = [lerp(a[0], b[0], k), lerp(a[1], b[1], k)]; want = u > 380 ? idx : (idx > 0 ? idx - 1 : -1); }
+      else if (u < 1100) { var k2 = easeIO((u - 450) / 650); pos = [lerp(b[0], c[0], k2), lerp(b[1], c[1], k2)]; want = idx; }
+      else if (u < 1500) pos = c, want = idx;
+      else { var k3 = easeIO((u - 1500) / 500); pos = [lerp(c[0], b[0], k3), lerp(c[1], b[1], k3)]; want = idx; }
+    }
+    if (want !== demoHover) {
+      demoHover = want;
+      if (want >= 0) { hover = want; openItem(want); } else { closeMenu(); hover = -1; }
+    }
+    ghost.style.opacity = clamp(demoE / 300, 0, 1).toFixed(3);
+    ghost.style.transform = 'translate(' + (pos[0] - 4).toFixed(1) + 'px,' + (pos[1] - 3).toFixed(1) + 'px)';
+  }
+  if (!demoOn) ghost.style.display = 'none';
+
+  // ---------- loop único ----------
+  var visible = true, rafId = 0, last = 0;
+  function frame(now) {
+    rafId = 0;
+    var dt = last ? Math.min(50, now - last) : 16;
+    last = now; clock += dt;
+    render(dt);
+    renderDemo(dt);
+    if (!(reduce() && !demoOn)) wake();
+  }
+  function running() { return visible && !document.hidden; }
+  function wake() { if (!rafId && running()) rafId = requestAnimationFrame(frame); }
+  function sleep() { if (rafId) { cancelAnimationFrame(rafId); rafId = 0; } last = 0; }
+  document.addEventListener('visibilitychange', function () { document.hidden ? sleep() : wake(); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      visible = entries[entries.length - 1].isIntersecting;
+      visible ? wake() : sleep();
+    }).observe(piece);
+  }
+  if (mq.addEventListener) mq.addEventListener('change', function () {
+    if (reduce() && !DEMO) { demoOn = false; ghost.style.display = 'none'; }
+    render(0); wake();
+  });
+  addEventListener('resize', function () { measure(); render(0); wake(); });
+
+  function start() { measure(); render(0); wake(); }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+})();
+</script>
+
+<!-- Raio-X: ?motion=xray desenha contorno e etiqueta em tudo que se move -->
+<style>
+  .xr-layer { position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden; }
+  .xr-box { position: absolute; left: 0; top: 0; border: 1.5px dashed #E2A23B; border-radius: 6px; }
+  .xr-tag { position: absolute; left: -1.5px; bottom: 100%; margin-bottom: 3px; white-space: nowrap;
+    font: 500 10px/1.25 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .03em;
+    color: #0b0b0d; background: #E2A23B; padding: 3px 6px; border-radius: 4px; }
+  .xr-box.below .xr-tag { bottom: auto; top: 100%; margin: 3px 0 0; }
+</style>
+<script>
+  (function () {
+    if (!window.MOTION || !MOTION.xray) return;
+    var els = [].slice.call(document.querySelectorAll('[data-xray]'));
+    var layer = document.createElement('div'); layer.className = 'xr-layer'; layer.setAttribute('aria-hidden', 'true');
+    var boxes = els.map(function (el) {
+      var b = document.createElement('div'); b.className = 'xr-box';
+      var t = document.createElement('span'); t.className = 'xr-tag'; t.textContent = el.getAttribute('data-xray');
+      b.appendChild(t); layer.appendChild(b); return b;
+    });
+    document.body.appendChild(layer);
+    window.xrayTick = function () {
+      for (var i = 0; i < els.length; i++) {
+        var r = els[i].getBoundingClientRect(), b = boxes[i];
+        b.style.width = r.width + 'px'; b.style.height = r.height + 'px';
+        b.style.transform = 'translate(' + r.left + 'px,' + r.top + 'px)';
+        b.classList.toggle('below', r.top < 24);
+      }
+    };
+    xrayTick(); addEventListener('resize', xrayTick); setTimeout(xrayTick, 600);
+  })();
+</script>
+</body>
+</html>

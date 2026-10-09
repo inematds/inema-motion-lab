@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Faixa flap · INEMA Motion Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0d;--placa:#121212;--tile:#1E1E1E;--fg:#f3efe7;--fg2:#a69d90;--acc:#E2A23B;--amarelo:#FFD33D;--w:20px;--h:30px}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,sans-serif;overflow:hidden}
+.palco{position:fixed;inset:0;overflow:hidden;background:radial-gradient(120% 100% at 50% 40%,#17151a 0%,var(--bg) 70%)}
+.vinheta{position:absolute;inset:0;pointer-events:none;background:radial-gradient(90% 75% at 50% 50%,transparent 55%,rgba(0,0,0,.55) 100%)}
+.topo{position:absolute;left:0;right:0;top:clamp(16px,4vh,36px);display:flex;justify-content:center;align-items:center;gap:10px;padding:0 16px}
+.roda{width:26px;height:26px;border-radius:50%;background:var(--amarelo);color:#17120f;display:grid;place-items:center;font:800 15px/1 Sora,sans-serif}
+.marca{font:800 16px/1 Sora,sans-serif;letter-spacing:-.01em}
+.marca b{color:var(--acc)}
+
+.placa{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1140px,calc(100vw - 32px));display:flex;flex-direction:column;align-items:center;gap:18px;padding:22px clamp(10px,2vw,20px) 24px;background:var(--placa);border-radius:14px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),0 30px 60px rgba(0,0,0,.5);background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px)}
+.faixa,.quadro,.menu{display:flex;flex-wrap:wrap;justify-content:center;gap:2px}
+.faixa{gap:2px;border:0;background:none;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;display:flex;flex-wrap:wrap;justify-content:center}
+.faixa:focus{outline:none}
+.faixa:focus-visible{outline:3px solid var(--acc);outline-offset:6px;border-radius:4px}
+.linha{display:flex;gap:2px;justify-content:center}
+.quadro{flex-direction:column;align-items:center;gap:4px}
+.menu{gap:16px 28px;margin-top:4px}
+.item{display:flex;gap:2px;text-decoration:none;color:var(--fg);border-radius:4px;padding:3px;outline:none}
+.item:focus-visible{outline:3px solid var(--acc);outline-offset:4px}
+.sep{height:0}
+.evento{display:flex;align-items:center;justify-content:center;gap:12px}
+.lamp{flex:0 0 auto;width:10px;height:10px;border-radius:50%;background:#3a2b12;opacity:.7}
+.lamp.on{background:var(--acc);box-shadow:0 0 10px 3px rgba(226,162,59,.55);opacity:1}
+.lamp.pisca{animation:pisca .8s steps(2,start) infinite}
+@keyframes pisca{to{opacity:.25}}
+.corpo{display:flex;align-items:stretch;justify-content:center;gap:4px}
+.quadro-w{display:flex;flex-direction:column;gap:4px;align-items:center}
+.cab{font:500 clamp(9px,1.2vw,12px)/1 'JetBrains Mono',monospace;letter-spacing:.14em;color:var(--fg2);text-transform:uppercase}
+
+/* tile do flap */
+.tile{position:relative;width:var(--w);height:var(--h);background:var(--tile);border-radius:2px;perspective:calc(var(--h) * 4.2);flex:0 0 auto;box-shadow:inset 0 0 0 1px #0d0d0d}
+.tile::after{content:'';position:absolute;left:0;right:0;top:calc(50% - .5px);height:1px;background:#0b0b0b;z-index:6}
+.metade,.aba{position:absolute;left:0;right:0;height:50%;overflow:hidden;background:var(--tile)}
+.metade.cima,.aba.cima{top:0}
+.metade.baixo,.aba.baixo{top:50%}
+.aba{backface-visibility:hidden;-webkit-backface-visibility:hidden;visibility:hidden;z-index:4}
+.aba.cima{transform-origin:50% 100%}
+.aba.baixo{transform-origin:50% 0%}
+.ch{position:absolute;left:0;right:0;height:var(--h);line-height:var(--h);text-align:center;font:500 calc(var(--h) * .62)/var(--h) 'JetBrains Mono',monospace;color:var(--cor,var(--amarelo));white-space:pre}
+.metade.cima .ch,.aba.cima .ch{top:0}
+.metade.baixo .ch,.aba.baixo .ch{top:calc(var(--h) * -.5)}
+.sombra{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none}
+.metade.cima .sombra{z-index:3}
+.s-a{z-index:5}
+.s-b{z-index:5}
+.tile.cima-alvo{}
+.tile .sombra.s-a{z-index:5}
+
+.cor-amarelo{--cor:var(--amarelo)}
+.cor-branco{--cor:#F3EEE2}
+.cor-acc{--cor:var(--acc)}
+.cor-fg2{--cor:var(--fg2)}
+.cor-placa{--cor:#17120f}
+
+.menu .item .ch{color:var(--fg)}
+.menu .item.vai .ch{color:var(--acc)}
+
+.xray-caixa{position:fixed;left:0;top:0;border:1px dashed var(--acc);pointer-events:none}
+.xray-rotulo{position:fixed;left:0;top:0;padding:4px 6px;border-radius:4px;background:var(--acc);color:#0b0b0d;font:500 10px/1.2 'JetBrains Mono',monospace;white-space:nowrap;pointer-events:none}
+#xray-layer{position:fixed;inset:0;pointer-events:none;z-index:100}
+.parado *,.parado *::before,.parado *::after{transition:none!important;animation:none!important}
+</style>
+</head>
+<body>
+<main class="palco" id="palco">
+  <header class="topo" data-xray="marca · logo fixo no topo" data-xray-tool="code">
+    <span class="roda">i</span><span class="marca">INEMA<b>.CLUB</b></span>
+  </header>
+
+  <section class="placa" id="placa" data-xray="placa · quadro de embarque com aviso, lives e menu" data-xray-tool="code">
+    <button type="button" class="faixa" id="faixa" data-xray="faixa · avisos que giram a cada 5,2 s; clique ou Enter para pular" data-xray-tool="code" aria-label="Próximo aviso"></button>
+    <div class="corpo" id="corpo" data-xray="quadro · cada coluna vira com flap, em sequência da esquerda para a direita" data-xray-tool="code">
+      <div class="quadro" id="quadro"></div>
+    </div>
+    <nav class="menu" id="menu" aria-label="Menu" data-xray="menu · cada item vira para VAI → ao passar o ponteiro" data-xray-tool="code"></nav>
+  </section>
+</main>
+<script>
+(function () {
+  var params = location.search;
+  var demoParam = /[?&]demo=1\b/.test(params);
+  var xrayOn = /[?&]motion=xray\b/.test(params);
+  var mqReduz = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var parado = !!(mqReduz && mqReduz.matches) || /[?&]motion=off\b/.test(params);
+  if (parado) document.documentElement.classList.add('parado');
+
+  var DRUM = ' ABCDEFGHIJKLMNOPQRSTUVWXYZÁÂÃÇÉÊÍÓÔÕÚ0123456789:./-→';
+  var NDRUM = DRUM.length, FLIP = 0.066, MAXF = 15, ATRASO_TILE = 0.034;
+  var STATUS = ['EM BREVE', 'SALA ABERTA', 'ENTRANDO', 'ÚLTIMAS VAGAS', 'ENCERRADA'];
+  var STATUS_CURTO = ['EM BREVE', 'ABERTA', 'ENTRANDO', 'ÚLTIMAS', 'ENCERRADA'];
+  var EVENTOS = [
+    {hora: '19:00', tema: 'PROMPT CERTO', sala: 'L1'},
+    {hora: '19:30', tema: 'AGENTES DE IA', sala: 'L2'},
+    {hora: '20:00', tema: 'CURSO SKILLS', sala: 'L3'},
+    {hora: '20:30', tema: 'IA NA ROTINA', sala: 'L1'},
+    {hora: '21:00', tema: 'PROJETOS', sala: 'L2'},
+    {hora: '21:30', tema: 'DÚVIDAS', sala: 'L3'}
+  ];
+  var AVISOS = ['CURSOS GRÁTIS INEMA.CLUB', 'LIVES TODA SEMANA NO AR', 'PRATIQUE COM AGENTES'];
+  var MENU = [{rotulo: 'CURSOS', href: '#cursos'}, {rotulo: 'EVENTOS', href: '#eventos'}, {rotulo: 'BUSCAS', href: '#buscas'}, {rotulo: 'VIP', href: '#vip'}];
+
+  var placa = document.getElementById('placa'), faixa = document.getElementById('faixa');
+  var quadro = document.getElementById('quadro'), lampadas = document.getElementById('lampadas');
+  var menuEl = document.getElementById('menu'), palco = document.getElementById('palco');
+  var T = 0, modo = '', L = 0, W = 20, Hh = 30;
+  var tiles = [];          /* todos os tiles do quadro */
+  var faixaTiles = [], menuItens = [], headerTiles = [], labelTiles = [], linhasTiles = [];
+  var rows = [], pool = 0, cursor = 0, avisoIdx = 0, minutoOffset = 0, horaBase = new Date();
+  var tickAt = 2.1, noticeAt = 5.2, rollAt = -1, lampadasEls = [];
+
+  function pad(s, n) { s = String(s); if (s.length > n) return s.slice(0, n); while (s.length < n) s += ' '; return s; }
+
+  /* ---------- tile ---------- */
+  function criarTile(corCls) {
+    var el = document.createElement('div');
+    el.className = 'tile ' + (corCls || 'cor-amarelo');
+    el.innerHTML =
+      '<div class="metade cima"><span class="ch"></span><span class="sombra s-a"></span></div>' +
+      '<div class="metade baixo"><span class="ch"></span><span class="sombra s-b"></span></div>' +
+      '<div class="aba cima"><span class="ch"></span><span class="sombra"></span></div>' +
+      '<div class="aba baixo"><span class="ch"></span><span class="sombra"></span></div>';
+    var t = {
+      el: el, atual: ' ', anim: null,
+      cima: el.querySelector('.metade.cima .ch'), baixo: el.querySelector('.metade.baixo .ch'),
+      aCima: el.querySelector('.aba.cima'), aBaixo: el.querySelector('.aba.baixo'),
+      aCimaCh: el.querySelector('.aba.cima .ch'), aBaixoCh: el.querySelector('.aba.baixo .ch'),
+      sA: el.querySelector('.metade.cima .sombra'), sB: el.querySelector('.metade.baixo .sombra'),
+      sF: el.querySelector('.aba.cima .sombra'), cache: {}
+    };
+    tiles.push(t);
+    return t;
+  }
+  function texto(span, c) {
+    var v = c === ' ' ? ' ' : c;
+    span.textContent = v;
+  }
+  function setCh(t, key, c) {
+    if (t.cache[key] === c) return;
+    t.cache[key] = c;
+    if (key === 'cima') texto(t.cima, c);
+    else if (key === 'baixo') texto(t.baixo, c);
+    else if (key === 'aCima') texto(t.aCimaCh, c);
+    else if (key === 'aBaixo') texto(t.aBaixoCh, c);
+  }
+  function finalizar(t, c) {
+    setCh(t, 'cima', c); setCh(t, 'baixo', c);
+    t.aCima.style.visibility = 'hidden'; t.aBaixo.style.visibility = 'hidden';
+    t.sA.style.opacity = 0; t.sB.style.opacity = 0;
+    t.atual = c;
+  }
+  function sequencia(de, para) {
+    var ia = DRUM.indexOf(de), ib = DRUM.indexOf(para);
+    if (ia < 0) ia = 0; if (ib < 0) ib = 0;
+    var passos = (ib - ia + NDRUM) % NDRUM;
+    if (passos === 0) return null;
+    var ini = passos > MAXF ? (ib - MAXF + NDRUM) % NDRUM : ia;
+    var n = Math.min(passos, MAXF), seq = [];
+    for (var k = 0; k <= n; k++) seq.push(DRUM[(ini + k) % NDRUM]);
+    return seq;
+  }
+  /* manda o tile para o caractere alvo: flips com atraso (T + delay) */
+  function definir(t, alvo, atraso) {
+    if (alvo === t.atual && !t.anim) return;
+    var de = t.atual;
+    t.atual = alvo;
+    if (parado) { finalizar(t, alvo); t.anim = null; return; }
+    var seq = sequencia(de, alvo);
+    if (!seq) { finalizar(t, alvo); t.anim = null; return; }
+    t.anim = {seq: seq, t0: T + (atraso || 0), F: seq.length - 1};
+  }
+  function pintar(t, e) {
+    var seq = t.anim.seq, F = t.anim.F;
+    var k = Math.floor(e / FLIP);
+    if (k >= F) { finalizar(t, seq[F]); t.anim = null; return; }
+    var p = (e - k * FLIP) / FLIP, de = seq[k], para = seq[k + 1];
+    setCh(t, 'cima', para);
+    if (p < 0.5) {
+      var q = p / 0.5;
+      setCh(t, 'baixo', de);
+      setCh(t, 'aCima', de);
+      t.aCima.style.visibility = 'visible';
+      t.aCima.style.transform = 'rotateX(' + (90 * q * q).toFixed(2) + 'deg)';
+      t.sF.style.opacity = (0.6 * q).toFixed(3);
+      t.aBaixo.style.visibility = 'hidden';
+      t.sB.style.opacity = 0;
+    } else {
+      var q2 = (p - 0.5) / 0.5;
+      setCh(t, 'baixo', para);
+      setCh(t, 'aBaixo', para);
+      t.aCima.style.visibility = 'hidden';
+      t.aBaixo.style.visibility = 'visible';
+      t.aBaixo.style.transform = 'rotateX(' + (-90 * (1 - q2)).toFixed(2) + 'deg)';
+      t.sB.style.opacity = (0.5 * (1 - q2)).toFixed(3);
+    }
+  }
+
+  /* ---------- montagem do quadro ---------- */
+  function linhaDe(lista, classe, n) {
+    var arr = [];
+    for (var j = 0; j < n; j++) arr.push(criarTile(classe));
+    var el = document.createElement('div');
+    el.className = 'linha';
+    arr.forEach(function (t) { el.appendChild(t.el); });
+    lista.push(arr);
+    return el;
+  }
+  function larguraDoModo() { return window.innerWidth >= 640 ? 'wide' : 'narrow'; }
+  function layoutDe(m) {
+    return m === 'wide'
+      ? {campos: [{n: 5}, {n: 22}, {n: 5}, {n: 14}], sep: '  '}
+      : {campos: [{n: 14}, {n: 10}], sep: ' '};
+  }
+  function comprimento(m) {
+    var lay = layoutDe(m), n = 0;
+    lay.campos.forEach(function (c) { n += c.n; });
+    return n + (lay.campos.length - 1) * lay.sep.length;
+  }
+  function montar() {
+    modo = larguraDoModo();
+    L = comprimento(modo);
+    var vw = window.innerWidth;
+    var avail = Math.min(vw - 56, 1100);
+    var gap = 2;
+    W = Math.max(10, Math.floor((avail - (L - 1) * gap) / L));
+    Hh = Math.round(W * 1.5);
+    placa.style.setProperty('--w', W + 'px');
+    placa.style.setProperty('--h', Hh + 'px');
+    tiles = []; faixaTiles = []; menuItens = []; headerTiles = []; labelTiles = []; linhasTiles = []; lampadasEls = [];
+    faixa.innerHTML = ''; quadro.innerHTML = ''; menuEl.innerHTML = '';
+
+    /* faixa: 26 tiles */
+    var lf = document.createElement('div'); lf.className = 'linha';
+    for (var f = 0; f < 26; f++) { var tf = criarTile('cor-acc'); faixaTiles.push(tf); lf.appendChild(tf.el); }
+    faixa.appendChild(lf);
+
+    /* cabeçalho, rótulos e linhas */
+    quadro.appendChild(linhaDe(headerTiles, 'cor-branco', L));
+    quadro.appendChild(linhaDe(labelTiles, 'cor-fg2', L));
+    /* cada evento: linha de flaps + lâmpada de status ao lado */
+    for (var r = 0; r < 4; r++) {
+      var wrap = document.createElement('div');
+      wrap.className = 'evento';
+      wrap.appendChild(linhaDe(linhasTiles, 'cor-amarelo', L));
+      var lamp = document.createElement('span');
+      lamp.className = 'lamp';
+      wrap.appendChild(lamp);
+      lampadasEls.push(lamp);
+      quadro.appendChild(wrap);
+    }
+
+    /* menu: quatro itens com 8 tiles cada */
+    MENU.forEach(function (it, i) {
+      var a = document.createElement('a');
+      a.className = 'item';
+      a.href = it.href;
+      a.setAttribute('data-xray', 'item ' + it.rotulo + ' · vira para VAI → ao passar o ponteiro');
+      a.setAttribute('data-xray-tool', 'code');
+      var ts = [];
+      for (var k = 0; k < 8; k++) { var tm = criarTile('cor-branco'); ts.push(tm); a.appendChild(tm.el); }
+      menuEl.appendChild(a);
+      menuItens.push({a: a, tiles: ts, rotulo: it.rotulo, i: i});
+      a.addEventListener('pointerenter', function () { definirMenu(i, 'VAI →'); });
+      a.addEventListener('pointerleave', function () { definirMenu(i, menuTexto(i)); });
+      a.addEventListener('focus', function () { definirMenu(i, 'VAI →'); a.classList.add('vai'); });
+      a.addEventListener('blur', function () { definirMenu(i, menuTexto(i)); a.classList.remove('vai'); });
+    });
+    /* estado inicial, sem animação */
+    iniciarTextos();
+    tiles.forEach(function (t) { if (!t.anim) finalizar(t, t.atual); });
+    atualizarLampadas();
+  }
+
+  function menuTexto(i) { return pad(MENU[i].rotulo, 8); }
+  function definirMenu(i, alvo) {
+    var it = menuItens[i];
+    if (!it) return;
+    var txt = pad(alvo, 8);
+    it.tiles.forEach(function (t, j) { definir(t, txt[j], j * ATRASO_TILE); });
+    it.a.classList.toggle('vai', alvo !== MENU[i].rotulo && alvo.indexOf('VAI') === 0);
+  }
+
+  function cabecalhoTexto() {
+    var d = new Date(horaBase.getTime() + minutoOffset * 60000);
+    var hh = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
+    var titulo = 'PRÓXIMAS LIVES';
+    if (modo === 'wide') return pad(titulo, L - 5) + hh + ':' + mm;
+    return pad(titulo, L);
+  }
+  function labelTexto() {
+    var lay = layoutDe(modo);
+    if (modo === 'wide') return pad('HORA', 5) + '  ' + pad('TEMA', 22) + '  ' + pad('SALA', 5) + '  ' + pad('STATUS', 14);
+    return pad('TEMA', 14) + ' ' + pad('STATUS', 10);
+  }
+  function linhaTexto(r) {
+    var ev = rows[r];
+    if (modo === 'wide') return pad(ev.hora, 5) + '  ' + pad(ev.tema, 22) + '  ' + pad(ev.sala, 5) + '  ' + pad(STATUS[ev.st], 14);
+    return pad(ev.tema, 14) + ' ' + pad(STATUS_CURTO[ev.st], 10);
+  }
+  function aplicarLinha(arr, txt, atrasoBase) {
+    for (var j = 0; j < arr.length; j++) definir(arr[j], txt[j] || ' ', atrasoBase + j * ATRASO_TILE);
+  }
+  function aplicarTudo(atraso) {
+    aplicarLinha(headerTiles[0], cabecalhoTexto(), atraso);
+    aplicarLinha(labelTiles[0], labelTexto(), atraso);
+    for (var r = 0; r < 4; r++) aplicarLinha(linhasTiles[r], linhaTexto(r), atraso + r * 0.05);
+  }
+  function iniciarTextos() {
+    /* linhas de dados (uma por evento) */
+    rows = [];
+    for (var r = 0; r < 4; r++) rows.push({hora: EVENTOS[(pool + r) % EVENTOS.length].hora, tema: EVENTOS[(pool + r) % EVENTOS.length].tema, sala: EVENTOS[(pool + r) % EVENTOS.length].sala, st: r % 4});
+    pool = 4;
+    avisoIdx = 0;
+    aplicarLinha(faixaTiles, pad(AVISOS[avisoIdx], 26), 0);
+    aplicarLinha(headerTiles[0], cabecalhoTexto(), 0);
+    aplicarLinha(labelTiles[0], labelTexto(), 0);
+    for (var q = 0; q < 4; q++) aplicarLinha(linhasTiles[q], linhaTexto(q), 0);
+    menuItens.forEach(function (it, i) { definirMenu(i, menuTexto(i)); });
+  }
+
+  /* ---------- estado do quadro: lâmpadas ---------- */
+  function atualizarLampadas() {
+    rows.forEach(function (ev, r) {
+      var lamp = lampadasEls[r];
+      if (!lamp) return;
+      var on = ev.st === 2 || ev.st === 3;
+      lamp.className = 'lamp' + (on ? ' on' : '') + (ev.st === 2 ? ' pisca' : '');
+    });
+  }
+
+  /* ---------- simulação: relógio, status e avisos ---------- */
+  function avancarAviso() {
+    avisoIdx = (avisoIdx + 1) % AVISOS.length;
+    aplicarLinha(faixaTiles, pad(AVISOS[avisoIdx], 26), 0);
+  }
+  faixa.addEventListener('click', function () { avancarAviso(); noticeAt = T + 5.2; });
+
+  function tique() {
+    minutoOffset += 1;
+    aplicarLinha(headerTiles[0], cabecalhoTexto(), 0);
+    var r = cursor;
+    if (rows[r].st < STATUS.length - 1) rows[r].st += 1;
+    aplicarLinha(linhasTiles[r], linhaTexto(r), 0);
+    atualizarLampadas();
+    if (rows[r].st === STATUS.length - 1 && rollAt < 0) rollAt = T + 1.4;
+    cursor = (cursor + 1) % 4;
+  }
+  function rolar() {
+    rollAt = -1;
+    var saiu = rows.findIndex(function (e) { return e.st === STATUS.length - 1; });
+    if (saiu < 0) saiu = 0;
+    rows.splice(saiu, 1);
+    var ev = EVENTOS[pool % EVENTOS.length];
+    pool += 1;
+    rows.push({hora: ev.hora, tema: ev.tema, sala: ev.sala, st: 0});
+    for (var r = 0; r < 4; r++) aplicarLinha(linhasTiles[r], linhaTexto(r), r * 0.05);
+    atualizarLampadas();
+  }
+
+  /* ---------- raio-X ---------- */
+  var xrayLista = [];
+  function xrayIniciar() {
+    if (!xrayOn) return;
+    var camada = document.createElement('div');
+    camada.id = 'xray-layer';
+    camada.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(camada);
+    document.querySelectorAll('[data-xray]').forEach(function (el) {
+      var c = document.createElement('div'); c.className = 'xray-caixa';
+      var t = document.createElement('div'); t.className = 'xray-rotulo';
+      t.textContent = el.getAttribute('data-xray');
+      camada.appendChild(c); camada.appendChild(t);
+      xrayLista.push({el: el, c: c, t: t});
+    });
+  }
+  function xrayAtualizar() {
+    xrayLista.forEach(function (x) {
+      var r = x.el.getBoundingClientRect();
+      x.c.style.transform = 'translate3d(' + r.left.toFixed(1) + 'px,' + r.top.toFixed(1) + 'px,0)';
+      x.c.style.width = r.width.toFixed(1) + 'px';
+      x.c.style.height = r.height.toFixed(1) + 'px';
+      x.t.style.transform = 'translate3d(' + r.left.toFixed(1) + 'px,' + Math.max(0, r.top - 20).toFixed(1) + 'px,0)';
+    });
+  }
+
+  /* ---------- um único loop ---------- */
+  var raf = 0, last = 0, vis = true;
+  function quadroLoop(t) {
+    raf = 0;
+    var dt = last ? Math.min(1 / 30, (t - last) / 1000) : 1 / 60;
+    last = t;
+    T += dt;
+    if (T >= tickAt) { tique(); tickAt = T + 2.1; }
+    if (rollAt >= 0 && T >= rollAt) rolar();
+    if (T >= noticeAt) { avancarAviso(); noticeAt = T + 5.2; }
+    if (!parado) {
+      tiles.forEach(function (tl) { if (tl.anim) { var e = T - tl.anim.t0; if (e >= 0) pintar(tl, e); } });
+    }
+    xrayAtualizar();
+    if (vis && !document.hidden) raf = requestAnimationFrame(quadroLoop);
+  }
+  function acordar() { if (!raf && vis && !document.hidden) { last = 0; raf = requestAnimationFrame(quadroLoop); } }
+
+  window.addEventListener('resize', function () {
+    var m = larguraDoModo();
+    if (m !== modo) {
+      /* troca de largura: refaz os tiles mantendo o estado atual */
+      montar();
+      aplicarTudo(0);
+      acordar();
+    }
+  });
+
+  montar();
+  xrayIniciar();
+  var io = new IntersectionObserver(function (es) {
+    vis = es[0].isIntersecting;
+    if (vis) acordar(); else if (raf) { cancelAnimationFrame(raf); raf = 0; }
+  });
+  io.observe(palco);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) { if (raf) { cancelAnimationFrame(raf); raf = 0; } } else acordar(); });
+  acordar();
+})();
+</script>
+</body>
+</html>

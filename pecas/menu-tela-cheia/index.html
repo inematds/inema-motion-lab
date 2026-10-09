@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu em tela cheia · INEMA Motion Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0d;--bg2:#111114;--fg:#f3efe7;--fg2:#a69d90;--acc:#E2A23B;--ink:#17120f}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,sans-serif;overflow:hidden}
+.palco{position:fixed;inset:0;overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,var(--bg2) 0%,var(--bg) 62%)}
+
+/* topo */
+.topo{position:absolute;left:0;right:0;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:20px clamp(16px,4vw,48px)}
+.marca{font:800 18px/1 Sora,sans-serif;letter-spacing:-.01em;color:var(--fg);text-decoration:none}
+.marca b{color:var(--acc)}
+.topo:has(.gatilho.x) .marca,.topo:has(.gatilho.x) .marca b{color:var(--ink)}
+.gatilho{position:relative;display:flex;align-items:center;gap:10px;height:46px;padding:0 20px 0 16px;border:0;border-radius:999px;background:var(--fg);color:var(--bg);font:600 14px/1 Inter,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gatilho:focus{outline:none}
+.gatilho:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+.barras{position:relative;width:16px;height:12px;display:block}
+.barras i{position:absolute;left:0;width:16px;height:2px;border-radius:2px;background:var(--bg);transition:transform .5s cubic-bezier(.3,1.5,.5,1)}
+.barras i:first-child{top:2px}
+.barras i:last-child{top:9px}
+.gatilho.x .barras i:first-child{transform:translateY(3.5px) rotate(45deg)}
+.gatilho.x .barras i:last-child{transform:translateY(-3.5px) rotate(-45deg)}
+.rolo{position:relative;display:inline-block;height:1.2em;overflow:hidden;line-height:1.2em}
+.rolo span{display:block;transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.gatilho.x .rolo span{transform:translateY(-100%)}
+
+/* capa */
+.capa{position:absolute;left:clamp(16px,6vw,96px);top:clamp(96px,20vh,190px);z-index:1}
+.lead,.atalhos{display:none}
+body.compacto .atalhos{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:22px 0 0;padding:0}
+.atalhos a{display:inline-flex;gap:8px;align-items:center;padding:9px 13px;border:1px solid rgba(243,239,231,.18);border-radius:999px;color:var(--fg);text-decoration:none;font:500 12px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase}
+.atalhos b{color:var(--acc);font-weight:500}
+.atalhos a:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+/* capa no compacto: composição própria, texto maior e capivara grande ocupando a base */
+body.compacto .capa{left:20px;right:20px;top:112px}
+body.compacto h1{font-size:clamp(2rem,10vw,3.4rem);line-height:1.04}
+body.compacto h1 span{white-space:nowrap}
+body.compacto .lead{display:block;margin:22px 0 0;max-width:30ch;color:var(--fg2);font:400 16px/1.5 Inter,sans-serif}
+body.compacto .capivara{width:min(68vw,300px);right:20px;bottom:14vh}
+h1{margin:0;font-family:Sora,sans-serif;font-weight:800;font-size:clamp(2.2rem,8.4vw,6.6rem);line-height:1.02;letter-spacing:-.03em}
+h1 span{display:block}
+h1 span:nth-child(2){color:var(--acc)}
+.capivara{position:absolute;right:clamp(16px,5vw,80px);bottom:16vh;width:min(36vw,250px);z-index:1;pointer-events:none}
+
+/* veu laranja (círculo expandido com transform) */
+.veu{position:fixed;left:0;top:0;z-index:20;border-radius:50%;background:var(--acc);transform:translate3d(0,0,0) scale(.002);transform-origin:50% 50%;transition:transform .8s cubic-bezier(.16,1,.3,1);pointer-events:none;will-change:transform}
+.veu.vista{pointer-events:auto}
+.veu.fecha{transition:transform .6s cubic-bezier(.7,0,.84,0)}
+
+/* menu */
+.menu{position:fixed;inset:0;z-index:30;visibility:hidden;color:var(--ink);padding:clamp(96px,16vh,150px) clamp(16px,6vw,96px) 0;display:flex;flex-direction:column}
+.menu.aberto,.menu.fechando{visibility:visible}
+.lista{list-style:none;margin:0;padding:0}
+.item{position:relative;display:flex;align-items:center;height:14vh;min-height:64px;text-decoration:none;color:var(--ink);overflow:hidden;transition:opacity .3s ease}
+.mascara{display:block;overflow:hidden;width:100%;height:100%;display:flex;align-items:center}
+.txt{display:flex;align-items:center;gap:clamp(12px,2vw,28px);transform:translateY(110%)}
+.corpo{display:flex;align-items:baseline;gap:clamp(12px,2vw,24px);transition:transform .55s cubic-bezier(.3,1.5,.5,1)}
+.num{font:500 13px/1 'JetBrains Mono',monospace;letter-spacing:.1em;opacity:.75;transform:translateY(-.6em)}
+.nome{font:800 clamp(2.3rem,9vw,6.6rem)/1 Sora,sans-serif;letter-spacing:-.03em;white-space:nowrap}
+.item.ativo .corpo{transform:translateX(24px)}
+.menu.com-foco .item:not(.ativo){opacity:.35}
+.item:focus{outline:none}
+.item:focus-visible{outline:3px solid var(--ink);outline-offset:-3px}
+.menu.aberto .txt{animation:sobe .9s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(var(--i) * 70ms + 180ms)}
+.menu.fechando .txt{animation:sai .45s cubic-bezier(.5,0,.8,.2) both;animation-delay:calc(var(--i) * 45ms)}
+@keyframes sobe{from{transform:translateY(110%)}to{transform:none}}
+@keyframes sai{from{transform:none}to{transform:translateY(-110%)}}
+
+.rodape{margin-top:auto;padding:0 0 6vh;display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;justify-content:space-between;font:500 12px/1.3 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
+.redes{display:flex;gap:10px;flex-wrap:wrap}
+.redes a{color:var(--ink);text-decoration:none;padding:9px 14px;border:1.5px solid var(--ink);border-radius:999px}
+.redes a:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.relogio{font-variant-numeric:tabular-nums}
+
+/* cartão de foto que segue o ponteiro */
+.cartao{position:fixed;left:0;top:0;z-index:25;width:min(300px,60vw);aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:var(--ink);opacity:0;pointer-events:none;transition:opacity .25s ease;will-change:transform}
+.cartao.on{opacity:1}
+.foto{position:absolute;inset:0;opacity:0;transition:opacity .2s}
+.foto.on{opacity:1}
+.foto svg{width:100%;height:100%;display:block}
+.cobre{position:absolute;inset:0;background:var(--acc);transform-origin:100% 50%;transform:scaleX(0)}
+.cobre.varre{animation:varre .4s cubic-bezier(.7,0,.2,1)}
+@keyframes varre{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+
+/* vitrine: lugar fixo da prévia no toque e em telas estreitas (fica entre a lista e o rodapé) */
+.vitrine{display:none}
+.legenda{margin:10px 0 0;font:500 11px/1.4 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ink)}
+.legenda b{font-weight:500;opacity:.6}
+.dica{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--fg2);font:500 11px/1.3 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;transition:opacity .25s}
+.dica i{width:22px;height:22px;border:1.5px solid var(--acc);border-radius:50%;opacity:.8}
+.cartao.tem .dica{opacity:0}
+
+body.compacto .menu{padding:88px 20px 0}
+body.compacto .item{height:auto;min-height:0;padding:7px 0}
+body.compacto .nome{font-size:clamp(2rem,10.5vw,2.6rem)}
+body.compacto .num{font-size:11px}
+body.compacto .item.ativo .corpo{transform:translateX(14px)}
+body.compacto .vitrine{display:block;margin-top:18px;opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .7s cubic-bezier(.16,1,.3,1)}
+body.compacto .menu.aberto .vitrine{opacity:1;transform:none;transition-delay:.45s}
+body.compacto .menu.fechando .vitrine{opacity:0;transform:translateY(-12px);transition-delay:0s;transition-duration:.3s}
+body.compacto .cartao{position:relative;left:auto;top:auto;width:100%;max-width:420px;height:clamp(130px,31vh,270px);aspect-ratio:auto;opacity:1;transform:none!important;z-index:auto}
+body.compacto .rodape{padding-bottom:22px;gap:10px 14px;font-size:11px}
+body.compacto .redes a{padding:8px 12px}
+@media (max-height:620px){body.compacto .vitrine{display:none}}
+
+.fantasma{position:fixed;left:0;top:0;width:26px;height:26px;z-index:50;pointer-events:none;opacity:0;will-change:transform,opacity}
+.fantasma svg{width:26px;height:26px;transition:transform .12s ease}
+.fantasma.aperta svg{transform:scale(.85)}
+.dedo{display:none;position:absolute;left:-15px;top:-15px;width:30px;height:30px;border-radius:50%;background:rgba(243,239,231,.55);border:2px solid #0b0b0d;transition:transform .15s ease}
+.fantasma.aperta .dedo{transform:scale(.7)}
+body.compacto .fantasma svg{display:none}
+body.compacto .dedo{display:block}
+
+.xray-caixa{position:fixed;left:0;top:0;border:1px dashed var(--acc);pointer-events:none}
+.xray-rotulo{position:fixed;left:0;top:0;padding:4px 6px;border-radius:4px;background:var(--acc);color:#0b0b0d;font:500 10px/1.2 'JetBrains Mono',monospace;white-space:nowrap;pointer-events:none}
+#xray-layer{position:fixed;inset:0;pointer-events:none;z-index:100}
+
+.parado *,.parado *::before,.parado *::after{transition:none!important}
+.parado .menu.aberto .txt,.parado .menu.fechando .txt{animation:none!important}
+.parado .menu.aberto .txt{transform:none}
+.parado .fantasma{display:none}
+</style>
+</head>
+<body>
+<main class="palco" id="palco">
+  <header class="topo">
+    <a class="marca" href="#" data-xray="marca · texto fixo, sem movimento" data-xray-tool="code">INEMA<b>.CLUB</b></a>
+    <button class="gatilho" id="gatilho" type="button" aria-expanded="false" aria-controls="menu" data-xray="botão Menu · as duas barras viram X por mola e o rótulo rola para Fechar" data-xray-tool="code">
+      <span class="barras" aria-hidden="true"><i></i><i></i></span>
+      <span class="rolo" aria-hidden="true"><span>Menu</span><span>Fechar</span></span>
+      <span class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Abrir menu</span>
+    </button>
+  </header>
+
+  <section class="capa">
+    <h1 data-xray="título · três linhas grandes, a segunda em âmbar" data-xray-tool="code">
+      <span>Cursos grátis,</span>
+      <span>aprenda no seu</span>
+      <span>ritmo.</span>
+    </h1>
+    <p class="lead">Trilhas, lives e buscas abertas a todos. Abra o menu para escolher por onde começar.</p>
+    <ul class="atalhos" aria-label="Áreas do INEMA.CLUB">
+      <li><a href="#cursos"><b>01</b>Cursos</a></li><li><a href="#eventos"><b>02</b>Eventos</a></li><li><a href="#buscas"><b>03</b>Buscas</a></li><li><a href="#comunidade"><b>04</b>Comunidade</a></li>
+    </ul>
+  </section>
+
+  <svg class="capivara" id="capivara" viewBox="0 0 300 180" aria-hidden="true" data-xray="capivara · mascote parada no fim da capa" data-xray-tool="code">
+    <ellipse cx="128" cy="104" rx="92" ry="48" fill="#9b6b43"/>
+    <rect x="206" y="40" width="58" height="62" rx="22" fill="#9b6b43"/>
+    <rect x="236" y="62" width="34" height="32" rx="12" fill="#8a5a36"/>
+    <circle cx="232" cy="46" r="7" fill="#7a5232"/>
+    <circle cx="246" cy="64" r="3" fill="#17120f"/>
+    <circle cx="258" cy="80" r="2.2" fill="#17120f"/>
+    <rect x="62" y="136" width="10" height="36" rx="5" fill="#7a5232"/>
+    <rect x="90" y="136" width="10" height="36" rx="5" fill="#7a5232"/>
+    <rect x="150" y="136" width="10" height="36" rx="5" fill="#7a5232"/>
+    <rect x="178" y="136" width="10" height="36" rx="5" fill="#7a5232"/>
+  </svg>
+
+  <div class="veu" id="veu" aria-hidden="true" data-xray="veu · círculo laranja que cresce do botão com escala, sem clip-path" data-xray-tool="code"></div>
+
+  <nav class="menu" id="menu" aria-label="Menu principal" data-xray="menu · tela cheia que surge com itens subindo de máscara" data-xray-tool="code">
+    <ul class="lista" id="lista"></ul>
+    <div class="vitrine" id="vitrine" data-xray="vitrine · no toque a prévia mora aqui, abaixo da lista, sem cobrir nada" data-xray-tool="code">
+      <p class="legenda" id="legenda" aria-live="polite">Toque num item para ver a prévia</p>
+    </div>
+    <footer class="rodape">
+      <span>inema.club</span>
+      <div class="redes">
+        <a href="#" data-xray="link · rede social, sem destino nesta peça" data-xray-tool="code">YouTube</a>
+        <a href="#" data-xray="link · rede social, sem destino nesta peça" data-xray-tool="code">Instagram</a>
+        <a href="#" data-xray="link · rede social, sem destino nesta peça" data-xray-tool="code">Telegram</a>
+      </div>
+      <span class="relogio" id="relogio" data-xray="relógio · hora de Brasília, atualiza a cada segundo" data-xray-tool="code">--:--:--</span>
+    </footer>
+  </nav>
+
+  <div class="cartao" id="cartao" aria-hidden="true" data-xray="cartão · segue o ponteiro com atraso e inclina pela velocidade" data-xray-tool="code">
+    <div class="foto" data-f="0"><svg viewBox="0 0 300 225" preserveAspectRatio="xMidYMid slice"><rect width="300" height="225" fill="#1c1611"/><rect x="48" y="46" width="200" height="130" rx="14" fill="#2b2118"/><rect x="66" y="62" width="200" height="130" rx="14" fill="#3d2e1d"/><rect x="84" y="78" width="200" height="130" rx="14" fill="#E2A23B"/><rect x="104" y="100" width="90" height="8" rx="4" fill="#17120f"/><rect x="104" y="118" width="130" height="8" rx="4" fill="#17120f" opacity=".6"/><rect x="104" y="136" width="70" height="8" rx="4" fill="#17120f" opacity=".4"/></svg></div>
+    <div class="foto" data-f="1"><svg viewBox="0 0 300 225" preserveAspectRatio="xMidYMid slice"><rect width="300" height="225" fill="#14130f"/><g>
+      <rect x="40" y="48" width="36" height="30" rx="7" fill="#2b2118"/><rect x="84" y="48" width="36" height="30" rx="7" fill="#2b2118"/><rect x="128" y="48" width="36" height="30" rx="7" fill="#E2A23B"/><rect x="172" y="48" width="36" height="30" rx="7" fill="#2b2118"/><rect x="216" y="48" width="36" height="30" rx="7" fill="#2b2118"/>
+      <rect x="40" y="90" width="36" height="30" rx="7" fill="#2b2118"/><rect x="84" y="90" width="36" height="30" rx="7" fill="#2b2118"/><rect x="128" y="90" width="36" height="30" rx="7" fill="#2b2118"/><rect x="172" y="90" width="36" height="30" rx="7" fill="#2b2118"/><rect x="216" y="90" width="36" height="30" rx="7" fill="#2b2118"/>
+      <rect x="40" y="132" width="36" height="30" rx="7" fill="#2b2118"/><rect x="84" y="132" width="36" height="30" rx="7" fill="#2b2118"/><rect x="128" y="132" width="36" height="30" rx="7" fill="#2b2118"/><rect x="172" y="132" width="36" height="30" rx="7" fill="#2b2118"/><rect x="216" y="132" width="36" height="30" rx="7" fill="#2b2118"/>
+    </g></svg></div>
+    <div class="foto" data-f="2"><svg viewBox="0 0 300 225" preserveAspectRatio="xMidYMid slice"><rect width="300" height="225" fill="#1a1712"/><circle cx="132" cy="98" r="48" fill="none" stroke="#E2A23B" stroke-width="12"/><path d="m166 134 52 52" stroke="#E2A23B" stroke-width="14" stroke-linecap="round"/><rect x="36" y="180" width="90" height="8" rx="4" fill="#f3efe7" opacity=".5"/><rect x="36" y="196" width="60" height="8" rx="4" fill="#f3efe7" opacity=".3"/></svg></div>
+    <div class="foto" data-f="3"><svg viewBox="0 0 300 225" preserveAspectRatio="xMidYMid slice"><rect width="300" height="225" fill="#171410"/><rect x="36" y="44" width="150" height="54" rx="18" fill="#2b2118"/><rect x="112" y="112" width="150" height="54" rx="18" fill="#E2A23B"/><rect x="60" y="130" width="60" height="8" rx="4" fill="#17120f"/><rect x="132" y="138" width="90" height="8" rx="4" fill="#17120f"/><g transform="translate(206 24) scale(.55)"><ellipse cx="60" cy="110" rx="60" ry="34" fill="#9b6b43"/><rect x="104" y="48" width="42" height="50" rx="16" fill="#9b6b43"/><rect x="18" y="130" width="8" height="28" fill="#7a5232"/><rect x="88" y="130" width="8" height="28" fill="#7a5232"/></g></svg></div>
+    <div class="cobre" id="cobre"></div>
+    <div class="dica"><i></i>prévia</div>
+  </div>
+
+  <div class="fantasma" id="fantasma" aria-hidden="true" data-xray="cursor fantasma · abre o menu, passa pelos itens e fecha sozinho" data-xray-tool="code">
+    <span class="dedo"></span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2.5 4 19l4.6-4.3 2.9 6.2 3-1.4-2.9-6.1H18z" fill="#f3efe7" stroke="#0b0b0d" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </div>
+</main>
+<script>
+(function () {
+  var params = location.search;
+  var demoParam = /[?&]demo=1\b/.test(params);
+  var xrayOn = /[?&]motion=xray\b/.test(params);
+  var mqReduz = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var parado = !!(mqReduz && mqReduz.matches) || /[?&]motion=off\b/.test(params);
+  if (parado) document.documentElement.classList.add('parado');
+
+  var ITENS = [
+    {nome: 'Cursos', sub: 'trilhas gratuitas', href: '#cursos'},
+    {nome: 'Eventos', sub: 'lives e aulas ao vivo', href: '#eventos'},
+    {nome: 'Buscas', sub: 'pesquise o acervo', href: '#buscas'},
+    {nome: 'Comunidade', sub: 'VIP e PRO', href: '#comunidade'}
+  ];
+  var palco = document.getElementById('palco'), gatilho = document.getElementById('gatilho');
+  var veu = document.getElementById('veu'), menu = document.getElementById('menu');
+  var lista = document.getElementById('lista'), cartao = document.getElementById('cartao');
+  var cobre = document.getElementById('cobre'), fantasma = document.getElementById('fantasma');
+  var relogio = document.getElementById('relogio');
+  var fotos = Array.prototype.slice.call(cartao.querySelectorAll('.foto'));
+
+  ITENS.forEach(function (it, i) {
+    var li = document.createElement('li');
+    li.innerHTML = '<a class="item" href="' + it.href + '" data-i="' + i + '" style="--i:' + i + '" data-xray="item ' + it.nome + ' · sobe de uma máscara e desliza 24 px no foco" data-xray-tool="code">' +
+      '<span class="mascara"><span class="txt"><span class="corpo"><span class="num">0' + (i + 1) + '</span><span class="nome">' + it.nome + '</span></span></span></span></a>';
+    lista.appendChild(li);
+  });
+  var itens = Array.prototype.slice.call(menu.querySelectorAll('.item'));
+  var vitrine = document.getElementById('vitrine'), legenda = document.getElementById('legenda');
+
+  /* modo compacto: toque ou tela estreita. A prévia sai do ponteiro e vai para um lugar fixo
+     abaixo da lista, então nunca cobre o item tocado nem sai da tela. */
+  var mqCompacto = window.matchMedia ? window.matchMedia('(hover: none), (max-width: 700px)') : null;
+  var compacto = false;
+  function aplicarModo() {
+    var novo = !!(mqCompacto && mqCompacto.matches);
+    if (novo === compacto && cartao.parentNode === (novo ? vitrine : palco)) return;
+    compacto = novo;
+    document.body.classList.toggle('compacto', compacto);
+    if (compacto) { vitrine.insertBefore(cartao, legenda); cartao.style.transform = ''; }
+    else palco.insertBefore(cartao, fantasma);
+    setHover(-1);
+    medirCartao();
+  }
+
+  var aberto = false, bx = 0, by = 0, R = 0, hover = -1, fotoAtual = -1;
+  var P = {x: window.innerWidth - 60, y: 30, on: false};
+  var card = {x: P.x, y: P.y, tilt: 0, px: P.x, pvx: 0};
+  var cw = 300, ch = 225;
+
+  function medirCartao() { cw = cartao.offsetWidth || 300; ch = cartao.offsetHeight || 225; }
+
+  function abrir() {
+    if (aberto) return;
+    aberto = true;
+    var r = gatilho.getBoundingClientRect();
+    bx = r.left + r.width / 2; by = r.top + r.height / 2;
+    R = Math.hypot(Math.max(bx, window.innerWidth - bx), Math.max(by, window.innerHeight - by)) + 4;
+    veu.classList.remove('fecha');
+    veu.style.width = veu.style.height = (2 * R).toFixed(0) + 'px';
+    veu.style.transform = 'translate3d(' + (bx - R).toFixed(1) + 'px,' + (by - R).toFixed(1) + 'px,0) scale(.002)';
+    void veu.offsetWidth;
+    veu.classList.add('vista');
+    veu.style.transform = 'translate3d(' + (bx - R).toFixed(1) + 'px,' + (by - R).toFixed(1) + 'px,0) scale(1)';
+    menu.classList.remove('fechando');
+    menu.classList.add('aberto');
+    gatilho.classList.add('x');
+    gatilho.setAttribute('aria-expanded', 'true');
+  }
+
+  var fimFechar = 0;
+  function fechar() {
+    if (!aberto) return;
+    aberto = false;
+    hover = -1; setHover(-1);
+    menu.classList.add('fechando');
+    gatilho.classList.remove('x');
+    gatilho.setAttribute('aria-expanded', 'false');
+    clearTimeout(fimFechar);
+    if (parado) {
+      menu.classList.remove('aberto', 'fechando');
+      veu.classList.remove('vista');
+      veu.style.transform = 'translate3d(' + (bx - R).toFixed(1) + 'px,' + (by - R).toFixed(1) + 'px,0) scale(.002)';
+      return;
+    }
+    setTimeout(function () {
+      veu.classList.add('fecha');
+      veu.style.transform = 'translate3d(' + (bx - R).toFixed(1) + 'px,' + (by - R).toFixed(1) + 'px,0) scale(.002)';
+    }, 380);
+    fimFechar = setTimeout(function () {
+      if (aberto) return;
+      menu.classList.remove('aberto', 'fechando');
+      veu.classList.remove('vista');
+    }, 1000);
+  }
+
+  function setHover(i) {
+    hover = i;
+    menu.classList.toggle('com-foco', i >= 0);
+    cartao.classList.toggle('tem', i >= 0);
+    itens.forEach(function (el, j) {
+      el.classList.toggle('ativo', j === i);
+      if (j === i) el.setAttribute('aria-current', 'true'); else el.removeAttribute('aria-current');
+    });
+    if (i < 0) {
+      legenda.textContent = 'Toque num item para ver a prévia';
+      if (compacto) { fotoAtual = -1; fotos.forEach(function (f) { f.classList.remove('on'); }); }
+    } else {
+      legenda.innerHTML = '<b>0' + (i + 1) + '</b> ' + ITENS[i].nome + ' · ' + ITENS[i].sub + ' · <b>toque de novo para abrir</b>';
+    }
+    if (i >= 0) {
+      if (i !== fotoAtual) {
+        fotoAtual = i;
+        fotos.forEach(function (f, j) { f.classList.toggle('on', j === i); });
+        cobre.classList.remove('varre');
+        void cobre.offsetWidth;
+        cobre.classList.add('varre');
+      }
+    }
+  }
+
+  /* desktop: passar o ponteiro mostra a prévia, clicar abre.
+     compacto: 1º toque escolhe (prévia na vitrine), 2º toque no mesmo item abre. */
+  var toqueEm = 0;
+  itens.forEach(function (el, i) {
+    el.addEventListener('pointerdown', function () { toqueEm = Date.now(); });
+    el.addEventListener('pointerenter', function (e) { if (!compacto && e.pointerType !== 'touch') setHover(i); });
+    el.addEventListener('pointerleave', function (e) { if (!compacto && e.pointerType !== 'touch') setHover(-1); });
+    el.addEventListener('focus', function () { if (!(compacto && Date.now() - toqueEm < 700)) setHover(i); });
+    el.addEventListener('blur', function () { if (!compacto) setHover(-1); });
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (compacto && hover !== i) { setHover(i); return; }
+      fechar(); gatilho.focus({preventScroll: true});
+    });
+  });
+
+  gatilho.addEventListener('click', function () { if (aberto) fechar(); else abrir(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fechar(); });
+
+  window.addEventListener('pointermove', function (e) { P.x = e.clientX; P.y = e.clientY; P.on = true; }, {passive: true});
+  window.addEventListener('resize', medirCartao);
+
+  /* cursor fantasma: roda até a primeira interação real (exceto ?demo=1) */
+  var ghostAtivo = !parado, gParado = false, gOp = 0, gIdx = 0, gT = 0, gDe = {x: P.x, y: P.y}, gPos = {x: P.x, y: P.y};
+  function centro(el) { var r = el.getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + r.height / 2}; }
+  var ROTEIRO = [
+    {tipo: 'mover', alvo: function () { return centro(gatilho); }},
+    {tipo: 'clicar', acao: abrir},
+    {tipo: 'esperar', s: 0.9},
+    {tipo: 'mover', alvo: function () { return centro(itens[0]); }}, {tipo: 'esperar', s: 1.5, hover: 0},
+    {tipo: 'mover', alvo: function () { return centro(itens[1]); }}, {tipo: 'esperar', s: 1.5, hover: 1},
+    {tipo: 'mover', alvo: function () { return centro(itens[2]); }}, {tipo: 'esperar', s: 1.5, hover: 2},
+    {tipo: 'mover', alvo: function () { return centro(itens[3]); }}, {tipo: 'esperar', s: 1.5, hover: 3},
+    {tipo: 'mover', alvo: function () { return centro(gatilho); }},
+    {tipo: 'clicar', acao: fechar},
+    {tipo: 'esperar', s: 1.8}
+  ];
+  function avancar() { gIdx = (gIdx + 1) % ROTEIRO.length; gT = 0; gDe = {x: gPos.x, y: gPos.y}; }
+  function ease(k) { return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }
+  function pararFantasma() {
+    if (demoParam || gParado || !ghostAtivo) return;
+    gParado = true;
+    P.on = false;
+  }
+  ['pointermove', 'pointerdown', 'keydown', 'touchstart', 'wheel'].forEach(function (ev) {
+    window.addEventListener(ev, pararFantasma, {capture: true, passive: true});
+  });
+
+  function ghostPasso(dt) {
+    if (!ghostAtivo) return;
+    if (gParado) {
+      gOp = Math.max(0, gOp - dt / 0.3);
+      if (gOp === 0) ghostAtivo = false;
+    } else {
+      gOp = Math.min(1, gOp + dt / 0.4);
+      gT += dt;
+      var st = ROTEIRO[gIdx];
+      if (st.tipo === 'mover') {
+        var a = st.alvo();
+        var k = Math.min(1, gT / 0.7), e = ease(k);
+        gPos = {x: gDe.x + (a.x - gDe.x) * e, y: gDe.y + (a.y - gDe.y) * e};
+        if (k >= 1) avancar();
+      } else if (st.tipo === 'clicar') {
+        fantasma.classList.add('aperta');
+        setTimeout(function () { fantasma.classList.remove('aperta'); }, 120);
+        st.acao();
+        avancar();
+      } else {
+        if (st.hover !== undefined && hover !== st.hover) {
+          /* no compacto o fantasma vira um dedo e "toca" o item; no desktop só passa por cima */
+          if (compacto) {
+            fantasma.classList.add('aperta');
+            setTimeout(function () { fantasma.classList.remove('aperta'); }, 150);
+          }
+          setHover(st.hover);
+        }
+        if (gT >= st.s) avancar();
+      }
+      P.x = gPos.x; P.y = gPos.y; P.on = true;
+    }
+    fantasma.style.opacity = gOp.toFixed(3);
+    fantasma.style.transform = 'translate3d(' + gPos.x.toFixed(1) + 'px,' + gPos.y.toFixed(1) + 'px,0)';
+  }
+
+  /* raio-X (?motion=xray): caixa tracejada e rótulo sobre cada [data-xray] */
+  var xrayLista = [];
+  if (xrayOn) {
+    var camada = document.createElement('div');
+    camada.id = 'xray-layer';
+    camada.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(camada);
+    document.querySelectorAll('[data-xray]').forEach(function (el) {
+      var c = document.createElement('div'); c.className = 'xray-caixa';
+      var t = document.createElement('div'); t.className = 'xray-rotulo';
+      t.textContent = el.getAttribute('data-xray');
+      camada.appendChild(c); camada.appendChild(t);
+      xrayLista.push({el: el, c: c, t: t});
+    });
+  }
+  function xrayAtualizar() {
+    xrayLista.forEach(function (x) {
+      var r = x.el.getBoundingClientRect();
+      x.c.style.transform = 'translate3d(' + r.left.toFixed(1) + 'px,' + r.top.toFixed(1) + 'px,0)';
+      x.c.style.width = r.width.toFixed(1) + 'px';
+      x.c.style.height = r.height.toFixed(1) + 'px';
+      x.t.style.transform = 'translate3d(' + r.left.toFixed(1) + 'px,' + Math.max(0, r.top - 20).toFixed(1) + 'px,0)';
+    });
+  }
+
+  var raf = 0, last = 0, vis = true, segAnt = -1;
+  function quadro(t) {
+    raf = 0;
+    var dt = last ? Math.min(1 / 30, (t - last) / 1000) : 1 / 60;
+    last = t;
+    ghostPasso(dt);
+    /* cartão: segue o ponteiro com atraso (lerp) e inclina pela velocidade */
+    var f = parado ? 1 : 1 - Math.pow(1 - 0.13, dt * 60);
+    var vx = (P.x - card.px) / Math.max(dt, 1 / 120);
+    card.px = P.x;
+    card.pvx += (vx - card.pvx) * 0.2;
+    var alvoTilt = parado ? 0 : Math.max(-12, Math.min(12, card.pvx * 0.02));
+    card.tilt += (alvoTilt - card.tilt) * f;
+    card.x += (P.x - card.x) * f;
+    card.y += (P.y - card.y) * f;
+    if (!compacto) {
+      /* à direita do ponteiro; se não couber, vira para a esquerda; sempre dentro da tela */
+      var W = window.innerWidth, H = window.innerHeight;
+      var cx = card.x + 28, cy = card.y - ch / 2;
+      if (cx + cw > W - 8) cx = card.x - 28 - cw;
+      cx = Math.max(8, Math.min(cx, W - cw - 8));
+      cy = Math.max(8, Math.min(cy, H - ch - 8));
+      cartao.style.transform = 'translate3d(' + cx.toFixed(1) + 'px,' + cy.toFixed(1) + 'px,0) rotate(' + card.tilt.toFixed(2) + 'deg)';
+      cartao.classList.toggle('on', aberto && hover >= 0);
+    }
+    /* relógio de Brasília */
+    var agora = new Date();
+    var seg = agora.getSeconds() + agora.getMinutes() * 60 + agora.getHours() * 3600;
+    if (seg !== segAnt) {
+      segAnt = seg;
+      relogio.textContent = new Intl.DateTimeFormat('pt-BR', {timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', second: '2-digit'}).format(agora) + ' · Brasília';
+    }
+    xrayAtualizar();
+    if (vis && !document.hidden) raf = requestAnimationFrame(quadro);
+  }
+  function ligar() { if (raf || !vis || document.hidden) return; last = 0; raf = requestAnimationFrame(quadro); }
+  function desligar() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+
+  aplicarModo();
+  if (mqCompacto) {
+    if (mqCompacto.addEventListener) mqCompacto.addEventListener('change', aplicarModo);
+    else if (mqCompacto.addListener) mqCompacto.addListener(aplicarModo);
+  }
+  var io = new IntersectionObserver(function (es) {
+    vis = es[0].isIntersecting;
+    if (vis) ligar(); else desligar();
+  });
+  io.observe(palco);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) desligar(); else ligar(); });
+  if (parado) {
+    /* estado final parado: sem roteiro fantasma, sem cartão animado */
+    P.on = false;
+    ghostAtivo = false;
+  }
+  ligar();
+})();
+</script>
+</body>
+</html>

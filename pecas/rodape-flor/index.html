@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rodapé flor</title>
+<meta name="description" content="Rodapé de inscrição em que cada letra digitada faz nascer uma flor no jardim.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&family=Sora:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --painel: #111114;
+    --linha: #24242a;
+    --texto: #f3efe7;
+    --texto-2: rgba(243, 239, 231, .62);
+    --ambar: #E2A23B;
+    --coral: #E86A4A;
+    --ceu: #7cc4e8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow-x: hidden; background: var(--bg); color: var(--texto); }
+  body { font-family: Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+  .rodape {
+    position: relative; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+    background: var(--painel); border-top: 1px solid var(--linha); overflow: hidden;
+  }
+  .grao { position: absolute; inset: 0; pointer-events: none; opacity: .07; mix-blend-mode: overlay; z-index: 4;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  /* ---------- topo: inscrição + links ---------- */
+  .topo {
+    position: relative; z-index: 2; flex: none;
+    display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(18px, 4vw, 64px);
+    padding: clamp(18px, 5vh, 52px) clamp(16px, 4vw, 56px) 0;
+  }
+  .rotulo { display: block; font: 500 11px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--ambar); margin-bottom: 12px; }
+  h2 { margin: 0; font: 800 clamp(2.1rem, min(6vw, 11vh), 5rem)/.95 Sora, sans-serif; letter-spacing: -.04em; }
+  h2 .ponto { color: var(--ambar); }
+  .sub { margin: 12px 0 0; max-width: 44ch; color: var(--texto-2); font-size: clamp(14px, 1.2vw, 16px); }
+  form { margin-top: clamp(14px, 3vh, 26px); display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; max-width: 560px; }
+  .campo { position: relative; flex: 1 1 240px; min-width: 0; }
+  .campo label { display: block; font: 500 11px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--texto-2); margin-bottom: 4px; }
+  .campo input {
+    width: 100%; background: transparent; border: 0; border-bottom: 2px solid rgba(243, 239, 231, .35);
+    color: var(--texto); font: 400 18px/1.4 Inter, sans-serif; padding: 6px 0 8px; border-radius: 0; outline: none;
+  }
+  .campo input::placeholder { color: rgba(243, 239, 231, .3); }
+  .campo input:focus-visible { border-bottom-color: var(--ambar); box-shadow: 0 2px 0 0 var(--ambar); }
+  .cursor-falso { position: absolute; left: 0; bottom: 12px; width: 2px; height: 22px; background: var(--ambar); opacity: 0; pointer-events: none; will-change: transform, opacity; }
+  .botao-caixa { position: relative; flex: none; }
+  .placa { position: absolute; inset: 0; border-radius: 999px; background: var(--coral); transform: translate(3px, 3px); opacity: .9; }
+  .botao {
+    position: relative; display: block; height: 46px; padding: 0 22px; border: 0; border-radius: 999px;
+    background: var(--ambar); color: #0b0b0d; font: 600 15px/46px Sora, sans-serif; cursor: pointer; overflow: hidden;
+  }
+  .botao:focus-visible { outline: 3px solid var(--texto); outline-offset: 3px; }
+  .botao .rolo { display: block; will-change: transform; }
+  .botao .rolo span { display: block; height: 46px; }
+  .botao.aperta { transform: translate(2px, 2px); }
+  .aviso { margin: 8px 0 0; min-height: 1.4em; font: 500 12px/1.4 "JetBrains Mono", monospace; color: var(--ambar); }
+
+  .links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-content: start; padding-top: 4px; }
+  .links h3 { margin: 0 0 8px; font: 500 11px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--texto-2); }
+  .links ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .links a { color: var(--texto); text-decoration: none; font-size: 15px; border-radius: 4px; }
+  .links a:hover { color: var(--ambar); }
+  .links a:focus-visible, .barra a:focus-visible { outline: 2px solid var(--ambar); outline-offset: 3px; }
+
+  /* ---------- jardim ---------- */
+  .jardim { position: relative; flex: 1 1 auto; min-height: 38vh; z-index: 1; touch-action: pan-y; }
+  .jardim svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+  .solo {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 22px;
+    border-top: 2px solid #6f8f4e;
+    background-image: radial-gradient(circle, rgba(226, 162, 59, .45) 1.1px, transparent 1.6px);
+    background-size: 7px 7px; background-color: #15140f;
+  }
+  .dica { position: absolute; right: clamp(16px, 4vw, 56px); bottom: 32px; font: 500 10px/1 "JetBrains Mono", monospace; letter-spacing: .12em; color: rgba(243, 239, 231, .38); text-transform: uppercase; pointer-events: none; }
+
+  .barra {
+    position: relative; z-index: 2; flex: none; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px;
+    padding: 12px clamp(16px, 4vw, 56px); font-size: 13px; color: var(--texto-2); background: #0b0b0d;
+  }
+  .barra p { margin: 0; }
+  .barra a { color: var(--texto); text-decoration: none; border-radius: 4px; }
+
+  .fantasma { position: absolute; left: 0; top: 0; width: 30px; height: 30px; z-index: 6; pointer-events: none; opacity: 0; will-change: transform, opacity;
+    filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, .55)); }
+  .fantasma svg { width: 100%; height: 100%; display: block; transform-origin: 3px 2px; transition: transform .12s; }
+  .fantasma.aperta svg { transform: scale(.85); }
+
+  @media (max-width: 760px) {
+    .topo { grid-template-columns: 1fr; gap: 14px; }
+    .links { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .links a { font-size: 13px; }
+    .links ul { gap: 2px; }
+    .jardim { min-height: 34vh; }
+    .sub { display: none; }
+    .dica { display: none; }
+  }
+</style>
+</head>
+<body>
+<footer class="rodape" id="rodape">
+  <div class="grao" aria-hidden="true"></div>
+  <div class="topo">
+    <div>
+      <span class="rotulo">Novidades · INEMA.CLUB</span>
+      <h2>Plante uma ideia<span class="ponto">.</span></h2>
+      <p class="sub">Cada letra que você digita faz nascer uma flor. Receba os cursos novos e as próximas lives no seu e-mail, de graça.</p>
+      <form id="form" novalidate>
+        <div class="campo">
+          <label for="email">Seu e-mail</label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="voce@exemplo.com" maxlength="48" spellcheck="false">
+          <span class="cursor-falso" id="cursorFalso" aria-hidden="true"></span>
+        </div>
+        <div class="botao-caixa">
+          <span class="placa" aria-hidden="true"></span>
+          <button class="botao" id="botao" type="submit" data-xray="rótulo do botão · rola para cima ao inscrever" data-xray-tool="code">
+            <span class="rolo" id="rolo"><span>Quero receber</span><span aria-hidden="true">Inscrito ✓</span></span>
+          </button>
+        </div>
+      </form>
+      <p class="aviso" id="aviso" aria-live="polite"></p>
+    </div>
+    <nav class="links" aria-label="Ecossistema INEMA">
+      <div><h3>Aprender</h3><ul><li><a href="https://inema.club">Cursos</a></li><li><a href="https://buscas.inema.club">Buscas</a></li><li><a href="https://inema.club">Guias</a></li></ul></div>
+      <div><h3>Ao vivo</h3><ul><li><a href="https://eventos.inema.pro">Lives</a></li><li><a href="https://eventos.inema.pro">Áreas</a></li><li><a href="https://news.inema.pro">Notícias</a></li></ul></div>
+      <div><h3>Junto</h3><ul><li><a href="https://inema.vip">VIP</a></li><li><a href="https://inema.pro">PRO</a></li><li><a href="https://inema.club">Kits</a></li></ul></div>
+    </nav>
+  </div>
+
+  <div class="jardim" id="jardim">
+    <svg id="svg" aria-hidden="true" data-xray="jardim · cada flor nasce por molas e balança com o vento" data-xray-tool="code">
+      <g id="flores"></g>
+      <g id="soltos"></g>
+    </svg>
+    <div class="solo" aria-hidden="true"></div>
+    <span class="dica" aria-hidden="true">digite · passe o mouse no jardim</span>
+  </div>
+
+  <div class="barra">
+    <p>© 2026 <a href="https://inema.club">INEMA.CLUB</a> · conteúdo aberto e gratuito</p>
+    <p>Feito para aprender junto</p>
+  </div>
+
+  <div class="fantasma" id="fantasma" aria-hidden="true">
+    <svg viewBox="0 0 30 30"><path d="M3 2 L3 24 L9 18.5 L13 27 L17 25.2 L13 16.8 L21 16.8 Z" fill="#f3efe7" stroke="#0b0b0d" stroke-width="2" stroke-linejoin="round"/></svg>
+  </div>
+</footer>
+
+<script>
+/* Raio-X e modos: ?motion=xray mostra o que se move, ?motion=off congela, ?demo=1 repete sem parar */
+window.MOTION = (() => {
+  const q = new URLSearchParams(location.search);
+  const modo = q.get('motion');
+  const api = { off: modo === 'off', xray: modo === 'xray', demo: q.get('demo') === '1' };
+  if (!api.xray) return api;
+  const css = document.createElement('style');
+  css.textContent = '.xr-box{position:fixed;left:0;top:0;z-index:9998;pointer-events:none;border:1.5px dashed #E2A23B;border-radius:4px}' +
+    '.xr-tag{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;font:500 10px/1.25 "JetBrains Mono",ui-monospace,monospace;color:#0b0b0d;background:#E2A23B;padding:2px 6px;border-radius:3px;white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}';
+  document.head.appendChild(css);
+  const pares = new Map();
+  const desenhar = () => {
+    const vistos = new Set(), textos = new Set();
+    document.querySelectorAll('[data-xray]').forEach(el => {
+      vistos.add(el);
+      let p = pares.get(el);
+      if (!p) {
+        p = { box: document.createElement('div'), tag: document.createElement('div') };
+        p.box.className = 'xr-box'; p.tag.className = 'xr-tag'; p.tag.textContent = el.dataset.xray;
+        document.body.append(p.box, p.tag); pares.set(el, p);
+      }
+      const r = el.getBoundingClientRect();
+      const vis = r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight;
+      p.box.style.display = vis ? '' : 'none';
+      const mostraTag = vis && !textos.has(el.dataset.xray);
+      p.tag.style.display = mostraTag ? '' : 'none';
+      if (!vis) return;
+      textos.add(el.dataset.xray);
+      p.box.style.transform = `translate(${r.left}px,${r.top}px)`;
+      p.box.style.width = r.width + 'px'; p.box.style.height = r.height + 'px';
+      p.tag.style.transform = `translate(${Math.max(2, Math.min(innerWidth - 120, r.left))}px,${Math.max(2, r.top - 18)}px)`;
+    });
+    for (const [el, p] of pares) if (!vistos.has(el)) { p.box.remove(); p.tag.remove(); pares.delete(el); }
+  };
+  setInterval(desenhar, 200);
+  return api;
+})();
+</script>
+
+<script>
+(() => {
+  'use strict';
+  /* ===== parâmetros (espelham o PROMPT.md) ===== */
+  const MAX_FLORES = 40;
+  const ATRASO = { folha: 220, botao: 320, petala: 480 };    // ms depois da tecla
+  const MOLA = {
+    haste: { k: 90, d: 14 }, folha: { k: 150, d: 12 }, botao: { k: 150, d: 10 }, petala: { k: 150, d: 8.5 },
+    curva: { k: 40, d: 5 }
+  };
+  const ALCANCE = 140;          // px: queda gaussiana do empurrão do ponteiro
+  const TECLA_MS = 110;         // fantasma digita a cada 110 ms
+  const DEMO_EMAIL = 'voce@inema.club';
+  const FESTA_MS = 4000, APAGA_MS = 60;
+
+  const reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const parado = reduz || MOTION.off;
+  const demo = MOTION.demo;
+
+  const rodape = document.getElementById('rodape');
+  const jardim = document.getElementById('jardim');
+  const svg = document.getElementById('svg');
+  const gFlores = document.getElementById('flores');
+  const gSoltos = document.getElementById('soltos');
+  const input = document.getElementById('email');
+  const form = document.getElementById('form');
+  const botao = document.getElementById('botao');
+  const rolo = document.getElementById('rolo');
+  const aviso = document.getElementById('aviso');
+  const cursorFalso = document.getElementById('cursorFalso');
+  const fantasma = document.getElementById('fantasma');
+  const NS = 'http://www.w3.org/2000/svg';
+
+  /* ===== medidas ===== */
+  let W = 0, H = 0, chao = 0;
+  function medir() {
+    const r = jardim.getBoundingClientRect();
+    W = r.width; H = r.height; chao = H - 22;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    flores.forEach(f => { f.x = posX(f.i); });
+  }
+  const frac = v => v - Math.floor(v);
+  const posX = i => { const m = Math.min(40, W * 0.06); return m + frac(i * 0.618034 + 0.13) * (W - 2 * m); };
+  // número pseudoaleatório estável por índice
+  const rnd = (i, s) => frac(Math.sin(i * 127.1 + s * 311.7) * 43758.5453);
+
+  /* ===== espécies (desenho em volta da cabeça, base em 0,0) ===== */
+  const ESPECIES = ['margarida', 'tulipa', 'papoula', 'campanula', 'pompom'];
+  function desenhoCabeca(esp, r) {
+    let pet = '', mio = '';
+    if (esp === 'margarida') {
+      for (let k = 0; k < 11; k++) pet += `<ellipse cx="0" cy="${-r * 0.95}" rx="${r * 0.32}" ry="${r * 0.82}" fill="#f3efe7" transform="rotate(${k * 360 / 11})"/>`;
+      mio = `<circle r="${r * 0.48}" fill="#E2A23B"/><circle r="${r * 0.48}" fill="none" stroke="#C9821F" stroke-width="1.5" stroke-dasharray="1.5 2.5"/>`;
+    } else if (esp === 'tulipa') {
+      pet = `<path d="M${-r} ${-r * 0.2} Q${-r * 1.05} ${-r * 1.6} ${-r * 0.4} ${-r * 1.75} L0 ${-r * 1.05} L${r * 0.4} ${-r * 1.75} Q${r * 1.05} ${-r * 1.6} ${r} ${-r * 0.2} Q0 ${r * 0.75} ${-r} ${-r * 0.2}Z" fill="#E86A4A"/>` +
+            `<path d="M${-r * 0.35} ${-r * 0.1} Q0 ${-r * 1.9} ${r * 0.35} ${-r * 0.1}Z" fill="#c4502f"/>`;
+      mio = `<ellipse cx="0" cy="${-r * 0.5}" rx="${r * 0.45}" ry="${r * 0.8}" fill="#E86A4A"/>`;
+    } else if (esp === 'papoula') {
+      for (let k = 0; k < 5; k++) pet += `<circle cx="0" cy="${-r * 0.62}" r="${r * 0.68}" fill="${k % 2 ? '#E2A23B' : '#F2C76E'}" transform="rotate(${k * 72})"/>`;
+      mio = `<circle r="${r * 0.32}" fill="#1e1510"/>` + [0, 1, 2, 3, 4, 5].map(k => `<circle cx="${Math.cos(k * 1.047) * r * 0.42}" cy="${Math.sin(k * 1.047) * r * 0.42}" r="1.4" fill="#1e1510"/>`).join('');
+    } else if (esp === 'campanula') {
+      pet = `<path d="M${-r * 0.2} 0 Q${-r * 0.9} ${r * 0.2} ${-r * 0.85} ${r * 1.15} L${-r * 0.55} ${r * 0.98} L${-r * 0.3} ${r * 1.25} L0 ${r * 1.02} L${r * 0.3} ${r * 1.25} L${r * 0.55} ${r * 0.98} L${r * 0.85} ${r * 1.15} Q${r * 0.9} ${r * 0.2} ${r * 0.2} 0Z" fill="#7cc4e8"/>` +
+            `<path d="M${-r * 0.5} ${r * 0.4} Q0 ${r * 0.2} ${r * 0.5} ${r * 0.4}" stroke="#4f9cc4" stroke-width="1.5" fill="none"/>`;
+      mio = `<circle r="${r * 0.22}" fill="#4f9cc4"/>`;
+    } else {
+      for (let k = 0; k < 10; k++) pet += `<circle cx="${Math.cos(k * 0.628) * r * 0.78}" cy="${Math.sin(k * 0.628) * r * 0.78}" r="${r * 0.34}" fill="#F2C76E"/>`;
+      for (let k = 0; k < 6; k++) pet += `<circle cx="${Math.cos(k * 1.047 + .5) * r * 0.42}" cy="${Math.sin(k * 1.047 + .5) * r * 0.42}" r="${r * 0.3}" fill="#E2A23B"/>`;
+      mio = `<circle r="${r * 0.3}" fill="#C9821F"/>`;
+    }
+    return { pet, mio };
+  }
+
+  /* ===== flores ===== */
+  const flores = [];   // vivas e encolhendo
+  let contador = 0;    // índice de posição
+  const mola = (x, v, alvo, k, d, s) => { const a = -k * (x - alvo) - d * v; v += a * s; return [x + v * s, v]; };
+  function novaFlor(ch, agora, fixa = false) {
+    const i = contador++;
+    const esp = ESPECIES[(ch.charCodeAt(0) || 0) % 5];
+    const L = H * (0.38 + 0.44 * rnd(i, 1));
+    const r = Math.max(10, Math.min(24, H * 0.06)) * (0.85 + 0.35 * rnd(i, 2));
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('data-xray', `flor (${esp}) · haste sobe, folhas abrem, pétalas com mola`);
+    g.setAttribute('data-xray-tool', 'code');
+    const curvaH = (rnd(i, 3) - 0.5) * 12;
+    const desenho = desenhoCabeca(esp, r);
+    g.innerHTML =
+      `<g class="h"><path d="M0 0 C${curvaH} ${-L * 0.35} ${-curvaH} ${-L * 0.7} 0 ${-L}" stroke="#6f8f4e" stroke-width="${Math.max(2, r * 0.22)}" fill="none" stroke-linecap="round"/></g>` +
+      `<g class="f1"><path d="M0 0 Q${r * 1.2} ${-r * 0.9} ${r * 2} ${-r * 0.2} Q${r * 1} ${r * 0.4} 0 0Z" fill="#85a85a"/></g>` +
+      `<g class="f2"><path d="M0 0 Q${-r * 1.2} ${-r * 0.9} ${-r * 2} ${-r * 0.2} Q${-r * 1} ${r * 0.4} 0 0Z" fill="#85a85a"/></g>` +
+      `<g class="c"><g class="p">${desenho.pet}</g><g class="m">${desenho.mio}</g></g>`;
+    gFlores.appendChild(g);
+    const f = {
+      i, g, L, r, x: posX(i), nasce: agora, morrendo: false, fixa, inclina: (rnd(i, 4) - 0.5) * 16,
+      h: [0, 0], f: [0, 0], b: [0, 0], p: [0, 0], ang: [0, 0], extra: 0,
+      eH: g.querySelector('.h'), eF1: g.querySelector('.f1'), eF2: g.querySelector('.f2'), eC: g.querySelector('.c'),
+      eP: g.querySelector('.p'), eM: g.querySelector('.m')
+    };
+    if (parado) { f.h[0] = f.f[0] = f.b[0] = f.p[0] = 1; }
+    flores.push(f);
+    pintarFlor(f);
+    return f;
+  }
+  function encolherUltima() {
+    for (let k = flores.length - 1; k >= 0; k--) if (!flores[k].morrendo && !flores[k].fixa) { flores[k].morrendo = true; if (parado) removerFlor(flores[k]); return; }
+  }
+  function removerFlor(f) { f.g.remove(); flores.splice(flores.indexOf(f), 1); contador = Math.max(0, contador - 1); }
+  const vivas = () => flores.filter(f => !f.morrendo && !f.fixa).length;
+
+  function pintarFlor(f) {
+    const h = Math.max(0, f.h[0]);
+    f.g.setAttribute('transform', `translate(${f.x.toFixed(1)} ${chao}) rotate(${(f.inclina + f.ang[0]).toFixed(2)})`);
+    f.eH.setAttribute('transform', `scale(1 ${h.toFixed(4)})`);
+    const fs = Math.max(0, f.f[0]);
+    f.eF1.setAttribute('transform', `translate(0 ${(-f.L * 0.32 * h).toFixed(1)}) rotate(-18) scale(${fs.toFixed(4)})`);
+    f.eF2.setAttribute('transform', `translate(0 ${(-f.L * 0.52 * h).toFixed(1)}) rotate(14) scale(${(fs * 0.85).toFixed(4)})`);
+    f.eC.setAttribute('transform', `translate(0 ${(-f.L * h).toFixed(1)})`);
+    f.eP.setAttribute('transform', `scale(${Math.max(0, f.p[0] * (1 + f.extra)).toFixed(4)})`);
+    f.eM.setAttribute('transform', `scale(${Math.max(0, f.b[0]).toFixed(4)})`);
+  }
+
+  /* ===== sincronia com o campo ===== */
+  function sincronizar(agora) {
+    const v = input.value;
+    const alvo = Math.min(MAX_FLORES, v.length);
+    while (vivas() < alvo) novaFlor(v[vivas()], agora);
+    while (vivas() > alvo) encolherUltima();
+  }
+  input.addEventListener('input', () => sincronizar(relogio));
+
+  /* ===== vento e rajadas ===== */
+  let rajada = null, proximaRajada = 3000;
+  const ponteiro = { x: -1e4, y: 0, t: 0, ok: false };
+  window.addEventListener('pointermove', e => {
+    const r = jardim.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    if (ponteiro.ok && y > -40 && y < H + 20) {
+      const dt = Math.max(8, e.timeStamp - ponteiro.t);
+      const vx = Math.max(-3, Math.min(3, (x - ponteiro.x) / dt)); // px/ms
+      for (const f of flores) {
+        const p = Math.exp(-((x - f.x) ** 2) / (2 * ALCANCE * ALCANCE));
+        f.ang[1] += vx * p * 90;
+      }
+    }
+    ponteiro.x = x; ponteiro.y = y; ponteiro.t = e.timeStamp; ponteiro.ok = true;
+  }, { passive: true });
+
+  /* ===== festa da inscrição ===== */
+  let festa = null;   // { ini }
+  const soltos = [];
+  function soltarPetalas() {
+    const cores = ['#f3efe7', '#E86A4A', '#F2C76E', '#7cc4e8', '#E2A23B'];
+    for (let k = 0; k < 16; k++) {
+      const el = document.createElementNS(NS, 'ellipse');
+      el.setAttribute('rx', 3.2); el.setAttribute('ry', 6); el.setAttribute('fill', cores[k % 5]);
+      el.setAttribute('data-xray', 'pétala solta · sobe girando e some'); el.setAttribute('data-xray-tool', 'code');
+      gSoltos.appendChild(el);
+      const base = flores.length ? flores[k % flores.length] : { x: W * Math.random(), L: H * 0.5 };
+      soltos.push({ el, tipo: 'p', x: base.x, y: chao - base.L, vx: 20 + Math.random() * 60, vy: -40 - Math.random() * 50, rot: Math.random() * 360, vr: (Math.random() - .5) * 300, vida: 0, dur: 2200 + Math.random() * 800 });
+    }
+    for (let k = 0; k < 3; k++) {
+      const el = document.createElementNS(NS, 'g');
+      el.innerHTML = `<g class="asa"><path d="M0 0 Q-9 -12 -12 -2 Q-8 4 0 0Z" fill="#E2A23B"/><path d="M0 0 Q9 -12 12 -2 Q8 4 0 0Z" fill="#F2C76E"/></g><rect x="-1" y="-6" width="2" height="9" rx="1" fill="#1e1510"/>`;
+      el.setAttribute('data-xray', 'borboleta · bate asas (scaleX) e sobe em zigue-zague'); el.setAttribute('data-xray-tool', 'code');
+      gSoltos.appendChild(el);
+      soltos.push({ el, asa: el.querySelector('.asa'), tipo: 'b', x: W * (0.2 + 0.3 * k), y: chao - 20, vx: 25, vy: -45, fase: k * 2, vida: 0, dur: 3000 });
+    }
+  }
+  function inscrever() {
+    if (festa) return;
+    festa = { ini: relogio, apagou: false };
+    aviso.textContent = 'Pronto! Exemplo de rodapé: nenhum e-mail foi enviado.';
+    rajada = { x: -120, ini: relogio, dur: 1400 };
+    if (!parado) soltarPetalas();
+  }
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (!input.value.includes('@')) { aviso.textContent = 'Escreva um e-mail para receber as novidades.'; input.focus(); return; }
+    inscrever();
+  });
+
+  /* ===== modo demonstração ===== */
+  let demoAtivo = !parado || demo;
+  let demoT = 0, demoFase = 'digita', demoIdx = 0;
+  const G = { x: 0, y: 0, vis: 0 };
+  const medida = document.createElement('canvas').getContext('2d');
+  function largura(txt) { medida.font = getComputedStyle(input).font; return medida.measureText(txt).width; }
+  function pararDemo() {
+    if (demo || !demoAtivo) return;
+    demoAtivo = false;
+    fantasma.classList.remove('aperta'); botao.classList.remove('aperta');
+    cursorFalso.style.opacity = '0';
+    if (!festa) { input.value = ''; sincronizar(relogio); }
+  }
+  window.addEventListener('keydown', pararDemo, { passive: true });
+  window.addEventListener('pointerdown', pararDemo, { passive: true });
+  window.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && Math.abs(e.movementX) + Math.abs(e.movementY) > 2) pararDemo(); }, { passive: true });
+
+  function posRel(el, fx, fy) {
+    const r = el.getBoundingClientRect(), b = rodape.getBoundingClientRect();
+    return { x: r.left - b.left + r.width * fx, y: r.top - b.top + r.height * fy };
+  }
+  function passoDemo(dt) {
+    if (!demoAtivo) { G.vis = Math.max(0, G.vis - dt / 300); return; }
+    demoT += dt;
+    const alvoCampo = posRel(input, 0.75, 0.7), alvoBotao = posRel(botao, 0.5, 0.55);
+    if (demoFase === 'digita') {
+      G.vis = Math.min(1, G.vis + dt / 300);
+      G.x += (alvoCampo.x - G.x) * 0.12; G.y += (alvoCampo.y - G.y) * 0.12;
+      if (demoT > 500 && demoIdx < DEMO_EMAIL.length && demoT - 500 >= demoIdx * TECLA_MS) {
+        input.value = DEMO_EMAIL.slice(0, ++demoIdx);
+        sincronizar(relogio);
+      }
+      if (demoIdx >= DEMO_EMAIL.length && demoT > 500 + demoIdx * TECLA_MS + 500) { demoFase = 'vai'; demoT = 0; }
+    } else if (demoFase === 'vai') {
+      const e = Math.min(1, demoT / 700), k = e < .5 ? 4 * e * e * e : 1 - Math.pow(-2 * e + 2, 3) / 2;
+      G.x = alvoCampo.x + (alvoBotao.x - alvoCampo.x) * k; G.y = alvoCampo.y + (alvoBotao.y - alvoCampo.y) * k;
+      if (demoT > 760) { fantasma.classList.add('aperta'); botao.classList.add('aperta'); }
+      if (demoT > 900) { fantasma.classList.remove('aperta'); botao.classList.remove('aperta'); inscrever(); demoFase = 'espera'; demoT = 0; }
+    } else if (demoFase === 'espera') {
+      if (demoT > 600) G.vis = Math.max(0, G.vis - dt / 400);
+      if (!festa && demoT > 1000) { demoFase = 'digita'; demoT = 0; demoIdx = 0; G.x = alvoCampo.x + 60; G.y = alvoCampo.y + 50; }
+    }
+    // cursor de texto falso enquanto o fantasma digita
+    const mostra = demoFase === 'digita' && document.activeElement !== input;
+    if (mostra) {
+      cursorFalso.style.transform = `translateX(${largura(input.value).toFixed(1)}px)`;
+      cursorFalso.style.opacity = (Math.floor(relogio / 500) % 2 ? 0 : 1).toString();
+    } else cursorFalso.style.opacity = '0';
+  }
+
+  /* ===== laço único ===== */
+  let relogio = 0;
+  function passo(dt) {
+    relogio += dt;
+    const s = dt / 1000;
+    // rajada que atravessa o jardim
+    proximaRajada -= dt;
+    if (!rajada && proximaRajada <= 0) { rajada = { x: -120, ini: relogio, dur: 1700 }; proximaRajada = 6000 + Math.random() * 3000; }
+    let gx = null;
+    if (rajada) {
+      const p = (relogio - rajada.ini) / rajada.dur;
+      if (p >= 1) rajada = null; else gx = -120 + (W + 240) * p;
+    }
+    // festa: pétalas extras, depois o campo se apaga da direita para a esquerda
+    let extra = 0;
+    if (festa) {
+      const u = relogio - festa.ini;
+      extra = 0.28 * Math.sin(Math.PI * Math.min(1, u / 900));
+      rolo.style.transform = `translateY(${(-50 * Math.min(1, u / 320)).toFixed(2)}%)`;
+      if (u > FESTA_MS) {
+        const n = Math.floor((u - FESTA_MS) / APAGA_MS);
+        if (input.value.length && n > festa.n) { festa.n = n; input.value = input.value.slice(0, -1); sincronizar(relogio); }
+        if (festa.n === undefined) festa.n = -1;
+        if (!input.value.length) {
+          const fim = relogio - festa.ini;
+          if (!festa.fim) festa.fim = fim;
+          const v = Math.min(1, (fim - festa.fim) / 320);
+          rolo.style.transform = `translateY(${(-50 * (1 - v)).toFixed(2)}%)`;
+          if (v >= 1 && !flores.length) { festa = null; aviso.textContent = ''; }
+        }
+      }
+    }
+    for (let k = flores.length - 1; k >= 0; k--) {
+      const f = flores[k];
+      const idade = relogio - f.nasce;
+      const ab = f.morrendo ? 0 : 1;
+      const sub = 4, ss = s / sub;
+      for (let n = 0; n < sub; n++) {
+        [f.h[0], f.h[1]] = mola(f.h[0], f.h[1], ab, MOLA.haste.k, MOLA.haste.d, ss);
+        [f.f[0], f.f[1]] = mola(f.f[0], f.f[1], f.morrendo || idade > ATRASO.folha ? ab : 0, MOLA.folha.k, MOLA.folha.d, ss);
+        [f.b[0], f.b[1]] = mola(f.b[0], f.b[1], f.morrendo || idade > ATRASO.botao ? ab : 0, MOLA.botao.k, MOLA.botao.d, ss);
+        [f.p[0], f.p[1]] = mola(f.p[0], f.p[1], f.morrendo || idade > ATRASO.petala ? ab : 0, MOLA.petala.k, f.morrendo ? 20 : MOLA.petala.d, ss);
+        const brisa = 2.2 * Math.sin(relogio / 1300 + f.i * 0.9) + 1.2 * Math.sin(relogio / 610 + f.i * 2.1);
+        const sopro = gx === null ? 0 : 14 * Math.exp(-((gx - f.x) ** 2) / (2 * 90 * 90));
+        [f.ang[0], f.ang[1]] = mola(f.ang[0], f.ang[1], brisa + sopro, MOLA.curva.k, MOLA.curva.d, ss);
+      }
+      f.ang[0] = Math.max(-38, Math.min(38, f.ang[0]));
+      f.extra = extra;
+      if (f.morrendo && f.h[0] < 0.02 && f.p[0] < 0.05) { removerFlor(f); continue; }
+      pintarFlor(f);
+    }
+    for (let k = soltos.length - 1; k >= 0; k--) {
+      const o = soltos[k];
+      o.vida += dt;
+      const p = o.vida / o.dur;
+      if (p >= 1) { o.el.remove(); soltos.splice(k, 1); continue; }
+      if (o.tipo === 'p') {
+        o.vx += 12 * s; o.x += o.vx * s; o.y += o.vy * s; o.rot += o.vr * s;
+        o.el.setAttribute('transform', `translate(${o.x.toFixed(1)} ${o.y.toFixed(1)}) rotate(${o.rot.toFixed(1)})`);
+      } else {
+        o.x += (o.vx + 30 * Math.sin(o.vida / 260 + o.fase)) * s; o.y += o.vy * s;
+        o.el.setAttribute('transform', `translate(${o.x.toFixed(1)} ${o.y.toFixed(1)})`);
+        o.asa.setAttribute('transform', `scale(${(0.25 + 0.75 * Math.abs(Math.sin(o.vida / 70))).toFixed(3)} 1)`);
+      }
+      o.el.setAttribute('opacity', (p < 0.7 ? 1 : 1 - (p - 0.7) / 0.3).toFixed(3));
+    }
+  }
+
+  let raf = 0, ultimo = null, naTela = true;
+  function quadro(agora) {
+    raf = requestAnimationFrame(quadro);
+    if (ultimo === null) ultimo = agora;
+    const dt = Math.min(40, agora - ultimo); ultimo = agora;
+    passoDemo(dt);
+    passo(dt);
+    fantasma.style.transform = `translate(${(G.x - 3).toFixed(1)}px, ${(G.y - 2).toFixed(1)}px)`;
+    fantasma.style.opacity = G.vis.toFixed(3);
+  }
+  function ligar() {
+    const deve = !parado && naTela && !document.hidden;
+    if (deve && !raf) { ultimo = null; raf = requestAnimationFrame(quadro); }
+    else if (!deve && raf) { cancelAnimationFrame(raf); raf = 0; }
+  }
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => { naTela = es[0].isIntersecting; ligar(); }).observe(rodape);
+  document.addEventListener('visibilitychange', ligar);
+
+  /* ===== estado parado: jardim pronto e quieto ===== */
+  function jardimPronto() {
+    const palavra = 'inemaclubaprenda';
+    const n = W < 500 ? 10 : 16;
+    for (let k = 0; k < n; k++) novaFlor(palavra[k % palavra.length], 0, true);
+  }
+  if (parado) {
+    input.addEventListener('input', () => { flores.forEach(pintarFlor); });
+    form.addEventListener('submit', () => { festa = null; rolo.style.transform = 'translateY(-50%)'; });
+  }
+
+  let rt = null;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { medir(); flores.forEach(pintarFlor); }, 120); });
+  function iniciar() {
+    medir();
+    if (parado) { jardimPronto(); return; }
+    G.x = W * 0.4; G.y = jardim.offsetTop + 40;
+    ligar();
+  }
+  Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 1200))]).then(iniciar);
+})();
+</script>
+</body>
+</html>

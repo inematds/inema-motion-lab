@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rodapé mapa</title>
+<meta name="description" content="Rodapé com cartões das comunidades INEMA por idioma e um mapa ilustrado onde a capivara caminha até o ponto escolhido.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&family=Sora:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --painel: #111114;
+    --linha: #24242a;
+    --texto: #f3efe7;
+    --texto-2: rgba(243, 239, 231, .6);
+    --ambar: #E2A23B;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow-x: hidden; background: var(--bg); color: var(--texto); }
+  body { font-family: Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+  .rodape {
+    position: relative; min-height: 100vh; min-height: 100dvh; overflow: hidden;
+    background: var(--painel); border-top: 1px solid var(--linha);
+    display: grid; grid-template-columns: minmax(0, 38fr) minmax(0, 62fr); gap: clamp(16px, 3vw, 40px);
+    padding: clamp(16px, 4vh, 40px) clamp(16px, 4vw, 48px);
+  }
+  .esq { display: flex; flex-direction: column; min-width: 0; }
+  .rotulo { font: 500 11px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--ambar); }
+  .marca { margin: 8px 0 0; font: 800 clamp(3rem, min(8vw, 15vh), 7rem)/.88 Sora, sans-serif; letter-spacing: -.05em; }
+  .marca span { color: var(--ambar); }
+  .sub { margin: 10px 0 0; color: var(--texto-2); max-width: 38ch; font-size: 14px; }
+
+  .cartoes { position: relative; margin-top: clamp(12px, 3vh, 26px); display: grid; gap: 8px; }
+  .placa {
+    position: absolute; left: 0; right: 0; top: 0; border-radius: 14px; background: #1c1c21;
+    box-shadow: inset 3px 0 0 var(--ambar), 0 10px 30px rgba(0, 0, 0, .35); will-change: transform; pointer-events: none;
+  }
+  .cartao {
+    position: relative; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center;
+    width: 100%; text-align: left; padding: 10px 14px; border: 1px solid rgba(243, 239, 231, .1); border-radius: 14px;
+    background: transparent; color: var(--texto); font: inherit; cursor: pointer;
+  }
+  .cartao:focus-visible { outline: 3px solid var(--ambar); outline-offset: 2px; }
+  .cidade { font: 600 17px/1.2 Sora, sans-serif; }
+  .idioma { grid-column: 1; font-size: 13px; color: var(--texto-2); }
+  .hora { grid-column: 2; grid-row: 1; justify-self: end; font: 500 17px/1.2 "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+  .meta { grid-column: 2; grid-row: 2; justify-self: end; display: flex; gap: 8px; align-items: center; font: 500 11px/1 "JetBrains Mono", monospace; letter-spacing: .06em; color: var(--texto-2); }
+  .estado { padding: 3px 7px; border-radius: 999px; border: 1px solid currentColor; }
+  .estado.dia { color: var(--ambar); }
+  .estado.noite { color: #9fb4ff; }
+
+  .pe { margin-top: auto; padding-top: 16px; display: grid; gap: 6px; font-size: 13px; color: var(--texto-2); }
+  .pe a { color: var(--texto); text-decoration: none; border-radius: 4px; }
+  .pe a:hover { color: var(--ambar); }
+  .pe a:focus-visible { outline: 2px solid var(--ambar); outline-offset: 3px; }
+  .pe .site { font: 600 18px/1.2 Sora, sans-serif; }
+
+  .mapa {
+    position: relative; min-width: 0; min-height: 300px; border-radius: 22px; overflow: hidden;
+    background: #26262c; box-shadow: inset 0 0 0 1px rgba(243, 239, 231, .08);
+    touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none;
+  }
+  .mapa.arrastando { cursor: grabbing; }
+  .mapa:focus-visible { outline: 3px solid var(--ambar); outline-offset: 3px; }
+  .mapa svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .mapa .grao { position: absolute; inset: 0; pointer-events: none; opacity: .08; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .mapa .legenda { position: absolute; left: 14px; bottom: 12px; font: 500 10px/1 "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: rgba(243, 239, 231, .45); pointer-events: none; }
+  .camera { will-change: transform; }
+
+  .fantasma { position: absolute; left: 0; top: 0; width: 30px; height: 30px; z-index: 6; pointer-events: none; opacity: 0; will-change: transform, opacity;
+    filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, .55)); }
+  .fantasma svg { width: 100%; height: 100%; display: block; transform-origin: 3px 2px; transition: transform .12s; }
+  .fantasma.aperta svg { transform: scale(.85); }
+
+  @media (max-width: 800px) {
+    .rodape { grid-template-columns: 1fr; grid-template-rows: auto minmax(280px, 1fr); }
+    .sub { display: none; }
+    .cartao { padding: 8px 12px; }
+    .cidade, .hora { font-size: 15px; }
+    .pe { display: none; }
+  }
+</style>
+</head>
+<body>
+<footer class="rodape" id="rodape">
+  <div class="esq">
+    <span class="rotulo">Comunidade · três idiomas</span>
+    <p class="marca">INEMA<span>.</span></p>
+    <p class="sub">Cursos e lives em português, espanhol e inglês. Escolha um ponto e veja que horas são lá agora.</p>
+    <div class="cartoes" id="cartoes">
+      <span class="placa" id="placa" aria-hidden="true" data-xray="placa ativa · desliza até o cartão escolhido" data-xray-tool="code"></span>
+      <button type="button" class="cartao" data-i="0" aria-pressed="true">
+        <span class="cidade">São Paulo</span><span class="hora" data-tz="America/Sao_Paulo">--:--</span>
+        <span class="idioma">Cursos em português</span><span class="meta"><span class="utc">UTC</span><span class="estado">--</span></span>
+      </button>
+      <button type="button" class="cartao" data-i="1" aria-pressed="false">
+        <span class="cidade">Cidade do México</span><span class="hora" data-tz="America/Mexico_City">--:--</span>
+        <span class="idioma">Cursos em espanhol</span><span class="meta"><span class="utc">UTC</span><span class="estado">--</span></span>
+      </button>
+      <button type="button" class="cartao" data-i="2" aria-pressed="false">
+        <span class="cidade">Nova York</span><span class="hora" data-tz="America/New_York">--:--</span>
+        <span class="idioma">Cursos em inglês</span><span class="meta"><span class="utc">UTC</span><span class="estado">--</span></span>
+      </button>
+    </div>
+    <div class="pe">
+      <a class="site" href="https://inema.club">inema.club</a>
+      <span><a href="https://eventos.inema.pro">Lives</a> · <a href="https://buscas.inema.club">Buscas</a> · <a href="https://inema.vip">VIP</a></span>
+      <span>© 2026 INEMA.CLUB · conteúdo aberto e gratuito</span>
+    </div>
+  </div>
+
+  <div class="mapa" id="mapa" tabindex="0" aria-label="Mapa ilustrativo. Arraste ou use as setas para mover; escolha um cartão para a capivara caminhar até lá.">
+    <svg id="svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="nuvem"><stop offset="0" stop-color="#000" stop-opacity=".38"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+      </defs>
+      <g class="camera" id="camera" data-xray="câmera · mola criticamente amortecida enquadra capivara e destino" data-xray-tool="code">
+        <g id="cidade"></g>
+        <g id="vivos"></g>
+      </g>
+    </svg>
+    <div class="grao" aria-hidden="true"></div>
+    <span class="legenda" aria-hidden="true">mapa ilustrativo · arraste para mover</span>
+  </div>
+
+  <div class="fantasma" id="fantasma" aria-hidden="true">
+    <svg viewBox="0 0 30 30"><path d="M3 2 L3 24 L9 18.5 L13 27 L17 25.2 L13 16.8 L21 16.8 Z" fill="#f3efe7" stroke="#0b0b0d" stroke-width="2" stroke-linejoin="round"/></svg>
+  </div>
+</footer>
+
+<script>
+/* Raio-X e modos: ?motion=xray mostra o que se move, ?motion=off congela, ?demo=1 repete sem parar */
+window.MOTION = (() => {
+  const q = new URLSearchParams(location.search);
+  const modo = q.get('motion');
+  const api = { off: modo === 'off', xray: modo === 'xray', demo: q.get('demo') === '1' };
+  if (!api.xray) return api;
+  const css = document.createElement('style');
+  css.textContent = '.xr-box{position:fixed;left:0;top:0;z-index:9998;pointer-events:none;border:1.5px dashed #E2A23B;border-radius:4px}' +
+    '.xr-tag{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;font:500 10px/1.25 "JetBrains Mono",ui-monospace,monospace;color:#0b0b0d;background:#E2A23B;padding:2px 6px;border-radius:3px;white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}';
+  document.head.appendChild(css);
+  const pares = new Map();
+  const desenhar = () => {
+    const vistos = new Set(), textos = new Set();
+    document.querySelectorAll('[data-xray]').forEach(el => {
+      vistos.add(el);
+      let p = pares.get(el);
+      if (!p) {
+        p = { box: document.createElement('div'), tag: document.createElement('div') };
+        p.box.className = 'xr-box'; p.tag.className = 'xr-tag'; p.tag.textContent = el.dataset.xray;
+        document.body.append(p.box, p.tag); pares.set(el, p);
+      }
+      const r = el.getBoundingClientRect();
+      const vis = r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight;
+      p.box.style.display = vis ? '' : 'none';
+      const mostraTag = vis && !textos.has(el.dataset.xray);
+      p.tag.style.display = mostraTag ? '' : 'none';
+      if (!vis) return;
+      textos.add(el.dataset.xray);
+      p.box.style.transform = `translate(${r.left}px,${r.top}px)`;
+      p.box.style.width = r.width + 'px'; p.box.style.height = r.height + 'px';
+      p.tag.style.transform = `translate(${Math.max(2, Math.min(innerWidth - 120, r.left))}px,${Math.max(2, r.top - 18)}px)`;
+    });
+    for (const [el, p] of pares) if (!vistos.has(el)) { p.box.remove(); p.tag.remove(); pares.delete(el); }
+  };
+  setInterval(desenhar, 200);
+  return api;
+})();
+</script>
+
+<script>
+(() => {
+  'use strict';
+  /* ===== parâmetros (espelham o PROMPT.md) ===== */
+  const MOLA_PINO = { k: 260, d: 15 };
+  const MOLA_CAM = { k: 24, d: 2 * Math.sqrt(24) };   // criticamente amortecida
+  const VELOC = 230;                                   // unidades do mapa por segundo
+  const TOUR_MS = 4600;
+  const COR = { rua: '#34343c', quadra: '#1b1b20', borda: '#141417', parque: '#1d3326', arvore: '#2a4a35', rio: '#1d3a52', margem: '#264a66' };
+
+  const reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const parado = reduz || MOTION.off;
+  const demo = MOTION.demo;
+
+  const rodape = document.getElementById('rodape');
+  const mapa = document.getElementById('mapa');
+  const svg = document.getElementById('svg');
+  const camera = document.getElementById('camera');
+  const gCidade = document.getElementById('cidade');
+  const gVivos = document.getElementById('vivos');
+  const placa = document.getElementById('placa');
+  const cartoes = Array.from(document.querySelectorAll('.cartao'));
+  const fantasma = document.getElementById('fantasma');
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, at, pai) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (pai) pai.appendChild(e); return e; };
+
+  /* ===== a cidade: grade de ruas, rio, pontes, avenida diagonal ===== */
+  const COLS = 9, LINS = 7, RIO_COL = 4;
+  const X = i => 70 + 115 * i, Y = j => 60 + 100 * j;
+  const nos = [];
+  const id = (i, j) => j * COLS + i;
+  for (let j = 0; j < LINS; j++) for (let i = 0; i < COLS; i++) nos[id(i, j)] = i === RIO_COL ? null : { i, j, x: X(i), y: Y(j), viz: [] };
+  const arestas = [];
+  const liga = (a, b) => { const A = nos[a], B = nos[b]; if (!A || !B) return; const d = Math.hypot(A.x - B.x, A.y - B.y); A.viz.push([b, d]); B.viz.push([a, d]); arestas.push([A, B]); };
+  for (let j = 0; j < LINS; j++) for (let i = 0; i < COLS; i++) {
+    if (i + 1 < COLS && i !== RIO_COL && i + 1 !== RIO_COL) liga(id(i, j), id(i + 1, j));
+    if (j + 1 < LINS && i !== RIO_COL && !(i === 2 && j === 1)) liga(id(i, j), id(i, j + 1));
+  }
+  [1, 4].forEach(j => liga(id(3, j), id(5, j)));                         // pontes
+  [[0, 6, 1, 5], [1, 5, 2, 4], [2, 4, 3, 3]].forEach(([a, b, c, d]) => liga(id(a, b), id(c, d))); // avenida diagonal
+
+  // quadras
+  const parques = new Set(['1,1', '2,1', '6,4']);
+  for (let j = 0; j < LINS - 1; j++) for (let i = 0; i < COLS - 1; i++) {
+    if (i === 3 || i === RIO_COL) continue;
+    const x0 = X(i) + 8, y0 = Y(j) + 8, w = 115 - 16, h = 100 - 16;
+    const parque = parques.has(`${i},${j}`);
+    if (parque && i === 1 && j === 1) {
+      el('rect', { x: x0, y: y0, width: 230 - 16, height: h, rx: 6, fill: COR.parque }, gCidade);
+      for (let k = 0; k < 9; k++) el('circle', { cx: x0 + 20 + (k * 47) % 190, cy: y0 + 16 + (k * 29) % 54, r: 7 + (k % 3) * 2, fill: COR.arvore }, gCidade);
+      continue;
+    }
+    if (parque && i === 2 && j === 1) continue;
+    el('rect', { x: x0, y: y0, width: w, height: h, rx: 5, fill: parque ? COR.parque : COR.quadra, stroke: COR.borda, 'stroke-width': 2 }, gCidade);
+    if (parque) for (let k = 0; k < 4; k++) el('circle', { cx: x0 + 22 + (k % 2) * 52, cy: y0 + 22 + Math.floor(k / 2) * 40, r: 9, fill: COR.arvore }, gCidade);
+    else {
+      // telhados: 2 a 4 prédios por quadra, alguns com janelas acesas
+      const n = 2 + (i * 5 + j * 3) % 3;
+      for (let k = 0; k < n; k++) {
+        const bw = (w - 12) / n - 6, bx = x0 + 8 + k * ((w - 12) / n), bh = 30 + ((i + k * 3 + j) % 4) * 10;
+        const by = (k + i + j) % 2 ? y0 + 8 : y0 + h - 8 - bh;
+        el('rect', { x: bx, y: by, width: bw, height: bh, rx: 3, fill: (k + j) % 2 ? '#24242b' : '#2b2b33' }, gCidade);
+        if ((i + j + k) % 3 === 0) for (let m = 0; m < 3; m++) el('rect', { x: bx + 5 + m * (bw - 12) / 2.6, y: by + 6, width: 4, height: 4, rx: 1, fill: '#E2A23B', opacity: .7 }, gCidade);
+      }
+    }
+  }
+  // margens e rio
+  el('rect', { x: X(3) + 8, y: -40, width: X(5) - X(3) - 16, height: 780, fill: COR.parque }, gCidade);
+  const RIO_D = 'M548 -40 C470 120 600 220 532 330 S462 560 546 740';
+  el('path', { d: RIO_D, stroke: COR.margem, 'stroke-width': 66, fill: 'none' }, gCidade);
+  const rio = el('path', { d: RIO_D, stroke: COR.rio, 'stroke-width': 56, fill: 'none' }, gCidade);
+  // avenida diagonal e pontes por cima
+  el('path', { d: `M${X(0)} ${Y(6)} L${X(3)} ${Y(3)}`, stroke: COR.borda, 'stroke-width': 18, 'stroke-linecap': 'round' }, gCidade);
+  el('path', { d: `M${X(0)} ${Y(6)} L${X(3)} ${Y(3)}`, stroke: COR.rua, 'stroke-width': 14, 'stroke-linecap': 'round' }, gCidade);
+  [1, 4].forEach(j => {
+    el('rect', { x: X(3), y: Y(j) - 9, width: X(5) - X(3), height: 18, fill: COR.borda }, gCidade);
+    el('rect', { x: X(3), y: Y(j) - 7, width: X(5) - X(3), height: 14, fill: COR.rua }, gCidade);
+  });
+  // nomes (mono, caixa alta)
+  const rotulo = (x, y, t, rot = 0, cor = 'rgba(243,239,231,.38)') => {
+    const e = el('text', { x, y, fill: cor, 'font-family': 'JetBrains Mono, monospace', 'font-size': 11, 'letter-spacing': 2, 'text-anchor': 'middle', transform: rot ? `rotate(${rot} ${x} ${y})` : '' }, gCidade);
+    e.textContent = t;
+  };
+  rotulo(X(1) + 15, Y(3) + 4, 'AV. DOS CURSOS');
+  rotulo(X(6) + 4, Y(2) + 52, 'RUA DAS LIVES', -90);
+  rotulo(X(2) - 50, Y(1) + 56, 'PRAÇA VIP', 0, 'rgba(159,211,170,.55)');
+  rotulo(560, 260, 'RIO', -70, 'rgba(124,196,232,.55)');
+  rotulo(X(7) + 55, Y(4) + 56, 'BUSCAS', 0);
+
+  /* ===== destinos (os três cartões) ===== */
+  const DEST = [id(1, 5), id(6, 5), id(7, 1)];
+  const NOMES = ['SÃO PAULO', 'CIDADE DO MÉXICO', 'NOVA YORK'];
+  const pinos = DEST.map((n, k) => {
+    const N = nos[n];
+    const g = el('g', { 'data-xray': 'pino · cai com mola, amassa e solta uma onda', 'data-xray-tool': 'code' }, gVivos);
+    const onda = el('circle', { cx: 0, cy: 0, r: 14, fill: 'none', stroke: '#E2A23B', 'stroke-width': 2, opacity: 0 }, g);
+    const corpo = el('g', {}, g);
+    el('path', { d: 'M0 0 C-4 -8 -12 -14 -12 -24 A12 12 0 1 1 12 -24 C12 -14 4 -8 0 0Z', fill: '#E2A23B', stroke: '#0b0b0d', 'stroke-width': 2.5 }, corpo);
+    el('circle', { cx: 0, cy: -24, r: 4.5, fill: '#0b0b0d' }, corpo);
+    const t = el('text', { x: 0, y: -44, fill: '#f3efe7', 'font-family': 'JetBrains Mono, monospace', 'font-size': 11, 'letter-spacing': 1.5, 'text-anchor': 'middle' }, corpo);
+    t.textContent = NOMES[k];
+    return { g, onda, corpo, x: N.x, y: N.y, off: -70, v: 0, t0: -1e9, visivel: false };
+  });
+
+  /* carros, barco, sombras de nuvem */
+  const voltaCarro = [[5, 0], [8, 0], [8, 3], [5, 3]].map(([i, j]) => ({ x: X(i), y: Y(j) }));
+  const voltaCarro2 = [[0, 0], [3, 0], [3, 2], [0, 2]].map(([i, j]) => ({ x: X(i), y: Y(j) }));
+  const carros = [
+    { rota: voltaCarro, s: 0, v: 70, cor: '#f3efe7' },
+    { rota: voltaCarro, s: 380, v: 70, cor: '#E2A23B' },
+    { rota: voltaCarro2, s: 100, v: 55, cor: '#7cc4e8' },
+    { rota: [{ x: X(5), y: Y(6) }, { x: X(8), y: Y(6) }, { x: X(8), y: Y(5) }, { x: X(5), y: Y(5) }], s: 0, v: 60, cor: '#E86A4A' }
+  ].map(c => {
+    c.g = el('g', { 'data-xray': 'carro · anda pela volta do quarteirão', 'data-xray-tool': 'code' }, gVivos);
+    el('rect', { x: -9, y: -5, width: 18, height: 10, rx: 3, fill: c.cor, stroke: '#0b0b0d', 'stroke-width': 1.5 }, c.g);
+    el('rect', { x: 1, y: -3.5, width: 5, height: 7, rx: 1.5, fill: 'rgba(11,11,13,.5)' }, c.g);
+    c.total = c.rota.reduce((a, p, k) => a + Math.hypot(c.rota[(k + 1) % c.rota.length].x - p.x, c.rota[(k + 1) % c.rota.length].y - p.y), 0);
+    return c;
+  });
+  const barco = el('g', { 'data-xray': 'barco · desce e sobe o rio', 'data-xray-tool': 'code' }, gVivos);
+  el('path', { d: 'M-12 -5 L10 -5 L14 0 L10 5 L-12 5Z', fill: '#f3efe7', stroke: '#0b0b0d', 'stroke-width': 1.5 }, barco);
+  el('rect', { x: -6, y: -3, width: 9, height: 6, rx: 1.5, fill: '#E2A23B' }, barco);
+  const rioPts = [];
+  const rioLen = rio.getTotalLength();
+  for (let k = 0; k <= 160; k++) { const p = rio.getPointAtLength(rioLen * k / 160); rioPts.push({ x: p.x, y: p.y }); }
+  const nuvens = [0, 1, 2].map(k => {
+    const e = el('ellipse', { cx: 0, cy: 0, rx: 150 + k * 40, ry: 70 + k * 15, fill: 'url(#nuvem)', 'data-xray': 'sombra de nuvem · deriva devagar', 'data-xray-tool': 'code' }, gVivos);
+    return { e, x: k * 420 - 100, y: 140 + k * 200, v: 9 + k * 3 };
+  });
+
+  /* rota e capivara caminhante */
+  const rota = el('path', { d: '', fill: 'none', stroke: '#E2A23B', 'stroke-width': 3, 'stroke-dasharray': '2 9', 'stroke-linecap': 'round', opacity: 0, 'data-xray': 'rota · aparece em opacidade e some na chegada', 'data-xray-tool': 'code' }, gVivos);
+  const capi = el('g', { 'data-xray': 'capivara · anda pelo caminho mais curto e pula nas esquinas', 'data-xray-tool': 'code' }, gVivos);
+  const capiCorpo = el('g', {}, capi);
+  el('ellipse', { cx: 0, cy: 2, rx: 13, ry: 4, fill: 'rgba(0,0,0,.35)' }, capi);
+  const capiPula = el('g', {}, capiCorpo);
+  capiPula.innerHTML = '<g><rect x="-10" y="-4" width="4" height="7" rx="2" fill="#7a5232"/><rect x="5" y="-4" width="4" height="7" rx="2" fill="#7a5232"/>' +
+    '<ellipse cx="0" cy="-9" rx="13" ry="8" fill="#9b6b43" stroke="#0b0b0d" stroke-width="1.5"/>' +
+    '<rect x="-20" y="-17" width="14" height="11" rx="5" fill="#9b6b43" stroke="#0b0b0d" stroke-width="1.5"/>' +
+    '<circle cx="-9" cy="-18" r="2.6" fill="#7a5232"/><circle cx="-14" cy="-13" r="1.4" fill="#0b0b0d"/></g>';
+  const balao = el('g', { opacity: 0 }, capi);
+  el('rect', { x: -14, y: -50, width: 28, height: 18, rx: 6, fill: '#f3efe7' }, balao);
+  const oi = el('text', { x: 0, y: -37, 'text-anchor': 'middle', 'font-family': 'Sora, sans-serif', 'font-weight': 600, 'font-size': 11, fill: '#0b0b0d' }, balao);
+  oi.textContent = 'oi!';
+
+  /* ===== Dijkstra ===== */
+  function caminho(de, ate) {
+    const dist = new Map([[de, 0]]), prev = new Map(), aberto = new Set([de]), feito = new Set();
+    while (aberto.size) {
+      let u = null, du = Infinity;
+      for (const a of aberto) if (dist.get(a) < du) { du = dist.get(a); u = a; }
+      aberto.delete(u); feito.add(u);
+      if (u === ate) break;
+      for (const [v, d] of nos[u].viz) {
+        if (feito.has(v)) continue;
+        const nd = du + d;
+        if (nd < (dist.get(v) ?? Infinity)) { dist.set(v, nd); prev.set(v, u); aberto.add(v); }
+      }
+    }
+    const lista = [ate];
+    while (lista[0] !== de) lista.unshift(prev.get(lista[0]));
+    return lista.map(n => nos[n]);
+  }
+
+  /* ===== estado ===== */
+  let ativo = 0, noAtual = id(2, 3);
+  const anda = { pts: null, acum: null, total: 0, t: 0, dur: 1, chegou: 0, lado: 1 };
+  const W0 = 1000, H0 = 700;
+  const cam = { x: 500, y: 350, z: 1, vx: 0, vy: 0, vz: 0 };
+  const alvoCam = { x: 500, y: 350, z: 1 };
+  let manual = false, inercia = { x: 0, y: 0 };
+  let capiPos = { x: nos[noAtual].x, y: nos[noAtual].y };
+
+  function ir(k, origem) {
+    ativo = k; manual = false;
+    cartoes.forEach((c, i) => c.setAttribute('aria-pressed', i === k ? 'true' : 'false'));
+    moverPlaca();
+    const p = pinos[k];
+    p.t0 = relogio; p.off = -70; p.v = 0; p.visivel = true;
+    const pts = caminho(noAtual, DEST[k]);
+    noAtual = DEST[k];
+    const acum = [0];
+    for (let n = 1; n < pts.length; n++) acum.push(acum[n - 1] + Math.hypot(pts[n].x - pts[n - 1].x, pts[n].y - pts[n - 1].y));
+    Object.assign(anda, { pts, acum, total: acum[acum.length - 1], t: 0, dur: Math.max(1.1, acum[acum.length - 1] / VELOC), chegou: 0 });
+    rota.setAttribute('d', 'M' + pts.map(q => `${q.x} ${q.y}`).join(' L'));
+    if (parado) {
+      anda.t = anda.dur; p.off = 0;
+      capiPos = { x: pts[pts.length - 1].x, y: pts[pts.length - 1].y };
+      Object.assign(cam, { x: p.x, y: p.y - 40, z: 1.4 });
+      cam.x = Math.max(W0 / 2 / cam.z, Math.min(W0 - W0 / 2 / cam.z, cam.x));
+      cam.y = Math.max(H0 / 2 / cam.z, Math.min(H0 - H0 / 2 / cam.z, cam.y));
+      pinos.forEach((q, i) => { q.visivel = i === k; });
+      desenharTudo(0);
+    }
+  }
+  function moverPlaca() {
+    const c = cartoes[ativo];
+    placa.style.height = c.offsetHeight + 'px';
+    placa.style.transform = `translateY(${c.offsetTop}px)`;
+  }
+
+  /* ===== relógios reais por fuso ===== */
+  const fmt = {}, offs = {};
+  cartoes.forEach(c => {
+    const tz = c.querySelector('.hora').dataset.tz;
+    try { fmt[tz] = new Intl.DateTimeFormat('pt-BR', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }); } catch (e) { fmt[tz] = null; }
+    try {
+      const parte = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' }).formatToParts(new Date()).find(p => p.type === 'timeZoneName');
+      offs[tz] = parte ? parte.value.replace('GMT', 'UTC').replace('-', '−') : 'UTC';
+    } catch (e) { offs[tz] = ''; }
+  });
+  let ultMin = -1;
+  function relogios() {
+    const agora = new Date();
+    if (agora.getMinutes() === ultMin) return;
+    ultMin = agora.getMinutes();
+    cartoes.forEach(c => {
+      const h = c.querySelector('.hora'), tz = h.dataset.tz;
+      const txt = fmt[tz] ? fmt[tz].format(agora) : '--:--';
+      h.textContent = txt;
+      c.querySelector('.utc').textContent = offs[tz] || 'UTC';
+      const hora = parseInt(txt, 10);
+      const dia = hora >= 6 && hora < 18;
+      const e = c.querySelector('.estado');
+      e.textContent = dia ? 'dia' : 'noite';
+      e.className = 'estado ' + (dia ? 'dia' : 'noite');
+    });
+  }
+
+  /* ===== desenho ===== */
+  const cl = (v, a, b) => Math.max(a, Math.min(b, v));
+  const easeIO = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  function pontoEm(s) {
+    const { pts, acum } = anda;
+    let n = 1; while (n < acum.length - 1 && acum[n] < s) n++;
+    const a = pts[n - 1], b = pts[n], seg = acum[n] - acum[n - 1] || 1;
+    const u = cl((s - acum[n - 1]) / seg, 0, 1);
+    return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u, dx: b.x - a.x };
+  }
+  function naRota(rotaPts, s, total) {
+    s = ((s % total) + total) % total;
+    for (let k = 0; k < rotaPts.length; k++) {
+      const a = rotaPts[k], b = rotaPts[(k + 1) % rotaPts.length];
+      const L = Math.hypot(b.x - a.x, b.y - a.y);
+      if (s <= L) return { x: a.x + (b.x - a.x) * s / L, y: a.y + (b.y - a.y) * s / L, ang: Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI };
+      s -= L;
+    }
+    return { x: rotaPts[0].x, y: rotaPts[0].y, ang: 0 };
+  }
+
+  function desenharTudo(dt) {
+    const s = dt / 1000;
+    // caminhada
+    let pulo = 0, balaoOp = 0;
+    if (anda.pts) {
+      anda.t = Math.min(anda.dur, anda.t + s);
+      const p = easeIO(anda.t / anda.dur);
+      const dist = p * anda.total;
+      const q = pontoEm(dist);
+      capiPos = { x: q.x, y: q.y };
+      if (Math.abs(q.dx) > 1) anda.lado = q.dx < 0 ? 1 : -1;
+      for (let n = 1; n < anda.acum.length - 1; n++) pulo += 9 * Math.exp(-(((dist - anda.acum[n]) / 14) ** 2));
+      pulo += anda.t < anda.dur ? 1.5 * Math.abs(Math.sin(anda.t * 14)) : 0;
+      if (anda.t >= anda.dur) {
+        anda.chegou += dt;
+        balaoOp = cl(anda.chegou / 200, 0, 1) * cl((1800 - anda.chegou) / 300, 0, 1);
+      }
+      rota.setAttribute('opacity', (anda.t < anda.dur ? 0.9 : 0.9 * cl(1 - anda.chegou / 500, 0, 1)).toFixed(3));
+    }
+    const aceno = anda.chegou > 0 && anda.chegou < 1400 ? Math.sin(anda.chegou / 90) * 10 : 0;
+    capi.setAttribute('transform', `translate(${capiPos.x.toFixed(1)} ${capiPos.y.toFixed(1)})`);
+    capiCorpo.setAttribute('transform', `scale(${anda.lado} 1)`);
+    capiPula.setAttribute('transform', `translate(0 ${(-pulo).toFixed(2)}) rotate(${aceno.toFixed(2)})`);
+    balao.setAttribute('opacity', balaoOp.toFixed(3));
+
+    // pinos: queda com mola, amassada e onda
+    pinos.forEach(p => {
+      if (!p.visivel) { p.g.setAttribute('opacity', 0); return; }
+      if (!parado) { const a = -MOLA_PINO.k * p.off - MOLA_PINO.d * p.v; p.v += a * s; p.off += p.v * s; }
+      const amassa = cl(p.v / 900, -0.25, 0.25) * (p.off > -6 ? 1 : 0);
+      p.g.setAttribute('opacity', 1);
+      p.g.setAttribute('transform', `translate(${p.x} ${p.y})`);
+      p.corpo.setAttribute('transform', `translate(0 ${Math.min(2, p.off).toFixed(2)}) scale(${(1 + amassa).toFixed(3)} ${(1 - amassa).toFixed(3)})`);
+      const u = (relogio - p.t0 - 220) / 800;
+      const ok = u > 0 && u < 1 && !parado;
+      p.onda.setAttribute('opacity', ok ? (0.9 * (1 - u)).toFixed(3) : 0);
+      p.onda.setAttribute('transform', `scale(${ok ? (0.6 + 2.6 * u).toFixed(3) : 1})`);
+    });
+
+    // carros, barco, nuvens
+    if (!parado) {
+      carros.forEach(c => { c.s += c.v * s; });
+      nuvens.forEach(n => { n.x += n.v * s; if (n.x > 1250) n.x = -250; });
+    }
+    carros.forEach(c => { const q = naRota(c.rota, c.s, c.total); c.g.setAttribute('transform', `translate(${q.x.toFixed(1)} ${q.y.toFixed(1)}) rotate(${q.ang.toFixed(1)})`); });
+    const bt = (relogio / 26000) % 2, bp = bt < 1 ? bt : 2 - bt;
+    const bi = Math.min(rioPts.length - 2, Math.floor(bp * (rioPts.length - 1)));
+    const b0 = rioPts[bi], b1 = rioPts[bi + 1];
+    const bang = Math.atan2(b1.y - b0.y, b1.x - b0.x) * 180 / Math.PI + (bt < 1 ? 0 : 180);
+    barco.setAttribute('transform', `translate(${b0.x.toFixed(1)} ${b0.y.toFixed(1)}) rotate(${bang.toFixed(1)})`);
+    nuvens.forEach(n => n.e.setAttribute('transform', `translate(${n.x.toFixed(1)} ${n.y})`));
+
+    // câmera: enquadra capivara + destino; perto do fim aproxima
+    if (!manual) {
+      const d = pinos[ativo];
+      const fim = anda.pts ? anda.t / anda.dur : 1;
+      const cx = (capiPos.x + d.x) / 2, cy = (capiPos.y + d.y) / 2 - 20;
+      const bw = Math.abs(capiPos.x - d.x) + 320, bh = Math.abs(capiPos.y - d.y) + 260;
+      let z = cl(Math.min(W0 / bw, H0 / bh), 1, 1.35);
+      if (fim > 0.8) z = Math.max(z, 1 + 0.45 * (fim - 0.8) / 0.2);
+      alvoCam.x = cx; alvoCam.y = cy; alvoCam.z = z;
+      if (parado) { /* câmera já posicionada em ir() */ }
+      else {
+        for (const k of ['x', 'y', 'z']) {
+          const vk = 'v' + k;
+          const a = -MOLA_CAM.k * (cam[k] - alvoCam[k]) - MOLA_CAM.d * cam[vk];
+          cam[vk] += a * s; cam[k] += cam[vk] * s;
+        }
+      }
+    } else if (!arraste) {
+      cam.x += inercia.x * s; cam.y += inercia.y * s;
+      const f = Math.pow(0.04, s); inercia.x *= f; inercia.y *= f;
+    }
+    cam.x = cl(cam.x, W0 / 2 / cam.z, W0 - W0 / 2 / cam.z);
+    cam.y = cl(cam.y, H0 / 2 / cam.z, H0 - H0 / 2 / cam.z);
+    camera.setAttribute('transform', `translate(500 350) scale(${cam.z.toFixed(4)}) translate(${(-cam.x).toFixed(2)} ${(-cam.y).toFixed(2)})`);
+  }
+
+  /* ===== arrastar o mapa com inércia ===== */
+  let arraste = null;
+  const unidPorPx = () => { const r = mapa.getBoundingClientRect(); return Math.min(W0 / r.width, H0 / r.height); };
+  mapa.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    pararTour();
+    manual = true;
+    arraste = { x: e.clientX, y: e.clientY, t: e.timeStamp, vx: 0, vy: 0 };
+    mapa.classList.add('arrastando');
+    try { mapa.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+  mapa.addEventListener('pointermove', e => {
+    if (!arraste) return;
+    const u = unidPorPx() / cam.z;
+    const dx = (e.clientX - arraste.x) * u, dy = (e.clientY - arraste.y) * u;
+    const dt = Math.max(8, e.timeStamp - arraste.t) / 1000;
+    cam.x -= dx; cam.y -= dy;
+    arraste.vx = -dx / dt; arraste.vy = -dy / dt;
+    arraste.x = e.clientX; arraste.y = e.clientY; arraste.t = e.timeStamp;
+    if (parado) desenharTudo(0);
+  });
+  const soltar = e => {
+    if (!arraste) return;
+    inercia = parado || e.timeStamp - arraste.t > 80 ? { x: 0, y: 0 } : { x: arraste.vx, y: arraste.vy };
+    arraste = null; mapa.classList.remove('arrastando');
+  };
+  mapa.addEventListener('pointerup', soltar);
+  mapa.addEventListener('pointercancel', soltar);
+  mapa.addEventListener('keydown', e => {
+    const passo = 60 / cam.z;
+    const m = { ArrowLeft: [-passo, 0], ArrowRight: [passo, 0], ArrowUp: [0, -passo], ArrowDown: [0, passo] }[e.key];
+    if (!m) return;
+    e.preventDefault(); pararTour(); manual = true;
+    cam.x += m[0]; cam.y += m[1];
+    if (parado) desenharTudo(0);
+  });
+
+  /* ===== cartões: passar o mouse, tocar ou focar ===== */
+  cartoes.forEach((c, k) => {
+    c.addEventListener('click', () => { pararTour(); if (k !== ativo || manual) ir(k); });
+    c.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && !demoForcado()) { pararTour(); if (k !== ativo) ir(k); } });
+    c.addEventListener('focus', () => { if (tourLigado && !demo) pararTour(); if (k !== ativo && !tourLigado) ir(k); });
+  });
+
+  /* ===== tour automático + cursor fantasma ===== */
+  let tourLigado = !parado || demo;
+  let tourT = 0;
+  const G = { x: 0, y: 0, vis: 0, de: null };
+  const demoForcado = () => demo;
+  function pararTour() { if (demo || !tourLigado) return; tourLigado = false; }
+  function passoTour(dt) {
+    if (!tourLigado) { G.vis = Math.max(0, G.vis - dt / 300); return; }
+    tourT += dt;
+    const r = rodape.getBoundingClientRect();
+    const alvo = cartoes[(ativo + 1) % 3].getBoundingClientRect();
+    const ax = alvo.left - r.left + alvo.width * 0.3, ay = alvo.top - r.top + alvo.height * 0.55;
+    const ini = TOUR_MS - 1100;
+    if (tourT > ini) {
+      if (!G.de) G.de = { x: G.vis > 0.5 ? G.x : ax + 120, y: G.vis > 0.5 ? G.y : ay + 90 };
+      G.vis = Math.min(1, G.vis + dt / 250);
+      const e = easeIO(cl((tourT - ini) / 800, 0, 1));
+      G.x = G.de.x + (ax - G.de.x) * e; G.y = G.de.y + (ay - G.de.y) * e;
+      fantasma.classList.toggle('aperta', tourT > TOUR_MS - 160);
+    }
+    if (tourT >= TOUR_MS) { tourT = 0; G.de = null; fantasma.classList.remove('aperta'); ir((ativo + 1) % 3); }
+  }
+
+  /* ===== laço único ===== */
+  let relogio = 0, raf = 0, ultimo = null, naTela = true;
+  function quadro(agora) {
+    raf = requestAnimationFrame(quadro);
+    if (ultimo === null) ultimo = agora;
+    const dt = Math.min(40, agora - ultimo); ultimo = agora; relogio += dt;
+    passoTour(dt);
+    desenharTudo(dt);
+    relogios();
+    fantasma.style.transform = `translate(${(G.x - 3).toFixed(1)}px, ${(G.y - 2).toFixed(1)}px)`;
+    fantasma.style.opacity = G.vis.toFixed(3);
+  }
+  function ligar() {
+    const deve = !parado && naTela && !document.hidden;
+    if (deve && !raf) { ultimo = null; raf = requestAnimationFrame(quadro); }
+    else if (!deve && raf) { cancelAnimationFrame(raf); raf = 0; }
+  }
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => { naTela = es[0].isIntersecting; ligar(); }).observe(rodape);
+  document.addEventListener('visibilitychange', ligar);
+  window.addEventListener('keydown', e => { if (rodape.contains(e.target) && e.key === 'Tab') return; if (rodape.contains(e.target)) pararTour(); }, { passive: true });
+
+  let rt = null;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(moverPlaca, 120); });
+  function iniciar() {
+    relogios();
+    moverPlaca();
+    if (parado) { setInterval(relogios, 15000); ir(0); return; }
+    ir(0);
+    ligar();
+  }
+  Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 1200))]).then(iniciar);
+})();
+</script>
+</body>
+</html>

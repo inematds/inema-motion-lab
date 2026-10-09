@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rodapé cortina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@500&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<script>
+  // ?demo=1 demonstração contínua · ?motion=off parado no estado final · ?motion=xray raio-X
+  (function () {
+    var q = location.search, m = (q.match(/[?&]motion=([a-z]+)/) || [])[1] || '';
+    window.MOTION = { demo: /[?&]demo=1\b/.test(q), off: m === 'off', xray: m === 'xray' };
+    if (MOTION.off) document.documentElement.classList.add('motion-off');
+  })();
+</script>
+<style>
+  :root {
+    --bg: #0b0b0d; --surface: #111114; --fg: #f3efe7; --fg-2: rgba(243,239,231,.58);
+    --accent: #E2A23B; --ink: #17120f; --paper: #f3efe7;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--fg); font-family: Inter, system-ui, sans-serif; }
+  a { color: inherit; text-decoration: none; }
+  main { position: relative; height: 100vh; height: 100dvh; width: 100%; overflow: hidden; touch-action: pan-y; }
+
+  /* ---------- rodapé fixo por baixo ---------- */
+  .foot {
+    position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+    background: var(--bg); overflow: hidden;
+  }
+  .glow { position: absolute; left: 50%; bottom: calc(9vh + 48px - 30vmax); width: 120vmax; height: 60vmax; margin-left: -60vmax;
+    border-radius: 50%; pointer-events: none; opacity: 0; will-change: transform, opacity;
+    background: radial-gradient(closest-side, rgba(242,170,70,.8), rgba(226,162,59,.28) 42%, rgba(226,162,59,0) 76%); }
+  .planet { position: absolute; left: 50%; width: 320vmax; height: 320vmax; margin-left: -160vmax; border-radius: 50%;
+    top: calc(100% - 9vh - 48px); pointer-events: none;
+    background: radial-gradient(circle at 50% 0%, #1a1712 0, #0e0e10 3%, #0b0b0d 10%);
+    box-shadow: inset 0 2px 0 rgba(226,162,59,.75), 0 -10px 60px rgba(226,162,59,.18); }
+
+  .foot-top { position: relative; z-index: 2; display: grid; grid-template-columns: 1.1fr 1.4fr; gap: 32px;
+    padding: clamp(24px, 6vh, 64px) clamp(16px, 5vw, 64px) 0; }
+  .label { font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 500; font-size: 12px;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+  .foot h2 { margin: 10px 0 0; font-family: Sora, sans-serif; font-weight: 700; font-size: clamp(1.7rem, 3.6vw, 2.8rem); letter-spacing: -.035em; line-height: 1.05; }
+  .foot p.sub { margin: 10px 0 0; color: var(--fg-2); max-width: 26em; line-height: 1.5; font-size: 15px; }
+
+  .pill {
+    position: relative; display: inline-flex; align-items: center; gap: 10px; margin-top: 22px; overflow: hidden;
+    background: var(--paper); color: var(--ink); font-weight: 600; font-size: 16px; padding: 16px 26px;
+    border-radius: 999px; isolation: isolate; will-change: transform;
+  }
+  .pill .lab { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 10px; will-change: transform; }
+  .pill .arr { display: inline-block; transition: transform 260ms cubic-bezier(.3,1.5,.5,1); }
+  .pill.hover .arr { transform: rotate(-45deg); }
+  .pill .blot { position: absolute; left: 0; top: 0; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%;
+    background: var(--accent); transform: scale(0); transition: transform 460ms cubic-bezier(.2,.8,.2,1); z-index: 0; }
+  .pill:focus-visible, .cols a:focus-visible, .totop:focus-visible, .curtain a:focus-visible, .curtain button:focus-visible {
+    outline: 3px solid var(--accent); outline-offset: 3px;
+  }
+
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .cols h3 { margin: 0 0 12px; }
+  .cols ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+  .cols a { position: relative; color: #8f8a82; font-weight: 300; font-size: 16px; transition: color 200ms ease; }
+  .cols a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 1px; background: var(--fg);
+    transform: scaleX(0); transform-origin: right; transition: transform 320ms cubic-bezier(.6,0,.2,1); }
+  .cols a:hover, .cols a.is-hover, .cols a:focus-visible { color: var(--fg); }
+  .cols a:hover::after, .cols a.is-hover::after, .cols a:focus-visible::after { transform: scaleX(1); transform-origin: left; }
+
+  .word-area { position: relative; z-index: 1; display: flex; align-items: flex-end; justify-content: center; min-height: 0; }
+  .word { position: relative; margin: 0; font-family: Sora, sans-serif; font-weight: 800; line-height: .8;
+    font-size: min(27vw, 33vh); letter-spacing: -.05em; color: var(--fg); padding-bottom: calc(9vh - 6px - .07em); white-space: nowrap; }
+  .lt { position: relative; display: inline-block; will-change: transform; }
+  .lt .soft { position: absolute; left: 0; top: 0; filter: blur(12px); color: #f6d9a6; will-change: opacity; }
+  .lt .sharp { will-change: opacity; }
+  .word .dot { color: var(--accent); }
+
+  .foot-bottom { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 12px clamp(16px, 5vw, 64px) 16px; font-size: 13px; color: var(--fg-2); }
+  .totop { appearance: none; border: 0; background: transparent; color: var(--fg); font: 500 13px/1 Inter, sans-serif; cursor: pointer;
+    padding: 8px 2px; }
+  .totop:hover { color: var(--accent); }
+
+  /* ---------- a página por cima (cortina) ---------- */
+  .curtain {
+    position: absolute; left: 0; top: 0; width: 100%; height: calc(100% + 30px); z-index: 5;
+    background: var(--paper); color: var(--ink); border-radius: 0 0 28px 28px; overflow: hidden;
+    transform-origin: 50% 100%; will-change: transform; box-shadow: 0 30px 60px rgba(0,0,0,.45);
+    display: flex; flex-direction: column; cursor: grab;
+  }
+  .curtain.drag { cursor: grabbing; }
+  .cnav { display: flex; justify-content: space-between; align-items: center; padding: 20px clamp(16px, 5vw, 64px); }
+  .clogo { font-family: Sora, sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -.02em; }
+  .clogo span { color: #b45309; }
+  .clinks { display: flex; gap: 22px; font-size: 14.5px; font-weight: 500; color: #5b4f45; }
+  .clinks a:hover { color: var(--ink); }
+  .chero { padding: clamp(20px, 7vh, 80px) clamp(16px, 5vw, 64px) 0; max-width: 900px; position: relative; z-index: 2; }
+  .chero .label { color: #b45309; }
+  .chero h1 { margin: 14px 0 0; font-family: Sora, sans-serif; font-weight: 700; font-size: clamp(2.4rem, 7vw, 5.4rem); letter-spacing: -.045em; line-height: 1; }
+  .chero p { margin: 16px 0 0; max-width: 30em; color: #5b4f45; font-size: clamp(1rem, 1.7vw, 1.15rem); line-height: 1.5; }
+  .peek { margin-top: 24px; appearance: none; border: 1.5px solid var(--ink); background: transparent; color: var(--ink);
+    font: 600 15px/1 Inter, sans-serif; padding: 13px 20px; border-radius: 999px; cursor: pointer; }
+  .peek:hover { background: var(--ink); color: var(--paper); }
+  .land { position: absolute; left: 0; right: 0; bottom: 0; height: 46%; pointer-events: none; }
+  .land svg { width: 100%; height: 100%; display: block; }
+  .edge-light { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; pointer-events: none; opacity: 0;
+    background: linear-gradient(0deg, rgba(226,162,59,.55), rgba(226,162,59,0)); will-change: opacity; }
+
+  /* cursor fantasma */
+  .ghost { position: fixed; left: 0; top: 0; width: 30px; height: 30px; pointer-events: none; z-index: 20; opacity: 0; will-change: transform, opacity; }
+  .ghost svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 4px rgba(0,0,0,.45)); }
+  .ring { position: fixed; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid var(--accent); pointer-events: none; z-index: 19; opacity: 0; will-change: transform, opacity; }
+
+  @media (max-width: 760px) {
+    .foot-top { grid-template-columns: 1fr; gap: 22px; }
+    .foot p.sub { display: none; }
+    .pill { margin-top: 14px; padding: 13px 20px; font-size: 15px; }
+    .cols { gap: 10px; }
+    .cols a { font-size: 14px; }
+    .cols .label { font-size: 10.5px; letter-spacing: .08em; }
+    .cols h3 { margin-bottom: 8px; }
+    .clinks { display: none; }
+    .foot-bottom { font-size: 12px; }
+  }
+  @media (max-height: 640px) { .foot p.sub { display: none; } .cols li:nth-child(3) { display: none; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+  .motion-off *, .motion-off *::before, .motion-off *::after { transition: none !important; }
+</style>
+</head>
+<body>
+<main id="piece">
+  <footer class="foot" id="foot">
+    <div class="glow" id="glow" aria-hidden="true" data-xray="brilho de nascer do sol · acende com a revelação e respira" data-xray-tool="code"></div>
+    <div class="planet" aria-hidden="true"></div>
+
+    <div class="foot-top">
+      <div>
+        <div class="label">INEMA.CLUB</div>
+        <h2>Tem uma ideia?</h2>
+        <p class="sub">Traga para a comunidade. A gente ajuda a transformar em projeto com IA.</p>
+        <a class="pill" id="pill" href="https://inema.club" data-xray="botão magnético · se inclina para o ponteiro em mola, mancha âmbar cresce do ponto de entrada" data-xray-tool="code">
+          <span class="blot" id="blot" aria-hidden="true"></span>
+          <span class="lab" id="pillLab">Entrar na comunidade <span class="arr" aria-hidden="true">→</span></span>
+        </a>
+      </div>
+      <nav class="cols" aria-label="Links do rodapé">
+        <div><h3 class="label">Aprender</h3><ul>
+          <li><a href="https://inema.club">Cursos</a></li><li><a href="https://inema.club">Trilhas</a></li><li><a href="https://inema.club">Vídeos</a></li></ul></div>
+        <div><h3 class="label">Participar</h3><ul>
+          <li><a href="https://eventos.inema.pro">Lives</a></li><li><a href="https://inema.club">VIP</a></li><li><a href="https://inema.pro">INEMA.PRO</a></li></ul></div>
+        <div><h3 class="label">Ferramentas</h3><ul>
+          <li><a href="https://buscas.inema.club">Buscas</a></li><li><a href="https://inema.club">Kits</a></li><li><a href="https://eventos.inema.pro">Áreas</a></li></ul></div>
+      </nav>
+    </div>
+
+    <div class="word-area">
+      <p class="word" id="word" aria-label="inema" data-xray="marca · letras sobem 40% e trocam o borrão pelo nítido, mola 70/15, 60 ms entre elas" data-xray-tool="code"></p>
+    </div>
+
+    <div class="foot-bottom">
+      <span>© 2026 INEMA.CLUB · aberto e gratuito</span>
+      <button class="totop" id="totop" type="button">Voltar ao topo ↑</button>
+    </div>
+  </footer>
+
+  <section class="curtain" id="curtain" aria-label="Página" data-xray="página-cortina · sobe com expo-out em 1.1 s, encolhe a 0.96 pela borda de baixo" data-xray-tool="code">
+    <div class="cnav">
+      <a class="clogo" href="https://inema.club">INEMA<span>.CLUB</span></a>
+      <nav class="clinks" aria-label="Seções"><a href="https://inema.club">Cursos</a><a href="https://eventos.inema.pro">Lives</a><a href="https://buscas.inema.club">Buscas</a></nav>
+    </div>
+    <div class="chero">
+      <div class="label">Aberto e gratuito</div>
+      <h1>Aprender IA sem pressa.</h1>
+      <p>Cursos curtos, lives toda semana e uma comunidade que responde.</p>
+      <button class="peek" id="peek" type="button">Ver o rodapé ↓</button>
+    </div>
+    <div class="land" aria-hidden="true">
+      <svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMax slice">
+        <defs>
+          <linearGradient id="skyg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3efe7" stop-opacity="0"/><stop offset="1" stop-color="#f6d9a6"/></linearGradient>
+        </defs>
+        <rect x="0" y="0" width="1200" height="400" fill="url(#skyg)"/>
+        <circle cx="820" cy="250" r="86" fill="#E2A23B"/>
+        <circle cx="820" cy="250" r="120" fill="#E2A23B" opacity=".18"/>
+        <path d="M0 250 Q160 190 320 230 T640 220 T960 200 T1200 230 V400 H0Z" fill="#e3cfa9"/>
+        <path d="M0 300 Q200 240 420 285 T820 280 T1200 260 V400 H0Z" fill="#cdb084"/>
+        <path d="M0 350 Q260 300 560 335 T1200 320 V400 H0Z" fill="#a8845a"/>
+        <g fill="#6e4a2c"><ellipse cx="300" cy="318" rx="26" ry="14"/><rect x="316" y="300" width="18" height="17" rx="7"/><circle cx="318" cy="300" r="3.5"/></g>
+      </svg>
+    </div>
+    <div class="edge-light" id="edgeLight" aria-hidden="true" data-xray="luz na borda · acende e apaga no meio da subida" data-xray-tool="code"></div>
+  </section>
+</main>
+
+<div class="ring" id="ring" aria-hidden="true"></div>
+<div class="ghost" id="ghost" aria-hidden="true">
+  <svg viewBox="0 0 24 24"><path d="M3 2 L3 19.5 L7.6 15.4 L10.7 22 L13.8 20.6 L10.8 14.2 L17 14 Z" fill="#fffaf0" stroke="#17120f" stroke-width="1.5" stroke-linejoin="round"/></svg>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var piece = $('piece'), foot = $('foot'), curtain = $('curtain'), glow = $('glow'), word = $('word');
+  var pill = $('pill'), pillLab = $('pillLab'), blot = $('blot'), totop = $('totop'), peek = $('peek'), edgeLight = $('edgeLight');
+  var ghost = $('ghost'), ring = $('ring');
+  var colLinks = [].slice.call(document.querySelectorAll('.cols a'));
+  var mq = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  var DEMO = MOTION.demo;
+  function reduce() { return mq.matches || MOTION.off; }
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function expoOut(t) { return t >= 1 ? 1 : 1 - Math.pow(2, -10 * t); }
+  function expoIO(t) { if (t <= 0) return 0; if (t >= 1) return 1; return t < .5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2; }
+  function easeIO(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function easeO(t) { return 1 - Math.pow(1 - t, 3); }
+
+  // ---------- letras da marca ----------
+  var letters = [];
+  'inema'.split('').forEach(function (ch, i) {
+    var lt = document.createElement('span'); lt.className = 'lt'; lt.setAttribute('aria-hidden', 'true');
+    var sharp = document.createElement('span'); sharp.className = 'sharp'; sharp.textContent = ch;
+    var soft = document.createElement('span'); soft.className = 'soft'; soft.textContent = ch;
+    lt.appendChild(soft); lt.appendChild(sharp); word.appendChild(lt);
+    letters.push({ el: lt, sharp: sharp, soft: soft, u: 0, v: 0, on: 0, delay: 0 });
+  });
+  var dot = document.createElement('span'); dot.className = 'lt dot'; dot.setAttribute('aria-hidden', 'true');
+  dot.innerHTML = '<span class="soft">.</span><span class="sharp">.</span>';
+  word.appendChild(dot);
+  letters.push({ el: dot, sharp: dot.lastChild, soft: dot.firstChild, u: 0, v: 0, on: 0, delay: 0 });
+
+  // ---------- estado ----------
+  var r = 0;                    // 0 = página cobrindo, 1 = rodapé revelado
+  var tween = null;             // { from, to, t, T, ease }
+  var clock = 0, H = 720;
+  var mag = { x: 0, y: 0, vx: 0, vy: 0 }, magT = [0, 0], pillHover = false;
+  var drag = null, wheelIdle = 0, revealedOnce = false;
+
+  function go(to, T, ease) {
+    if (reduce()) { r = to; tween = null; return wake(); }
+    tween = { from: r, to: to, t: 0, T: T, ease: ease };
+    wake();
+  }
+  function setInert() {
+    var open = r > 0.5;
+    foot.inert = !open; curtain.inert = open;
+  }
+
+  peek.addEventListener('click', function () { go(1, 1100, expoOut); setTimeout(function () { pill.focus(); }, 60); });
+  totop.addEventListener('click', function () { go(0, 1000, expoIO); setTimeout(function () { peek.focus(); }, 60); });
+
+  // arrastar a cortina (na página ou no rodapé, fora de links e botões)
+  function onDown(e) {
+    if (e.button > 0 || e.target.closest('a,button')) return;
+    drag = { y: e.clientY, r0: r, id: e.pointerId, moved: false }; tween = null;
+    curtain.classList.add('drag');
+  }
+  function onMove(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var dy = e.clientY - drag.y;
+    if (Math.abs(dy) > 3) drag.moved = true;
+    r = clamp(drag.r0 - dy / (H * 0.85), 0, 1); wake();
+  }
+  function onUp(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    drag = null; curtain.classList.remove('drag');
+    go(r > 0.5 ? 1 : 0, 600, expoOut);
+  }
+  piece.addEventListener('pointerdown', onDown, { passive: true });
+  window.addEventListener('pointermove', onMove, { passive: true });
+  window.addEventListener('pointerup', onUp, { passive: true });
+  window.addEventListener('pointercancel', onUp, { passive: true });
+  // roda: escova a cortina sem bloquear a rolagem da página (ouvinte passivo)
+  piece.addEventListener('wheel', function (e) {
+    var d = e.deltaY;
+    if ((d > 0 && r >= 1) || (d < 0 && r <= 0)) return;
+    tween = null; r = clamp(r + d / (H * 1.2), 0, 1); wheelIdle = 220; wake();
+  }, { passive: true });
+
+  // foco por teclado abre/fecha a cortina
+  foot.addEventListener('focusin', function () { if (r < 0.5 && !tween) go(1, 700, expoOut); });
+
+  // botão magnético
+  piece.addEventListener('pointermove', function (e) { if (e.isTrusted) magnetAt(e.clientX, e.clientY); }, { passive: true });
+  piece.addEventListener('pointerleave', function () { magT = [0, 0]; wake(); }, { passive: true });
+  function magnetAt(px, py) {
+    var b = pill.getBoundingClientRect();
+    var cx = b.left + b.width / 2 - mag.x, cy = b.top + b.height / 2 - mag.y;
+    var dx = Math.max(Math.abs(px - cx) - b.width / 2, 0), dy = Math.max(Math.abs(py - cy) - b.height / 2, 0);
+    var near = Math.hypot(dx, dy) < 80 && r > 0.6;
+    magT = near ? [(px - cx) * 0.22, (py - cy) * 0.32] : [0, 0];
+    wake();
+  }
+  function blotIn(px, py) {
+    var b = pill.getBoundingClientRect();
+    blot.style.transition = 'none';
+    blot.style.left = (px - b.left) + 'px'; blot.style.top = (py - b.top) + 'px';
+    blot.style.transform = 'scale(0)'; void blot.offsetWidth;
+    blot.style.transition = '';
+    var far = Math.hypot(Math.max(px - b.left, b.right - px), Math.max(py - b.top, b.bottom - py));
+    blot.style.transform = 'scale(' + (far * 2 / 20 + 1).toFixed(2) + ')';
+    pill.classList.add('hover'); pillHover = true;
+  }
+  function blotOut(px, py) {
+    var b = pill.getBoundingClientRect();
+    blot.style.left = (px - b.left) + 'px'; blot.style.top = (py - b.top) + 'px';
+    blot.style.transform = 'scale(0)';
+    pill.classList.remove('hover'); pillHover = false;
+  }
+  pill.addEventListener('pointerenter', function (e) { blotIn(e.clientX, e.clientY); });
+  pill.addEventListener('pointerleave', function (e) { blotOut(e.clientX, e.clientY); });
+  pill.addEventListener('focus', function () { var b = pill.getBoundingClientRect(); blotIn(b.left + 14, b.top + b.height / 2); });
+  pill.addEventListener('blur', function () { var b = pill.getBoundingClientRect(); blotOut(b.right - 14, b.top + b.height / 2); });
+
+  // ---------- render ----------
+  function render(dt) {
+    var R = reduce(), s = dt / 1000;
+    H = piece.clientHeight;
+    if (R) { r = 1; tween = null; }
+    if (tween) {
+      tween.t += dt;
+      var u = clamp(tween.t / tween.T, 0, 1);
+      r = lerp(tween.from, tween.to, tween.ease(u));
+      if (u >= 1) tween = null;
+    }
+    if (wheelIdle > 0 && !drag) { wheelIdle -= dt; if (wheelIdle <= 0) go(r > 0.5 ? 1 : 0, 600, expoOut); }
+    setInert();
+
+    // cortina
+    var lift = r * (H + 30 + 60), sc = 1 - 0.04 * r;
+    curtain.style.transform = 'translateY(' + (-lift).toFixed(2) + 'px) scale(' + sc.toFixed(4) + ')';
+    curtain.style.visibility = r >= 0.999 ? 'hidden' : 'visible';
+    edgeLight.style.opacity = (Math.sin(Math.PI * clamp(r * 1.3, 0, 1)) * 0.9).toFixed(3);
+
+    // brilho
+    var breathe = R ? 1 : 0.88 + 0.12 * Math.sin(clock / 1700);
+    glow.style.opacity = ((0.15 + 0.85 * easeO(r)) * breathe).toFixed(3);
+    glow.style.transform = 'translateY(' + ((1 - r) * 12).toFixed(2) + '%) scale(' + (0.85 + 0.15 * r * breathe).toFixed(4) + ')';
+
+    // letras: entram quando descobertas, 60 ms entre elas, mola 70/15
+    for (var i = 0; i < letters.length; i++) {
+      var L = letters[i];
+      var want = r > 0.35 ? 1 : (r < 0.15 ? 0 : L.on);
+      if (want !== L.on) { L.on = want; L.delay = want ? i * 60 : (letters.length - 1 - i) * 30; }
+      if (L.delay > 0) L.delay -= dt;
+      var tgt = L.delay > 0 ? 1 - L.on : L.on;
+      if (R) { L.u = 1; L.v = 0; }
+      else { for (var n = 0; n < 2; n++) { var a = -70 * (L.u - tgt) - 15 * L.v; L.v += a * s / 2; L.u += L.v * s / 2; } }
+      var uu = clamp(L.u, 0, 1.15);
+      L.el.style.transform = 'translateY(' + ((1 - L.u) * 40).toFixed(2) + '%)';
+      L.sharp.style.opacity = clamp(uu, 0, 1).toFixed(3);
+      L.soft.style.opacity = (clamp(1 - uu, 0, 1) * 0.9).toFixed(3);
+    }
+
+    // botão magnético (mola 190/15); o texto anda um pouco mais
+    if (R) { mag.x = mag.y = mag.vx = mag.vy = 0; }
+    else {
+      for (var m = 0; m < 2; m++) {
+        var ax = -190 * (mag.x - magT[0]) - 15 * mag.vx, ay = -190 * (mag.y - magT[1]) - 15 * mag.vy;
+        mag.vx += ax * s / 2; mag.vy += ay * s / 2; mag.x += mag.vx * s / 2; mag.y += mag.vy * s / 2;
+      }
+    }
+    pill.style.transform = 'translate(' + mag.x.toFixed(2) + 'px,' + mag.y.toFixed(2) + 'px)';
+    pillLab.style.transform = 'translate(' + (mag.x * 0.45).toFixed(2) + 'px,' + (mag.y * 0.45).toFixed(2) + 'px)';
+    if (window.xrayTick) xrayTick();
+  }
+
+  function busy() {
+    if (tween || drag || wheelIdle > 0) return true;
+    if (Math.abs(mag.x - magT[0]) + Math.abs(mag.y - magT[1]) + Math.abs(mag.vx) + Math.abs(mag.vy) > 0.05) return true;
+    for (var i = 0; i < letters.length; i++) if (letters[i].delay > 0 || Math.abs(letters[i].u - letters[i].on) > 0.001 || Math.abs(letters[i].v) > 0.001) return true;
+    return false;
+  }
+
+  // ---------- modo demonstração (ciclo de 10 s) ----------
+  var LOOP = 10000, LIFT = 1200, DROP = 7200;
+  var demoOn = !reduce() || DEMO, demoE = 0, demoFade = 1, demoStopping = false, lastC = -1, ringT = 1e9, ringAt = [0, 0];
+  var demoInPill = false, demoLink = -1;
+  function stopDemo(e) {
+    if (DEMO || !demoOn || demoStopping) return;
+    if (e && e.isTrusted === false) return;
+    demoStopping = true;
+    if (demoInPill) { var b = pill.getBoundingClientRect(); blotOut(b.right, b.bottom); demoInPill = false; }
+    if (demoLink >= 0) { colLinks[demoLink].classList.remove('is-hover'); demoLink = -1; }
+    magT = [0, 0];
+  }
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (ev) {
+    window.addEventListener(ev, stopDemo, { passive: true, capture: true });
+  });
+  function crossed(prev, cur, mark) { if (prev < 0) return false; return prev <= cur ? (prev < mark && cur >= mark) : (prev < mark || cur >= mark); }
+  function ctr(el, fx, fy) { var b = el.getBoundingClientRect(); return [b.left + b.width * fx, b.top + b.height * fy]; }
+  function demoPath(c) {
+    var vw = piece.clientWidth;
+    var rest = [vw * 0.72, H * 0.5];
+    var nearPill = ctr(pill, 1.25, 1.2), inPill = ctr(pill, 0.55, 0.55);
+    var link = ctr(colLinks[3], 0.5, 0.6), top = ctr(totop, 0.5, 0.6);
+    function mv(a, b, t0, t1) { var t = easeIO(clamp((c - t0) / (t1 - t0), 0, 1)); return [lerp(a[0], b[0], t), lerp(a[1], b[1], t)]; }
+    if (c < 2500) return rest;
+    if (c < 3200) return mv(rest, nearPill, 2500, 3200);
+    if (c < 3700) return nearPill;
+    if (c < 4100) return mv(nearPill, inPill, 3700, 4100);
+    if (c < 4900) return inPill;
+    if (c < 5500) return mv(inPill, link, 4900, 5500);
+    if (c < 6200) return link;
+    if (c < 6900) return mv(link, top, 6200, 6900);
+    if (c < 7600) return top;
+    return mv(top, rest, 7600, 8800);
+  }
+  function renderDemo(dt) {
+    if (!demoOn) return;
+    if (demoStopping) {
+      demoFade = Math.max(0, demoFade - dt / 300);
+      ghost.style.opacity = demoFade.toFixed(3);
+      if (demoFade <= 0) { demoOn = false; ghost.style.display = 'none'; ring.style.display = 'none'; }
+      return;
+    }
+    demoE += dt;
+    var c = demoE % LOOP, pos = demoPath(c);
+    if (crossed(lastC, c, LIFT) || (lastC < 0 && c >= LIFT)) go(1, 1100, expoOut);
+    if (crossed(lastC, c, DROP)) { go(0, 1000, expoIO); ringT = 0; ringAt = pos; }
+    lastC = c;
+    if (r > 0.6) magnetAt(pos[0], pos[1]); else magT = [0, 0];
+    var b = pill.getBoundingClientRect();
+    var inside = pos[0] > b.left && pos[0] < b.right && pos[1] > b.top && pos[1] < b.bottom;
+    if (inside !== demoInPill) { demoInPill = inside; inside ? blotIn(pos[0], pos[1]) : blotOut(pos[0], pos[1]); }
+    var onLink = c >= 5400 && c < 6300 ? 3 : -1;
+    if (onLink !== demoLink) {
+      if (demoLink >= 0) colLinks[demoLink].classList.remove('is-hover');
+      if (onLink >= 0) colLinks[onLink].classList.add('is-hover');
+      demoLink = onLink;
+    }
+    var press = ringT < 240 ? 1 - 0.15 * Math.sin(Math.PI * ringT / 240) : 1;
+    ghost.style.opacity = (Math.min(1, demoE / 300) * (r > 0.3 || c > 7000 ? 1 : 0.0001)).toFixed(3);
+    ghost.style.transform = 'translate(' + (pos[0] - 4).toFixed(1) + 'px,' + (pos[1] - 3).toFixed(1) + 'px) scale(' + press.toFixed(3) + ')';
+    ringT += dt;
+    if (ringT < 500) {
+      var k = ringT / 500;
+      ring.style.opacity = (0.9 * (1 - k)).toFixed(3);
+      ring.style.transform = 'translate(' + ringAt[0].toFixed(1) + 'px,' + ringAt[1].toFixed(1) + 'px) scale(' + (0.4 + 1.2 * easeO(k)).toFixed(3) + ')';
+    } else ring.style.opacity = '0';
+  }
+  if (!demoOn) { ghost.style.display = 'none'; ring.style.display = 'none'; }
+
+  // ---------- loop único ----------
+  var visible = true, rafId = 0, last = 0, started = 0;
+  function frame(now) {
+    rafId = 0;
+    var dt = last ? Math.min(50, now - last) : 16;
+    last = now; clock += dt;
+    // sem demonstração: a página espera 1.2 s e sobe sozinha uma vez
+    if (!demoOn && !revealedOnce && !reduce()) { started += dt; if (started >= LIFT && !tween && !drag) { revealedOnce = true; if (r < 0.5) go(1, 1100, expoOut); } }
+    renderDemo(dt);
+    render(dt);
+    if (demoOn || busy() || (!revealedOnce && !reduce()) || (!reduce() && r > 0.05)) wake();
+  }
+  function running() { return visible && !document.hidden; }
+  function wake() { if (!rafId && running()) rafId = requestAnimationFrame(frame); }
+  function sleep() { if (rafId) { cancelAnimationFrame(rafId); rafId = 0; } last = 0; }
+  document.addEventListener('visibilitychange', function () { document.hidden ? sleep() : wake(); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      visible = entries[entries.length - 1].isIntersecting;
+      visible ? wake() : sleep();
+    }).observe(piece);
+  }
+  if (mq.addEventListener) mq.addEventListener('change', function () {
+    if (reduce() && !DEMO) { demoOn = false; ghost.style.display = 'none'; ring.style.display = 'none'; }
+    render(0); wake();
+  });
+  addEventListener('resize', function () { render(0); wake(); });
+
+  if (reduce()) { r = 1; revealedOnce = true; }
+  render(0); wake();
+})();
+</script>
+
+<!-- Raio-X: ?motion=xray desenha contorno e etiqueta em tudo que se move -->
+<style>
+  .xr-layer { position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden; }
+  .xr-box { position: absolute; left: 0; top: 0; border: 1.5px dashed #E2A23B; border-radius: 6px; }
+  .xr-tag { position: absolute; left: -1.5px; bottom: 100%; margin-bottom: 3px; white-space: nowrap;
+    font: 500 10px/1.25 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .03em;
+    color: #0b0b0d; background: #E2A23B; padding: 3px 6px; border-radius: 4px; }
+  .xr-box.below .xr-tag { bottom: auto; top: 100%; margin: 3px 0 0; }
+</style>
+<script>
+  (function () {
+    if (!window.MOTION || !MOTION.xray) return;
+    var els = [].slice.call(document.querySelectorAll('[data-xray]'));
+    var layer = document.createElement('div'); layer.className = 'xr-layer'; layer.setAttribute('aria-hidden', 'true');
+    var boxes = els.map(function (el) {
+      var b = document.createElement('div'); b.className = 'xr-box';
+      var t = document.createElement('span'); t.className = 'xr-tag'; t.textContent = el.getAttribute('data-xray');
+      b.appendChild(t); layer.appendChild(b); return b;
+    });
+    document.body.appendChild(layer);
+    window.xrayTick = function () {
+      for (var i = 0; i < els.length; i++) {
+        var r = els[i].getBoundingClientRect(), b = boxes[i];
+        b.style.width = r.width + 'px'; b.style.height = r.height + 'px';
+        b.style.transform = 'translate(' + r.left + 'px,' + r.top + 'px)';
+        b.classList.toggle('below', r.top < 24);
+      }
+    };
+    xrayTick(); addEventListener('resize', xrayTick); setTimeout(xrayTick, 600);
+  })();
+</script>
+</body>
+</html>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>INEMA Motion Lab — animações de site com um prompt</title>
-<meta name="description" content="Molde de prompt para animações de site, 5 peças interativas prontas no estilo INEMA (busca ⌘K, grade bento, 404 jogável, rodapé com física, dia e noite) e vídeos curtos de cada uma. Aberto e gratuito.">
+<meta name="description" content="Molde de prompt para animações de site, 20 peças interativas prontas no estilo INEMA (busca, menus, rodapés, galerias, botões, 404 jogável, tela de carregamento e mais), cada uma com Raio-X e ?motion=off e vídeos curtos de cada uma. Aberto e gratuito.">
 <link rel="alternate" hreflang="pt-BR" href="https://inematds.github.io/inema-motion-lab/guia/">
 <link rel="alternate" hreflang="en" href="https://inematds.github.io/inema-motion-lab/guia/en/">
 <link rel="alternate" hreflang="es" href="https://inematds.github.io/inema-motion-lab/guia/es/">
@@ -145,7 +145,7 @@
     <div>
       <span class="chip">Animação de site com IA · aberto e gratuito</span>
       <h1>Animações de site que saem <span class="amb">prontas</span> de um prompt</h1>
-      <p class="lead">Um molde de prompt, cinco peças interativas no estilo INEMA e um vídeo curto de cada uma. Copie, adapte e use.</p>
+      <p class="lead">Um molde de prompt, vinte peças interativas no estilo INEMA e um vídeo curto de cada uma. Todas têm Raio-X (?motion=xray etiqueta o que se move) e ?motion=off. Copie, adapte e use.</p>
       <div class="cta">
         <a class="btn" href="#pecas">Ver as peças</a>
         <a class="btn ghost" href="https://github.com/inematds/inema-motion-lab" target="_blank" rel="noopener">Ver no GitHub</a>
@@ -157,7 +157,7 @@
 
 <section id="resumo" class="resumo"><div class="wrap">
   <span class="chip">Em resumo</span>
-  <p>O INEMA Motion Lab ensina a pedir animações de site para uma IA (Claude, Codex ou outra) e receber algo com acabamento profissional, não um efeito genérico. Ele traz um molde de prompt em três partes (aparência, movimento e regras) e cinco exemplos reais feitos com ele: uma busca ⌘K, uma grade de recursos, uma página 404 jogável, um rodapé com letras que caem e um botão de tema dia/noite. Cada peça é um único arquivo HTML que você abre no navegador e cola no seu site, e vem com o prompt que a gerou e um vídeo curto. Serve para quem faz páginas, guias ou cursos e quer movimento sem depender de biblioteca pesada.</p>
+  <p>O INEMA Motion Lab ensina a pedir animações de site para uma IA (Claude, Codex ou outra) e receber algo com acabamento profissional, não um efeito genérico. Ele traz um molde de prompt em três partes (aparência, movimento e regras) e vinte exemplos reais feitos com ele: buscas e menus, rodapés, galerias, botões, uma página 404 jogável, uma tela de carregamento e um botão de tema dia/noite. Cada peça é um único arquivo HTML que você abre no navegador e cola no seu site, e vem com o prompt que a gerou e um vídeo curto. Toda peça tem o Raio-X (acrescente ?motion=xray à URL para etiquetar o que se move) e o modo ?motion=off, que deixa tudo parado no estado final. Serve para quem faz páginas, guias ou cursos e quer movimento sem depender de biblioteca pesada.</p>
 </div></section>
 
 <section id="oque"><div class="wrap">
@@ -167,7 +167,7 @@
   <figure style="margin:0 0 26px;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000"><img src="assets/banner-grade.jpg" alt="Molde de prompt, busca ⌘K, grade bento, 404 jogável, rodapé com física, dia e noite" loading="lazy" style="width:100%;display:block"></figure>
   <div class="grid g3">
     <div class="card"><h3>📐 Molde de prompt</h3><p>Aparência com valores exatos, movimento em passos numerados com tempo em milissegundos e regras técnicas que evitam os erros mais comuns.</p></div>
-    <div class="card"><h3>🧩 5 peças prontas</h3><p>Um arquivo HTML cada, sem build, nas cores e fontes do INEMA. Funcionam no celular, no teclado e com movimento reduzido.</p></div>
+    <div class="card"><h3>🧩 20 peças prontas</h3><p>Um arquivo HTML cada, sem build, nas cores e fontes do INEMA. Funcionam no celular, no teclado e com movimento reduzido. Cada uma tem Raio-X (?motion=xray) e ?motion=off.</p></div>
     <div class="card"><h3>🎬 Vídeos de 8 segundos</h3><p>Cada peça tem um modo demonstração com cursor fantasma, gravado em WebM e MP4, pronto para usar como imagem de apoio em vídeos e posts.</p></div>
   </div>
 </div></section>
@@ -175,7 +175,7 @@
 <section id="fluxo"><div class="wrap">
   <span class="chip">Como funciona</span>
   <h2>Do pedido ao vídeo, sem passo mágico</h2>
-  <p class="sub">Todas as cinco peças passaram por este mesmo caminho. O teste e a gravação são scripts deste repositório.</p>
+  <p class="sub">Todas as 20 peças passaram por este mesmo caminho. O teste e a gravação são scripts deste repositório.</p>
   <div class="flow">
     <span>Molde</span><span class="arr">→</span>
     <span>PROMPT.md da peça</span><span class="arr">→</span>
@@ -188,8 +188,11 @@
 
 <section id="pecas"><div class="wrap">
   <span class="chip">As peças</span>
-  <h2>Cinco peças, cada uma com prompt, código e vídeo</h2>
-  <p class="sub">O vídeo mostra a demonstração automática. Clique em "Abrir ao vivo" para mexer na peça aqui mesmo.</p>
+  <h2>20 peças, cada uma com prompt, código e vídeo</h2>
+  <p class="sub">O vídeo mostra a demonstração automática. Clique em "Abrir ao vivo" para mexer na peça aqui mesmo. Em tela cheia, acrescente <code>?motion=xray</code> para ver etiquetado o que se move, ou <code>?motion=off</code> para deixar tudo parado.</p>
+
+
+  <h3 class="grupo" style="margin:34px 0 22px;font-size:1.25rem;color:var(--amb)">Busca e navegação</h3>
 
   <div class="peca" data-peca="busca-cmdk">
     <div class="palco"><video src="../videos/busca-cmdk.mp4" poster="../videos/busca-cmdk.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração da busca ⌘K"></video></div>
@@ -203,34 +206,61 @@
     </div>
   </div>
 
-  <div class="peca" data-peca="bento-glide">
-    <div class="palco"><video src="../videos/bento-glide.mp4" poster="../videos/bento-glide.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração da grade bento"></video></div>
+  <div class="peca" data-peca="nav-pulo">
+    <div class="palco"><video src="../videos/nav-pulo.mp4" poster="../videos/nav-pulo.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração da navegação com pulo"></video></div>
     <div>
-      <span class="chip">02 · Seção de recursos</span>
-      <h3>Grade bento com moldura que desliza</h3>
-      <div class="tags"><span>sem biblioteca</span><span>Tab move a moldura</span></div>
-      <p>"O que tem no INEMA.CLUB" em blocos de tamanhos diferentes. Uma moldura âmbar desliza até o bloco sob o mouse e ele acorda com uma mini-animação própria.</p>
-      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/bento-glide/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/bento-glide.mp4" download>Baixar vídeo</a></div>
+      <span class="chip">02 · Navegação</span>
+      <h3>Navegação com pulo</h3>
+      <div class="tags"><span>sem biblioteca</span><span>teclado</span><span>texto que troca</span></div>
+      <p>Uma capivara mora em cima da aba ativa e pula em arco até a aba clicada, enquanto a pílula âmbar estica atrás dela e o título troca letra por letra.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/nav-pulo/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/nav-pulo.mp4" download>Baixar vídeo</a></div>
       <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
     </div>
   </div>
 
-  <div class="peca" data-peca="404-corre">
-    <div class="palco"><video src="../videos/404-corre.mp4" poster="../videos/404-corre.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração da página 404 jogável"></video></div>
+  <div class="peca" data-peca="menu-morfo">
+    <div class="palco"><video src="../videos/menu-morfo.mp4" poster="../videos/menu-morfo.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do menu que se transforma"></video></div>
     <div>
-      <span class="chip">03 · Página de erro</span>
-      <h3>404 que vira jogo</h3>
-      <div class="tags"><span>canvas</span><span>espaço / toque</span><span>recorde salvo</span></div>
-      <p>"Esta página fugiu." Uma capivara corre e pula bugs enquanto a pessoa decide se volta ao INEMA.CLUB. Começa no piloto automático; o primeiro toque passa o controle.</p>
-      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/404-corre/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/404-corre.mp4" download>Baixar vídeo</a></div>
+      <span class="chip">03 · Menu</span>
+      <h3>Menu que se transforma</h3>
+      <div class="tags"><span>sem biblioteca</span><span>teclado</span><span>um só painel</span></div>
+      <p>Em vez de abrir um painel para cada item, um único painel suspenso desliza e muda de tamanho entre os itens, trocando o conteúdo de lado.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/menu-morfo/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/menu-morfo.mp4" download>Baixar vídeo</a></div>
       <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
     </div>
   </div>
+
+  <div class="peca" data-peca="menu-tela-cheia">
+    <div class="palco"><video src="../videos/menu-tela-cheia.mp4" poster="../videos/menu-tela-cheia.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do menu em tela cheia"></video></div>
+    <div>
+      <span class="chip">04 · Menu</span>
+      <h3>Menu em tela cheia</h3>
+      <div class="tags"><span>sem biblioteca</span><span>teclado</span><span>celular</span></div>
+      <p>O menu abre como um círculo laranja que cresce a partir do botão, com itens subindo de máscaras. A prévia segue o ponteiro no desktop e fica num lugar fixo abaixo da lista no celular.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/menu-tela-cheia/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/menu-tela-cheia.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="dock-liquido">
+    <div class="palco"><video src="../videos/dock-liquido.mp4" poster="../videos/dock-liquido.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do dock líquido"></video></div>
+    <div>
+      <span class="chip">05 · Navegação</span>
+      <h3>Dock líquido</h3>
+      <div class="tags"><span>sem biblioteca</span><span>vidro</span><span>ícones que crescem</span></div>
+      <p>Uma barra de atalhos em vidro, no estilo dock de sistema. Os ícones crescem perto do ponteiro e pulam ao clique.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/dock-liquido/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/dock-liquido.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+
+  <h3 class="grupo" style="margin:34px 0 22px;font-size:1.25rem;color:var(--amb)">Rodapés</h3>
 
   <div class="peca" data-peca="rodape-inema">
     <div class="palco"><video src="../videos/rodape-inema.mp4" poster="../videos/rodape-inema.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do rodapé com física"></video></div>
     <div>
-      <span class="chip">04 · Rodapé</span>
+      <span class="chip">06 · Rodapé</span>
       <h3>Rodapé INEMA com física</h3>
       <div class="tags"><span>Matter.js</span><span>arrastar e arremessar</span></div>
       <p>As letras I N E M A caem uma a uma e se empilham no chão do rodapé. Dá para agarrar e arremessar; "Arrumar letras" põe tudo de volta.</p>
@@ -239,14 +269,179 @@
     </div>
   </div>
 
+  <div class="peca" data-peca="rodape-cortina">
+    <div class="palco"><video src="../videos/rodape-cortina.mp4" poster="../videos/rodape-cortina.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do rodapé cortina"></video></div>
+    <div>
+      <span class="chip">07 · Rodapé</span>
+      <h3>Rodapé cortina</h3>
+      <div class="tags"><span>sem biblioteca</span><span>rolagem</span><span>botão magnético</span></div>
+      <p>O rodapé é revelado como uma cortina: a página clara sobe e encolhe, e por baixo aparece a marca "inema" nascendo no horizonte de um planeta, com brilho de nascer do sol e um botão magnético.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/rodape-cortina/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/rodape-cortina.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="rodape-flor">
+    <div class="palco"><video src="../videos/rodape-flor.mp4" poster="../videos/rodape-flor.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do rodapé flor"></video></div>
+    <div>
+      <span class="chip">08 · Rodapé</span>
+      <h3>Rodapé flor</h3>
+      <div class="tags"><span>sem biblioteca</span><span>campo de e-mail</span><span>jardim</span></div>
+      <p>Um rodapé de inscrição em que cada letra digitada no e-mail faz nascer uma flor no jardim. Ao inscrever, solta pétalas e borboletas.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/rodape-flor/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/rodape-flor.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="rodape-mapa">
+    <div class="palco"><video src="../videos/rodape-mapa.mp4" poster="../videos/rodape-mapa.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do rodapé mapa"></video></div>
+    <div>
+      <span class="chip">09 · Rodapé</span>
+      <h3>Rodapé mapa</h3>
+      <div class="tags"><span>sem biblioteca</span><span>hora local real</span><span>3 idiomas</span></div>
+      <p>Três cartões das comunidades INEMA por idioma, com a hora local real, e um mapa ilustrado onde uma capivara caminha pelas ruas até o ponto escolhido.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/rodape-mapa/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/rodape-mapa.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="rodape-quebra">
+    <div class="palco"><video src="../videos/rodape-quebra.mp4" poster="../videos/rodape-quebra.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do rodapé quebra"></video></div>
+    <div>
+      <span class="chip">10 · Rodapé</span>
+      <h3>Rodapé quebra</h3>
+      <div class="tags"><span>canvas</span><span>jogo</span><span>links reais</span></div>
+      <p>O rodapé vira um jogo de quebrar tijolos. Cada tijolo é um link do ecossistema INEMA; quando quebra, o rótulo voa até a bandeja e vira link de verdade.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/rodape-quebra/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/rodape-quebra.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+
+  <h3 class="grupo" style="margin:34px 0 22px;font-size:1.25rem;color:var(--amb)">Galerias e imagens</h3>
+
+  <div class="peca" data-peca="bento-glide">
+    <div class="palco"><video src="../videos/bento-glide.mp4" poster="../videos/bento-glide.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração da grade bento"></video></div>
+    <div>
+      <span class="chip">11 · Seção de recursos</span>
+      <h3>Grade bento com moldura que desliza</h3>
+      <div class="tags"><span>sem biblioteca</span><span>Tab move a moldura</span></div>
+      <p>"O que tem no INEMA.CLUB" em blocos de tamanhos diferentes. Uma moldura âmbar desliza até o bloco sob o mouse e ele acorda com uma mini-animação própria.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/bento-glide/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/bento-glide.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="galeria-giro">
+    <div class="palco"><video src="../videos/galeria-giro.mp4" poster="../videos/galeria-giro.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração da galeria giro"></video></div>
+    <div>
+      <span class="chip">12 · Galeria</span>
+      <h3>Galeria giro</h3>
+      <div class="tags"><span>3D</span><span>arrastar</span><span>reflexo no chão</span></div>
+      <p>Um anel 3D com 12 projetos INEMA que gira com o arraste e reflete no chão. O cartão da frente abre em destaque.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/galeria-giro/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/galeria-giro.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="rastro-imagens">
+    <div class="palco"><video src="../videos/rastro-imagens.mp4" poster="../videos/rastro-imagens.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do rastro de imagens"></video></div>
+    <div>
+      <span class="chip">13 · Imagens</span>
+      <h3>Rastro de imagens</h3>
+      <div class="tags"><span>sem biblioteca</span><span>segue o ponteiro</span><span>clique amplia</span></div>
+      <p>Um hero editorial em que o ponteiro deixa um rastro de cartões de projeto num acervo ao lado da manchete. Um clique amplia o cartão ali mesmo.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/rastro-imagens/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/rastro-imagens.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="adesivo-holo">
+    <div class="palco"><video src="../videos/adesivo-holo.mp4" poster="../videos/adesivo-holo.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do adesivo holográfico"></video></div>
+    <div>
+      <span class="chip">14 · Adesivo</span>
+      <h3>Adesivo holográfico</h3>
+      <div class="tags"><span>canvas</span><span>inclina com o cursor</span><span>canto descolável</span></div>
+      <p>A figurinha da capivara, com borda branca recortada, inclina na direção do cursor e brilha em arco-íris e glitter conforme o ângulo. Dá para descolar o canto com o mouse.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/adesivo-holo/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/adesivo-holo.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+
+  <h3 class="grupo" style="margin:34px 0 22px;font-size:1.25rem;color:var(--amb)">Botões e detalhes</h3>
+
+  <div class="peca" data-peca="botoes-geleia">
+    <div class="palco"><video src="../videos/botoes-geleia.mp4" poster="../videos/botoes-geleia.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração dos botões de geleia"></video></div>
+    <div>
+      <span class="chip">15 · Botões</span>
+      <h3>Botões de geleia</h3>
+      <div class="tags"><span>sem biblioteca</span><span>molas</span><span>SVG</span></div>
+      <p>Cinco botões em cápsula com pele de 72 pontos com mola. Ao passar o mouse e ao clicar, a pele incha, afunda, estica e quica.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/botoes-geleia/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/botoes-geleia.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="cursor-amigo">
+    <div class="palco"><video src="../videos/cursor-amigo.mp4" poster="../videos/cursor-amigo.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do cursor amigo"></video></div>
+    <div>
+      <span class="chip">16 · Companheiro</span>
+      <h3>Cursor amigo</h3>
+      <div class="tags"><span>sem biblioteca</span><span>segue o cursor</span><span>toque</span></div>
+      <p>Uma capivara anda pelo chão atrás do cursor, corre quando ele foge, freia levantando poeira e senta quando a pessoa para. Aponta para o botão e dá pirueta quando clicada.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/cursor-amigo/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/cursor-amigo.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="faixa-flap">
+    <div class="palco"><video src="../videos/faixa-flap.mp4" poster="../videos/faixa-flap.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração da faixa flap"></video></div>
+    <div>
+      <span class="chip">17 · Aviso</span>
+      <h3>Faixa flap</h3>
+      <div class="tags"><span>sem biblioteca</span><span>flap mecânico</span><span>relógio</span></div>
+      <p>Um quadro de embarque de aeroporto, com flap mecânico, para avisos, próximas lives, relógio e menu. Os itens viram letra por letra e o menu termina em "VAI →".</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/faixa-flap/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/faixa-flap.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
   <div class="peca" data-peca="dia-noite">
     <div class="palco"><video src="../videos/dia-noite.mp4" poster="../videos/dia-noite.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração do tema dia e noite"></video></div>
     <div>
-      <span class="chip">05 · Tema claro/escuro</span>
+      <span class="chip">18 · Tema claro/escuro</span>
       <h3>Dia e noite</h3>
       <div class="tags"><span>sem biblioteca</span><span>role="switch"</span><span>variáveis CSS</span></div>
       <p>O botão de tema é uma cena: o sol desce, a lua sobe, as janelas da escola acendem e a capivara dorme. As cores da página inteira trocam junto.</p>
       <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/dia-noite/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/dia-noite.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+
+  <h3 class="grupo" style="margin:34px 0 22px;font-size:1.25rem;color:var(--amb)">Páginas especiais</h3>
+
+  <div class="peca" data-peca="404-corre">
+    <div class="palco"><video src="../videos/404-corre.mp4" poster="../videos/404-corre.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração da página 404 jogável"></video></div>
+    <div>
+      <span class="chip">19 · Página de erro</span>
+      <h3>404 que vira jogo</h3>
+      <div class="tags"><span>canvas</span><span>espaço / toque</span><span>recorde salvo</span></div>
+      <p>"Esta página fugiu." Uma capivara corre e pula bugs enquanto a pessoa decide se volta ao INEMA.CLUB. Começa no piloto automático; o primeiro toque passa o controle.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/404-corre/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/404-corre.mp4" download>Baixar vídeo</a></div>
+      <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="revela-carga">
+    <div class="palco"><video src="../videos/revela-carga.mp4" poster="../videos/revela-carga.jpg" autoplay muted loop playsinline preload="none" aria-label="Demonstração da tela de carregamento"></video></div>
+    <div>
+      <span class="chip">20 · Carregamento</span>
+      <h3>Revela carga</h3>
+      <div class="tags"><span>sem biblioteca</span><span>contador 000 a 100</span><span>transição</span></div>
+      <p>A marca INEMA, inteira desde o primeiro quadro, enche de âmbar de baixo para cima enquanto o contador vai de 000 a 100. No fim, tudo vira a transição que revela a página inicial escura.</p>
+      <div class="acoes"><button class="btn vivo">Abrir ao vivo</button><a class="btn ghost" href="../pecas/revela-carga/" target="_blank" rel="noopener">Tela cheia</a><a class="btn ghost" href="../videos/revela-carga.mp4" download>Baixar vídeo</a></div>
       <details><summary>Ver o prompt</summary><pre class="prompt">carregando…</pre></details>
     </div>
   </div>
@@ -333,7 +528,7 @@ abrir pecas/dia-noite/index.html</pre></div>
 
   <div class="step"><div class="b">4</div><div>
     <h3>Crie a sua peça com o molde</h3>
-    <p>Preencha o molde (<code>molde/MOLDE-PROMPT-ANIMACAO.md</code>), salve como <code>pecas/&lt;nome&gt;/PROMPT.md</code> e peça à IA para escrever o <code>index.html</code> a partir dele. Use os cinco <code>PROMPT.md</code> como exemplo de nível de detalhe. Para ajustar, peça pelo número do passo: "no passo 1, 80 ms em vez de 120".</p>
+    <p>Preencha o molde (<code>molde/MOLDE-PROMPT-ANIMACAO.md</code>), salve como <code>pecas/&lt;nome&gt;/PROMPT.md</code> e peça à IA para escrever o <code>index.html</code> a partir dele. Use os 20 <code>PROMPT.md</code> como exemplo de nível de detalhe. Para ajustar, peça pelo número do passo: "no passo 1, 80 ms em vez de 120".</p>
 <pre><span class="c"># exemplo com o Claude Code, na pasta do repositório</span>
 <span class="k">claude</span> <span class="s">"Leia pecas/minha-peca/PROMPT.md e escreva pecas/minha-peca/index.html obedecendo ao prompt."</span></pre>
   </div></div>
@@ -342,7 +537,7 @@ abrir pecas/dia-noite/index.html</pre></div>
     <h3>Teste e grave o vídeo</h3>
     <p>O teste confere, em todas as peças: nenhum erro de JavaScript, nada de rolagem horizontal em 1280 e 360 px, a versão com movimento reduzido e se a peça trava a rolagem da página. A gravação gera, para cada peça, 8 s em WebM e MP4 mais uma imagem de capa em <code>videos/</code>.</p>
 <pre><span class="k">python3</span> -m http.server 8850 --directory . --bind 127.0.0.1 &amp;
-<span class="k">node</span> tools/testar-pecas.cjs 8850     <span class="c"># 5/5 peças OK</span>
+<span class="k">node</span> tools/testar-pecas.cjs 8850     <span class="c"># 20/20 peças OK</span>
 <span class="k">node</span> tools/gravar-videos.cjs 8850    <span class="c"># OK busca-cmdk: webm 285 KB, mp4 349 KB …</span>
 <span class="k">node</span> tools/gravar-videos.cjs 8850 dia-noite   <span class="c"># só uma peça</span></pre>
   </div></div>
@@ -352,15 +547,15 @@ abrir pecas/dia-noite/index.html</pre></div>
   <span class="chip">Próximos passos</span>
   <h2>O que vem depois</h2>
   <p class="sub">O laboratório está pronto para uso. Estas são as próximas etapas possíveis, ainda não feitas.</p>
-  <div class="phase"><div class="tag">Feito</div><div class="d"><strong>Molde, 5 peças, testes e vídeos</strong><span>Tudo neste repositório, em PT/EN/ES. O molde também entrou na skill de guias do INEMA, então os próximos guias já nascem com ele.</span></div></div>
+  <div class="phase"><div class="tag">Feito</div><div class="d"><strong>Molde, 20 peças com Raio-X, testes e vídeos</strong><span>Tudo neste repositório, em PT/EN/ES. O molde também entrou na skill de guias do INEMA, então os próximos guias já nascem com ele.</span></div></div>
   <div class="phase"><div class="tag">Próximo</div><div class="d"><strong>Peças nos sites do INEMA</strong><span>Busca ⌘K no portal e no buscas, 404 jogável no inema.club, grade bento nas landings dos guias.</span></div></div>
-  <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Mais peças e versão vertical dos vídeos</strong><span>Menu que toma a tela, carregador que revela a página, galeria em anel; vídeos 9:16 para shorts.</span></div></div>
+  <div class="phase"><div class="tag">Depois</div><div class="d"><strong>Versão vertical dos vídeos</strong><span>Versão vertical (9:16) dos vídeos para shorts e as peças aplicadas em mais páginas.</span></div></div>
 </div></section>
 
 <footer>
   <div class="wrap">
     <div class="pill">HTML + CSS + JS</div><div class="pill">Matter.js</div><div class="pill">Playwright + ffmpeg</div>
-    <p style="margin-top:18px">INEMA Motion Lab · ideias inspiradas em efeitos populares da comunidade; código escrito do zero ·
+    <p style="margin-top:18px">INEMA Motion Lab · código escrito do zero ·
       <a href="https://github.com/inematds/inema-motion-lab">inematds/inema-motion-lab</a> ·
       <a href="https://inema.club">INEMA.CLUB</a></p>
   </div>

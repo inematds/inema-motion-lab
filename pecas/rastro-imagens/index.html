@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rastro de imagens · INEMA Motion Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0d;--bg2:#111114;--fg:#f3efe7;--fg2:#a69d90;--acc:#E2A23B;--ink:#151310;--pad:clamp(16px,4vw,48px)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:Inter,system-ui,sans-serif;overflow:hidden}
+.palco{position:fixed;inset:0;overflow:hidden;display:grid;grid-template-rows:auto minmax(0,1fr) auto;background:radial-gradient(120% 90% at 20% 20%,var(--bg2) 0%,var(--bg) 70%)}
+
+/* topo: marca + menu; no celular o menu desce para a segunda linha */
+.topo{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 16px;padding:20px var(--pad);font:500 14px/1 Inter,sans-serif}
+.marca{font:800 16px/1 Sora,sans-serif;letter-spacing:-.01em;color:var(--fg)}
+.marca b{color:var(--acc)}
+.topo nav{display:flex;gap:clamp(14px,2.6vw,32px);color:var(--fg2)}
+.topo nav a{color:inherit;text-decoration:none;padding:4px 0;border-bottom:1px solid transparent;white-space:nowrap}
+.topo nav a:hover{color:var(--fg);border-color:var(--acc)}
+.topo nav a:focus-visible{color:var(--fg);outline:3px solid var(--acc);outline-offset:4px}
+
+/* miolo: manchete numa coluna, acervo (onde o rastro vive) na outra */
+.meio{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:clamp(20px,4vw,56px);align-items:stretch;padding:8px var(--pad) 20px;min-height:0}
+.texto{align-self:center;position:relative;z-index:3}
+.titulo{margin:0;font:800 clamp(2.4rem,6.2vw,5.9rem)/.98 Sora,sans-serif;letter-spacing:-.035em}
+.titulo span{display:block}
+.titulo .r{color:var(--acc);padding-left:.9em}
+.sub{margin:22px 0 0;max-width:34ch;font:400 clamp(15px,1.3vw,17px)/1.5 Inter,sans-serif;color:var(--fg2)}
+.sub b{color:var(--fg);font-weight:600}
+
+.zona{position:relative;overflow:hidden;border-radius:12px;background:var(--bg2);border:1px solid rgba(243,239,231,.08);min-height:0;cursor:crosshair;isolation:isolate}
+.zona::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 60% at 50% 55%,rgba(226,162,59,.07),transparent 70%);pointer-events:none}
+.rotulo{position:absolute;left:16px;top:14px;right:16px;display:flex;justify-content:space-between;gap:12px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--fg2);pointer-events:none;z-index:0}
+.rotulo .dica{color:var(--acc)}
+
+.base{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 var(--pad) clamp(14px,3vh,28px);padding-top:14px;border-top:1px solid rgba(243,239,231,.18);font:500 12px/1 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--fg2)}
+.contador{display:inline-flex;align-items:center;gap:2px;color:var(--fg)}
+.dig{position:relative;display:inline-block;width:1ch;height:15px;overflow:hidden;vertical-align:middle}
+.dig .col{position:absolute;left:0;top:0;width:100%}
+.dig .col span{display:block;height:15px;line-height:15px;text-align:center}
+
+/* cartão do rastro (vive dentro do acervo e é recortado por ele) */
+.cartao{position:absolute;left:0;top:0;width:clamp(130px,16vw,224px);aspect-ratio:4/3;margin:0;padding:0;border:0;border-radius:6px;overflow:hidden;background:#1a1612;box-shadow:0 14px 30px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.4);cursor:zoom-in;z-index:2;will-change:transform;transform-origin:50% 50%;-webkit-tap-highlight-color:transparent}
+.cartao:focus{outline:none}
+.cartao:focus-visible{outline:3px solid var(--acc);outline-offset:4px}
+.cartao .pic{position:absolute;inset:0;display:block;transform-origin:50% 50%;will-change:transform}
+.cartao svg{width:100%;height:100%;display:block}
+
+.abrir{position:fixed;left:0;top:0;z-index:30;pointer-events:none;padding:8px 14px;border-radius:999px;background:var(--fg);color:var(--ink);font:600 13px/1 Inter,sans-serif;opacity:0;transition:opacity .2s ease;white-space:nowrap}
+.abrir.on{opacity:1}
+
+.fantasma{position:fixed;left:0;top:0;width:24px;height:24px;z-index:40;pointer-events:none;opacity:0;will-change:transform,opacity}
+.fantasma svg{width:24px;height:24px}
+
+/* ampliação: abre DENTRO do acervo, nunca sobre a manchete */
+.luz{position:absolute;inset:0;z-index:20;display:none}
+.luz.on{display:block}
+.veu{position:absolute;inset:0;background:rgba(11,11,13,.82);opacity:0;cursor:zoom-out}
+.grande{position:absolute;left:0;top:0;border-radius:8px;overflow:hidden;background:#1a1612;box-shadow:0 30px 70px rgba(0,0,0,.55);transform-origin:0 0;will-change:transform}
+.grande svg{width:100%;height:100%;display:block}
+.legenda{position:absolute;left:0;right:0;bottom:0;padding:16px 18px;background:linear-gradient(180deg,transparent,rgba(11,11,13,.9))}
+.legenda .l{display:block;overflow:hidden}
+.legenda .l span{display:block;transform:translateY(120%);transition:transform .6s cubic-bezier(.16,1,.3,1)}
+.legenda .l:nth-child(2) span{transition-delay:.08s}
+.legenda.mostra .l span{transform:none}
+.legenda .t{font:700 clamp(1.1rem,2.4vw,1.6rem)/1.15 Sora,sans-serif;letter-spacing:-.01em}
+.legenda .s{font:500 11px/1.4 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);margin-top:6px}
+.fechar{position:absolute;right:10px;top:10px;font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.1em;color:var(--fg);text-transform:uppercase;background:rgba(11,11,13,.7);border:0;border-radius:999px;padding:8px 12px;cursor:pointer}
+.fechar:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+
+/* celular: manchete em cima, acervo ocupa todo o meio da tela */
+@media (max-width:720px){
+  .topo{padding:16px var(--pad) 10px;font-size:13px}
+  .topo nav{width:100%;justify-content:space-between;gap:8px}
+  .meio{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:16px;padding-top:4px;padding-bottom:16px}
+  .texto{align-self:start}
+  .titulo{font-size:clamp(2.3rem,11.5vw,3.4rem)}
+  .sub{margin-top:12px;font-size:14px}
+  .cartao{width:clamp(128px,40vw,190px)}
+  .base{letter-spacing:.08em}
+}
+
+.parado .legenda .l span{transition:none!important}
+.parado .abrir{transition:none}
+
+.xray-caixa{position:fixed;left:0;top:0;border:1px dashed var(--acc);pointer-events:none}
+.xray-rotulo{position:fixed;left:0;top:0;padding:4px 6px;border-radius:4px;background:var(--acc);color:#0b0b0d;font:500 10px/1.2 'JetBrains Mono',monospace;white-space:nowrap;pointer-events:none}
+#xray-layer{position:fixed;inset:0;pointer-events:none;z-index:100}
+</style>
+</head>
+<body>
+<main class="palco" id="palco">
+  <header class="topo">
+    <span class="marca">INEMA<b>.CLUB</b></span>
+    <nav aria-label="Principal">
+      <a href="#cursos">Cursos</a>
+      <a href="#projetos">Projetos (15)</a>
+      <a href="#comunidade">Comunidade</a>
+    </nav>
+  </header>
+
+  <div class="meio">
+    <div class="texto">
+      <h1 class="titulo">
+        <span>Cursos que</span>
+        <span class="r">movem</span>
+        <span>pessoas.</span>
+      </h1>
+      <p class="sub" id="sub"><b>15 projetos e cursos gratuitos</b> no INEMA.CLUB. Passe o mouse no acervo para espalhar, clique para abrir.</p>
+    </div>
+
+    <section class="zona" id="zona" aria-label="Acervo de projetos" data-xray="acervo · área fixa que recorta o rastro; nada sai dela" data-xray-tool="code">
+      <div class="rotulo" aria-hidden="true"><span>Acervo</span><span class="dica" id="dica">Passe o mouse</span></div>
+      <div class="luz" id="luz" data-xray="ampliação · o cartão cresce por FLIP dentro do acervo e a legenda sobe linha a linha" data-xray-tool="code">
+        <div class="veu" id="veu"></div>
+        <div class="grande" id="grande"><div class="pic-g" id="picG"></div><button class="fechar" id="fecharBtn" type="button">Fechar</button><div class="legenda" id="legenda"><span class="l"><span class="t" id="legT"></span></span><span class="l"><span class="s" id="legS"></span></span></div></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="abrir" id="abrir" aria-hidden="true" data-xray="pílula Abrir · segue o ponteiro sobre um cartão" data-xray-tool="code">Abrir</div>
+
+  <div class="fantasma" id="fantasma" aria-hidden="true" data-xray="cursor fantasma · desenha um 8 dentro do acervo" data-xray-tool="code">
+    <svg viewBox="0 0 24 24"><path d="M4 2.5 4 19l4.6-4.3 2.9 6.2 3-1.4-2.9-6.1H18z" fill="#f3efe7" stroke="#0b0b0d" stroke-width="1.2" stroke-linejoin="round"/></svg>
+  </div>
+
+  <footer class="base">
+    <span class="contador" aria-live="polite" data-xray="contador · dígitos rolam por mola ao trocar de projeto" data-xray-tool="code">
+      <span class="dig" id="dezena" aria-hidden="true"><span class="col"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></span></span>
+      <span class="dig" id="unidade" aria-hidden="true"><span class="col"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></span></span>
+      <span>&nbsp;/ 15</span>
+    </span>
+    <span class="barra">Projetos em destaque</span>
+  </footer>
+</main>
+<script>
+(function () {
+  var params = location.search;
+  var demoParam = /[?&]demo=1\b/.test(params);
+  var xrayOn = /[?&]motion=xray\b/.test(params);
+  var mqReduz = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var parado = !!(mqReduz && mqReduz.matches) || /[?&]motion=off\b/.test(params);
+  var toque = !!(window.matchMedia && window.matchMedia('(hover: none)').matches);
+  if (parado) document.documentElement.classList.add('parado');
+
+  /* só a paleta da marca: âmbar, creme e marrons quentes */
+  var PALETAS = [
+    {fundo: '#1a1510', c1: '#E2A23B', c2: '#f3efe7', c3: '#6b4a1c'},
+    {fundo: '#121214', c1: '#f3efe7', c2: '#E2A23B', c3: '#2b2824'},
+    {fundo: '#16120d', c1: '#c98a2a', c2: '#f3efe7', c3: '#3d2f1c'}
+  ];
+  var TITULOS = ['Trilha de prompts', 'Agentes na prática', 'Skills do dia a dia', 'Projetos prontos', 'IA no trabalho',
+    'Vídeos curtos', 'Kits de atendimento', 'Lives da semana', 'Comunidade VIP', 'Cursos grátis', 'Buscas do acervo',
+    'Eventos ao vivo', 'Motion na prática', 'Dados sem medo', 'Começar do zero'];
+
+  /* arte desenhada em código: 5 formas × 3 paletas = 15 cartões */
+  function arte(i) {
+    var P = PALETAS[Math.floor(i / 5) % 3], f = i % 5, s = '';
+    s += '<rect width="400" height="300" fill="' + P.fundo + '"/>';
+    if (f === 0) {
+      s += '<circle cx="200" cy="150" r="88" fill="' + P.c1 + '"/>';
+      s += '<path d="M0 232 Q120 178 220 226 T400 214 V300 H0Z" fill="' + P.c3 + '"/>';
+      s += '<path d="M0 262 Q160 226 400 258 V300 H0Z" fill="' + P.c2 + '" opacity=".12"/>';
+    } else if (f === 1) {
+      for (var r = 0; r < 6; r++) for (var c = 0; c < 8; c++) {
+        var rad = 3 + ((r * 7 + c * 3) % 5) * 1.6;
+        s += '<circle cx="' + (30 + c * 52) + '" cy="' + (30 + r * 48) + '" r="' + rad.toFixed(1) + '" fill="' + ((r + c) % 4 === 0 ? P.c1 : P.c2) + '" opacity="' + (((r + c) % 4 === 0) ? 1 : 0.3) + '"/>';
+      }
+    } else if (f === 2) {
+      for (var k = 0; k < 6; k++) s += '<circle cx="200" cy="150" r="' + (24 + k * 22) + '" fill="none" stroke="' + (k % 2 ? P.c2 : P.c1) + '" stroke-width="' + (k === 0 ? 0 : 3) + '" opacity="' + (1 - k * 0.13).toFixed(2) + '"/>';
+      s += '<circle cx="200" cy="150" r="14" fill="' + P.c1 + '"/>';
+    } else if (f === 3) {
+      var hs = [120, 180, 90, 220, 150, 250, 110, 190, 140, 230];
+      for (var b = 0; b < hs.length; b++) s += '<rect x="' + (40 + b * 33) + '" y="' + (270 - hs[b]) + '" width="20" height="' + hs[b] + '" rx="3" fill="' + (b === 5 ? P.c2 : P.c1) + '" opacity="' + (b === 5 ? 1 : 0.75) + '"/>';
+    } else {
+      for (var w = 0; w < 4; w++) s += '<path d="M0 ' + (80 + w * 52) + ' Q100 ' + (40 + w * 52) + ' 200 ' + (84 + w * 52) + ' T400 ' + (80 + w * 52) + '" fill="none" stroke="' + [P.c1, P.c2, P.c3, P.c1][w] + '" stroke-width="' + (w === 1 ? 2 : 6) + '" stroke-linecap="round" opacity="' + (1 - w * 0.15) + '"/>';
+    }
+    s += '<text x="22" y="40" font-family="JetBrains Mono, monospace" font-size="15" fill="' + P.c2 + '" opacity=".85">' + String(i + 1).padStart(2, '0') + '</text>';
+    return '<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' + s + '</svg>';
+  }
+
+  var palco = document.getElementById('palco'), zona = document.getElementById('zona'), abrirEl = document.getElementById('abrir');
+  var fantasmaEl = document.getElementById('fantasma'), luzEl = document.getElementById('luz');
+  var veu = document.getElementById('veu'), grande = document.getElementById('grande'), picG = document.getElementById('picG');
+  var legenda = document.getElementById('legenda'), legT = document.getElementById('legT'), legS = document.getElementById('legS');
+  var dezena = document.getElementById('dezena').querySelector('.col'), unidade = document.getElementById('unidade').querySelector('.col');
+
+  if (toque) {
+    document.getElementById('dica').textContent = 'Toque para soltar';
+    document.getElementById('sub').innerHTML = '<b>15 projetos e cursos gratuitos</b> no INEMA.CLUB. Toque no acervo para soltar um cartão e toque nele para abrir.';
+  }
+
+  /* Z = retângulo do acervo; tudo do rastro é calculado em coordenadas locais dele */
+  var Z = {x: 0, y: 0, w: 400, h: 300}, CW = 200, CH = 150;
+  var P = {x: 0, y: 0, on: false}; /* ponteiro em coordenadas locais do acervo */
+  var lastDrop = {x: 0, y: 0}, dist = 0, prevP = {x: 0, y: 0}, dentroAntes = false;
+  var cards = [], poolIdx = 0, spawnN = 0, digD = {x: 0, v: 0}, digU = {x: 0, v: 0};
+  var luz = {p: 0, vp: 0, alvo: 0, aberto: false, card: null, src: null, tgt: null};
+  var ghostAtivo = !parado, ghostParado = false, gT = 0, gOp = 0, gAbriuT = 0, pausaToque = 0;
+
+  function sp(o, tgt, dt, k, d) { var a = (tgt - o.x) * k - o.v * d; o.v += a * dt; o.x += o.v * dt; }
+  function cl(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function medir() {
+    var r = zona.getBoundingClientRect();
+    Z = {x: r.left, y: r.top, w: r.width, h: r.height};
+    var amostra = cards[0] ? cards[0].el : null;
+    if (amostra) { CW = amostra.offsetWidth; CH = amostra.offsetHeight; }
+    else { CW = Math.min(224, Math.max(130, window.innerWidth * (window.innerWidth <= 720 ? 0.4 : 0.16))); CH = CW * 0.75; }
+  }
+  function dentro() { return P.on && P.x >= 0 && P.y >= 0 && P.x <= Z.w && P.y <= Z.h; }
+  /* o centro do cartão nunca passa da borda do acervo */
+  function alvoX(x) { return cl(x, CW / 2 + 10, Z.w - CW / 2 - 10); }
+  function alvoY(y) { return cl(y, CH / 2 + 34, Z.h - CH / 2 - 10); }
+
+  function criarCartao(i, x0, y0) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'cartao';
+    b.setAttribute('aria-label', 'Abrir ' + TITULOS[i]);
+    b.setAttribute('data-xray', TITULOS[i] + ' · nasce a cada 100 px de rastro, voa por mola e some após 1 s');
+    b.setAttribute('data-xray-tool', 'code');
+    b.innerHTML = '<span class="pic">' + arte(i) + '</span>';
+    zona.insertBefore(b, luzEl);
+    var c = {el: b, pic: b.querySelector('.pic'), i: i, x: x0, y: y0, vx: 0, vy: 0, tx: x0, ty: y0,
+      sc: 0.6, vsc: 0, pz: 1.22, vpz: 0, rot: 0, vrot: 0, age: 0, saindo: false, r: 0, off: 0};
+    b.addEventListener('click', function (e) { e.stopPropagation(); abrirLuz(c); });
+    cards.push(c);
+    return c;
+  }
+
+  function soltar(de, para) {
+    var c = criarCartao(poolIdx, alvoX(de.x), alvoY(de.y));
+    c.tx = alvoX(para.x); c.ty = alvoY(para.y);
+    spawnN += 1;
+    poolIdx = (poolIdx + 1) % TITULOS.length;
+    var vivos = cards.filter(function (q) { return !q.saindo; });
+    if (vivos.length > 8) vivos[0].saindo = true;
+  }
+
+  function rastro() {
+    if (parado || luz.aberto) return;
+    var den = dentro();
+    if (den && !dentroAntes) { lastDrop = {x: P.x, y: P.y}; prevP = {x: P.x, y: P.y}; dist = 0; }
+    dentroAntes = den;
+    if (!den) return;
+    var dx = P.x - prevP.x, dy = P.y - prevP.y;
+    dist += Math.sqrt(dx * dx + dy * dy);
+    prevP = {x: P.x, y: P.y};
+    if (dist >= 100) { dist = 0; soltar(lastDrop, P); lastDrop = {x: P.x, y: P.y}; }
+  }
+
+  /* ampliação: FLIP dentro do acervo */
+  function abrirLuz(c) {
+    if (luz.aberto && luz.card === c) { fecharLuz(); return; }
+    if (luz.aberto) fecharLuz();
+    var r = c.el.getBoundingClientRect();
+    luz.card = c;
+    luz.src = {x: r.left - Z.x, y: r.top - Z.y, w: r.width, h: r.height};
+    var tw = Math.min(520, Z.w - 32, (Z.h - 32) / 0.75), th = tw * 0.75;
+    luz.tgt = {x: (Z.w - tw) / 2, y: (Z.h - th) / 2, w: tw, h: th};
+    grande.style.width = tw + 'px'; grande.style.height = th + 'px';
+    grande.style.left = luz.tgt.x + 'px'; grande.style.top = luz.tgt.y + 'px';
+    grande.style.transform = 'translate3d(' + (luz.src.x - luz.tgt.x).toFixed(1) + 'px,' + (luz.src.y - luz.tgt.y).toFixed(1) + 'px,0) scale(' + (luz.src.w / tw).toFixed(4) + ',' + (luz.src.h / th).toFixed(4) + ')';
+    picG.innerHTML = arte(c.i);
+    legT.textContent = TITULOS[c.i];
+    legS.textContent = 'Curso gratuito · INEMA.CLUB';
+    legenda.classList.remove('mostra');
+    luz.aberto = true; luz.alvo = 1;
+    if (parado) { luz.p = 1; luz.vp = 0; }
+    c.el.style.visibility = 'hidden';
+    luzEl.classList.add('on');
+    acordar();
+  }
+  function fecharLuz() {
+    if (!luz.aberto) return;
+    luz.alvo = 0;
+    legenda.classList.remove('mostra');
+    if (parado) { luz.p = 0; luz.vp = 0; finalizarLuz(); }
+    acordar();
+  }
+  function finalizarLuz() {
+    luz.aberto = false;
+    luzEl.classList.remove('on');
+    if (luz.card) luz.card.el.style.visibility = '';
+    luz.card = null;
+  }
+  veu.addEventListener('click', function (e) { e.stopPropagation(); fecharLuz(); });
+  document.getElementById('fecharBtn').addEventListener('click', function (e) { e.stopPropagation(); fecharLuz(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fecharLuz(); });
+
+  function atualizarLuz(dt) {
+    if (!luz.aberto) return;
+    if (parado) luz.p = luz.alvo; else { var m = {x: luz.p, v: luz.vp}; sp(m, luz.alvo, dt, 170, 22); luz.p = m.x; luz.vp = m.v; }
+    var p = Math.max(0, Math.min(1.05, luz.p)), q = 1 - p;
+    var s0x = luz.src.w / luz.tgt.w, s0y = luz.src.h / luz.tgt.h;
+    grande.style.transform = 'translate3d(' + (q * (luz.src.x - luz.tgt.x)).toFixed(1) + 'px,' + (q * (luz.src.y - luz.tgt.y)).toFixed(1) + 'px,0) scale(' + (1 + q * (s0x - 1)).toFixed(4) + ',' + (1 + q * (s0y - 1)).toFixed(4) + ')';
+    veu.style.opacity = Math.min(1, Math.max(0, p)).toFixed(3);
+    if (luz.alvo === 1 && p > 0.7) legenda.classList.add('mostra');
+    if (luz.alvo === 0 && luz.p < 0.02) { luz.p = 0; finalizarLuz(); }
+  }
+
+  /* cartões: mola para o alvo, inclinação pela velocidade, saem após 1 s */
+  function atualizarCartoes(dt) {
+    if (parado) return;
+    var mais = cards.length ? cards[cards.length - 1] : null;
+    var vida = toque ? 2.2 : 1.0;
+    for (var i = cards.length - 1; i >= 0; i--) {
+      var c = cards[i];
+      c.age += dt;
+      if (!c.saindo && c !== mais && c.age > vida && !(luz.card === c)) c.saindo = true;
+      if (c.saindo) {
+        c.r += dt / 0.6;
+        var r = Math.min(1, c.r);
+        c.off = 120 * r * r;
+        c.el.style.opacity = (1 - r).toFixed(3);
+        c.el.style.transform = 'translate3d(' + (c.x - CW / 2).toFixed(1) + 'px,' + (c.y - CH / 2 + c.off).toFixed(1) + 'px,0) rotate(' + c.rot.toFixed(2) + 'deg) scale(' + (1 - 0.3 * r).toFixed(3) + ')';
+        if (r >= 1) { c.el.remove(); cards.splice(i, 1); }
+        continue;
+      }
+      var ax = (c.tx - c.x) * 120 - c.vx * 20, ay = (c.ty - c.y) * 120 - c.vy * 20;
+      c.vx += ax * dt; c.vy += ay * dt; c.x += c.vx * dt; c.y += c.vy * dt;
+      var sc = {x: c.sc, v: c.vsc}; sp(sc, 1, dt, 300, 16); c.sc = sc.x; c.vsc = sc.v;
+      var pz = {x: c.pz, v: c.vpz}; sp(pz, 1, dt, 160, 18); c.pz = pz.x; c.vpz = pz.v;
+      var tilt = Math.max(-7, Math.min(7, c.vx * 0.012));
+      var rr = {x: c.rot, v: c.vrot}; sp(rr, tilt, dt, 140, 14); c.rot = rr.x; c.vrot = rr.v;
+      c.el.style.transform = 'translate3d(' + (c.x - CW / 2).toFixed(1) + 'px,' + (c.y - CH / 2).toFixed(1) + 'px,0) rotate(' + c.rot.toFixed(2) + 'deg) scale(' + c.sc.toFixed(4) + ')';
+      c.pic.style.transform = 'scale(' + c.pz.toFixed(4) + ')';
+    }
+  }
+
+  /* contador: dois dígitos rolando por mola */
+  var DIG = 15;
+  function atualizarContador(dt) {
+    var n = spawnN === 0 ? 0 : ((spawnN - 1) % TITULOS.length) + 1;
+    var dz = Math.floor(n / 10), du = n % 10;
+    if (parado) { digD.x = dz; digU.x = du; digD.v = digU.v = 0; }
+    else { sp(digD, dz, dt, 320, 34); sp(digU, du, dt, 320, 34); }
+    dezena.style.transform = 'translate3d(0,' + (-digD.x * DIG).toFixed(2) + 'px,0)';
+    unidade.style.transform = 'translate3d(0,' + (-digU.x * DIG).toFixed(2) + 'px,0)';
+  }
+
+  /* pílula Abrir sobre um cartão (só com mouse) */
+  function atualizarAbrir() {
+    var sobre = null;
+    if (!toque && dentro() && !luz.aberto) {
+      for (var i = cards.length - 1; i >= 0; i--) {
+        var c = cards[i];
+        if (c.saindo) continue;
+        if (Math.abs(P.x - c.x) <= CW / 2 && Math.abs(P.y - c.y) <= CH / 2) { sobre = c; break; }
+      }
+    }
+    if (sobre) {
+      abrirEl.classList.add('on');
+      var px = Math.min(Z.x + P.x + 14, Z.x + Z.w - 70), py = Math.min(Z.y + P.y + 14, Z.y + Z.h - 36);
+      abrirEl.style.transform = 'translate3d(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px,0)';
+    } else abrirEl.classList.remove('on');
+  }
+
+  /* cursor fantasma: 8 lento dentro do acervo; no toque ele é o modo automático */
+  var fGhostT = 0;
+  function fantasmaPasso(dt) {
+    if (!ghostAtivo) return;
+    if (ghostParado) {
+      gOp = Math.max(0, gOp - dt / 0.3);
+      if (gOp === 0) ghostAtivo = false;
+      fantasmaEl.style.opacity = gOp.toFixed(3);
+      return;
+    }
+    if (pausaToque > 0) { pausaToque -= dt; return; }
+    var mostra = demoParam || !toque;
+    gOp = mostra ? Math.min(1, gOp + dt / 0.4) : 0;
+    fGhostT += dt;
+    var th = fGhostT * 2 * Math.PI / 9;
+    var gx = Z.w * 0.5 + Z.w * 0.3 * Math.sin(th), gy = Z.h * 0.55 + Z.h * 0.24 * Math.sin(2 * th);
+    P.x = gx; P.y = gy; P.on = true;
+    fantasmaEl.style.opacity = gOp.toFixed(3);
+    fantasmaEl.style.transform = 'translate3d(' + (Z.x + gx).toFixed(1) + 'px,' + (Z.y + gy).toFixed(1) + 'px,0)';
+    if (!demoParam && toque) return; /* no celular sem demo, não abre sozinho */
+    gT += dt;
+    if (gT >= 8) {
+      gT = 0;
+      var novo = cards.length ? cards[cards.length - 1] : null;
+      if (novo && !luz.aberto) { abrirLuz(novo); gAbriuT = 2.4; }
+    }
+    if (gAbriuT > 0) { gAbriuT -= dt; if (gAbriuT <= 0 && luz.aberto) fecharLuz(); }
+  }
+  function pararFantasma(e) {
+    if (demoParam || ghostParado || !ghostAtivo) return;
+    if (e && e.pointerType && e.pointerType !== 'mouse') return; /* toque não desliga o automático */
+    if (e && e.type === 'touchstart') return;
+    ghostParado = true;
+    P.on = false;
+  }
+  ['pointermove', 'pointerdown', 'keydown', 'wheel'].forEach(function (ev) {
+    window.addEventListener(ev, pararFantasma, {capture: true, passive: true});
+  });
+  window.addEventListener('pointermove', function (e) {
+    if (e.pointerType !== 'mouse') return;
+    P.x = e.clientX - Z.x; P.y = e.clientY - Z.y; P.on = true; acordar();
+  }, {passive: true});
+  document.addEventListener('pointerleave', function () { if (!ghostAtivo) P.on = false; });
+  /* toque: soltar um cartão onde a pessoa tocou (o cartão em si abre pelo click) */
+  zona.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse' || parado || luz.aberto) return;
+    if (e.target.closest && e.target.closest('.cartao')) return;
+    var x = e.clientX - Z.x, y = e.clientY - Z.y;
+    soltar({x: x, y: y + 40}, {x: x, y: y});
+    pausaToque = 3;
+    acordar();
+  }, {passive: true});
+
+  /* estado parado: leque estático no centro do acervo */
+  function leque() {
+    var n = 5, xc = Z.w * 0.5, yc = Z.h * 0.52, passo = Math.min(Z.w * 0.12, 70);
+    for (var i = 0; i < n; i++) {
+      var c = criarCartao(i, alvoX(xc + (i - 2) * passo), alvoY(yc + Math.abs(i - 2) * 12));
+      c.rot = (i - 2) * 4; c.sc = 1; c.pz = 1;
+      c.el.style.transform = 'translate3d(' + (c.x - CW / 2).toFixed(1) + 'px,' + (c.y - CH / 2).toFixed(1) + 'px,0) rotate(' + c.rot + 'deg)';
+    }
+    spawnN = n;
+    poolIdx = n % TITULOS.length;
+  }
+
+  /* laço único */
+  var raf = 0, last = 0, vis = true;
+  function quadro(t) {
+    raf = 0;
+    var dt = last ? Math.min(1 / 30, (t - last) / 1000) : 1 / 60;
+    last = t;
+    fantasmaPasso(dt);
+    rastro();
+    atualizarCartoes(dt);
+    atualizarLuz(dt);
+    atualizarContador(dt);
+    atualizarAbrir();
+    xrayAtualizar();
+    if (vis && !document.hidden) raf = requestAnimationFrame(quadro);
+  }
+  function acordar() { if (!raf && vis && !document.hidden) { last = 0; raf = requestAnimationFrame(quadro); } }
+
+  /* raio-X (?motion=xray) */
+  var xrayLista = [];
+  function xrayIniciar() {
+    if (!xrayOn) return;
+    var camada = document.createElement('div');
+    camada.id = 'xray-layer';
+    camada.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(camada);
+    document.querySelectorAll('[data-xray]').forEach(function (el) {
+      var c = document.createElement('div'); c.className = 'xray-caixa';
+      var t = document.createElement('div'); t.className = 'xray-rotulo';
+      t.textContent = el.getAttribute('data-xray');
+      camada.appendChild(c); camada.appendChild(t);
+      xrayLista.push({el: el, c: c, t: t});
+    });
+  }
+  function xrayAtualizar() {
+    xrayLista.forEach(function (x) {
+      var r = x.el.getBoundingClientRect();
+      x.c.style.transform = 'translate3d(' + r.left.toFixed(1) + 'px,' + r.top.toFixed(1) + 'px,0)';
+      x.c.style.width = r.width.toFixed(1) + 'px';
+      x.c.style.height = r.height.toFixed(1) + 'px';
+      x.t.style.transform = 'translate3d(' + r.left.toFixed(1) + 'px,' + Math.max(0, r.top - 20).toFixed(1) + 'px,0)';
+    });
+  }
+
+  window.addEventListener('resize', function () { medir(); acordar(); });
+  medir();
+  if (parado) leque();
+  xrayIniciar();
+  var io = new IntersectionObserver(function (es) {
+    vis = es[0].isIntersecting;
+    if (vis) acordar(); else if (raf) { cancelAnimationFrame(raf); raf = 0; }
+  });
+  io.observe(palco);
+  document.addEventListener('visibilitychange', function () { if (document.hidden) { if (raf) { cancelAnimationFrame(raf); raf = 0; } } else acordar(); });
+  if (!ghostAtivo) fantasmaEl.style.display = 'none';
+  acordar();
+})();
+</script>
+</body>
+</html>

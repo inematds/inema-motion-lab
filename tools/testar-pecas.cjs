@@ -8,7 +8,11 @@ const fs = require('fs');
 const raiz = path.resolve(__dirname, '..');
 const pw = require(path.join(process.env.PLAYWRIGHT_DIR || raiz, 'node_modules', 'playwright'));
 const porta = Number(process.argv[2]) || 8850;
-const pecas = fs.readdirSync(path.join(raiz, 'pecas')).filter(p => fs.existsSync(path.join(raiz, 'pecas', p, 'index.html')));
+// PECAS=a,b limita o teste a essas peças (útil quando várias são feitas ao mesmo tempo).
+const so = (process.env.PECAS || '').split(',').filter(Boolean);
+const pecas = fs.readdirSync(path.join(raiz, 'pecas'))
+  .filter(p => fs.existsSync(path.join(raiz, 'pecas', p, 'index.html')))
+  .filter(p => !so.length || so.includes(p));
 
 // Registra se alguém chama preventDefault num wheel/touchmove que chega ao document.
 const espiao = () => {

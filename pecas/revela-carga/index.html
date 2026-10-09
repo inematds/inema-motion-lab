@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revela carga</title>
+<meta name="description" content="Tela de carregamento com a marca INEMA que enche de âmbar e vira a transição para a página.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&family=Sora:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --painel: #111114;
+    --texto: #f3efe7;
+    --texto-2: rgba(243, 239, 231, .6);
+    --ambar: #E2A23B;
+    --creme: #f3efe7;
+    --tinta: #0b0b0d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow-x: hidden; background: var(--bg); color: var(--texto); }
+  body { font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  .palco { position: relative; height: 100vh; height: 100dvh; min-height: 520px; overflow: hidden; background: var(--bg); }
+
+  /* ---------- a página revelada ---------- */
+  .hero {
+    position: absolute; inset: 0; z-index: 1;
+    background:
+      radial-gradient(60% 70% at 78% 88%, rgba(226, 162, 59, .13), transparent 70%),
+      linear-gradient(180deg, var(--painel), var(--bg));
+    color: var(--texto);
+    display: flex; flex-direction: column;
+    padding: clamp(14px, 3vh, 28px) clamp(16px, 4vw, 56px) clamp(16px, 4vh, 40px);
+  }
+  .nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid rgba(243, 239, 231, .1); }
+  .marca-nav { font: 800 15px/1 Sora, sans-serif; letter-spacing: .02em; color: var(--texto); text-decoration: none; border-radius: 4px; }
+  .marca-nav b { color: var(--ambar); }
+  .nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: clamp(14px, 2.2vw, 28px); }
+  .nav a { color: var(--texto-2); text-decoration: none; font: 500 14px/1 Inter, sans-serif; border-radius: 4px; }
+  .nav a:hover { color: var(--texto); }
+  .corpo { flex: 1; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: center; gap: 24px; min-height: 0; }
+  .texto { padding-bottom: clamp(8px, 4vh, 40px); min-width: 0; }
+  .rotulo { font: 500 12px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--ambar); margin: 0 0 14px; }
+  h1 {
+    margin: 0; font: 800 clamp(2.4rem, min(8vw, 12.5vh), 7.6rem)/.94 Sora, sans-serif; letter-spacing: -.045em;
+  }
+  .mascara { display: inline-block; overflow: hidden; vertical-align: top; padding: .08em .02em 0; margin-top: -.08em; }
+  .palavra { display: inline-block; will-change: transform; }
+  .ponto { color: var(--ambar); }
+  .sub { margin: 18px 0 0; max-width: 46ch; font-size: clamp(15px, 1.4vw, 18px); line-height: 1.5; color: var(--texto-2); }
+  .acoes { display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: 22px; align-items: center; }
+  .cta {
+    display: inline-block; background: var(--ambar); color: var(--tinta); text-decoration: none;
+    font: 600 15px/1 Inter, sans-serif; padding: 14px 22px; border-radius: 999px;
+  }
+  .cta:hover { background: #f0b552; }
+  .rever {
+    font: 500 12px/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase;
+    background: transparent; color: var(--texto); border: 1.5px solid rgba(243, 239, 231, .28); border-radius: 999px;
+    padding: 11px 16px; cursor: pointer;
+  }
+  .rever:hover { border-color: var(--texto); }
+  .hero a:focus-visible, .rever:focus-visible { outline: 3px solid var(--ambar); outline-offset: 3px; }
+  .mascote-caixa { position: relative; height: 100%; display: flex; align-items: center; justify-content: center; min-width: 0; }
+  .mascote { width: min(100%, 400px); height: auto; overflow: visible; will-change: transform; }
+
+  /* ---------- colunas da transição ---------- */
+  .colunas { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(6, 1fr); pointer-events: none; }
+  .colunas span { display: block; height: 100%; will-change: transform; margin-right: -1px; }
+  .col-ambar { z-index: 2; }
+  .col-ambar span { background: var(--ambar); }
+  .col-preta { z-index: 3; }
+  .col-preta span { background: var(--bg); }
+
+  /* ---------- o carregador ---------- */
+  .carga { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+  .canto {
+    position: absolute; top: clamp(14px, 3vh, 28px);
+    font: 500 11px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--texto-2); will-change: opacity;
+  }
+  .canto-esq { left: clamp(16px, 4vw, 56px); }
+  .canto-dir { right: clamp(16px, 4vw, 56px); text-align: right; }
+  .canto b { color: var(--ambar); font-weight: 500; }
+  .marca {
+    --lado: min(45vh, 64vw);
+    position: absolute; left: 50%; top: 46%;
+    width: var(--lado); height: var(--lado);
+    margin: calc(var(--lado) / -2) 0 0 calc(var(--lado) / -2);
+    will-change: transform, opacity;
+  }
+  .marca svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .etapa {
+    position: absolute; left: 0; right: 0; top: calc(46% + min(45vh, 64vw) / 2 + 22px); text-align: center;
+    font: 500 12px/1.2 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--texto-2); will-change: opacity;
+  }
+  .etapa b { color: var(--ambar); font-weight: 500; }
+  .contador {
+    position: absolute; right: clamp(16px, 4vw, 56px); bottom: clamp(10px, 3vh, 26px);
+    font: 500 clamp(64px, 15vw, 180px)/.82 "JetBrains Mono", ui-monospace, monospace; letter-spacing: -.06em;
+    font-variant-numeric: tabular-nums; color: var(--texto); display: flex; align-items: flex-end;
+  }
+  .dig { display: inline-block; overflow: hidden; }
+  .dig span { display: inline-block; will-change: transform, opacity; }
+  .dig.zero span { opacity: .2; }
+  .pct { font-size: .22em; color: var(--ambar); margin-left: .25em; margin-bottom: .35em; letter-spacing: 0; display: inline-block; will-change: opacity; }
+  .linha {
+    position: absolute; left: 0; height: 2px; background: var(--ambar);
+    transform-origin: 0 50%; transform: scaleX(0); will-change: transform, opacity;
+  }
+
+  /* celular: composição própria, em pé. Carregador com a marca grande no terço de cima e a etapa
+     logo abaixo; página com a capivara ocupando o meio (de pé sobre uma linha de chão) e o texto embaixo. */
+  @media (max-width: 760px) {
+    .canto-dir { display: none; }
+    .marca { --lado: min(76vw, 40vh); top: 40%; }
+    .etapa { top: calc(40% + min(76vw, 40vh) / 2 + 22px); }
+    .corpo { display: flex; flex-direction: column; justify-content: flex-end; gap: 0; }
+    .mascote-caixa {
+      order: -1; flex: 1 1 auto; min-height: 120px; height: auto; align-items: flex-end;
+      border-bottom: 1px solid rgba(243, 239, 231, .12); margin-bottom: 22px;
+    }
+    .mascote { width: min(64vw, 30vh, 260px); }
+    .texto { padding-bottom: 0; }
+    .nav ul li:nth-child(n+3) { display: none; }
+  }
+  @media (max-width: 420px) {
+    .sub { font-size: 14px; margin-top: 14px; }
+    .acoes { margin-top: 18px; }
+    .cta { padding: 13px 18px; font-size: 14px; }
+    .rever { padding: 10px 14px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+<main class="palco" id="palco">
+  <section class="hero" id="hero" aria-label="Página inicial do INEMA.CLUB">
+    <nav class="nav" aria-label="Principal">
+      <a class="marca-nav" href="https://inema.club">INEMA<b>.</b>CLUB</a>
+      <ul>
+        <li><a href="https://inema.club">Cursos</a></li>
+        <li><a href="https://eventos.inema.pro">Lives</a></li>
+        <li><a href="https://buscas.inema.club">Buscas</a></li>
+        <li><a href="https://inema.vip">VIP</a></li>
+      </ul>
+    </nav>
+    <div class="corpo">
+      <div class="texto">
+        <p class="rotulo">Cursos gratuitos de IA · 2026</p>
+        <h1 id="titulo" aria-label="Pronto quando você estiver.">
+          <span class="mascara"><span class="palavra" data-xray="palavra do título · sobe da máscara com mola" data-xray-tool="code">Pronto</span></span>
+          <span class="mascara"><span class="palavra" data-xray="palavra do título · sobe da máscara com mola" data-xray-tool="code">quando</span></span>
+          <span class="mascara"><span class="palavra" data-xray="palavra do título · sobe da máscara com mola" data-xray-tool="code">você</span></span>
+          <span class="mascara"><span class="palavra" data-xray="palavra do título · sobe da máscara com mola" data-xray-tool="code">estiver<span class="ponto">.</span></span></span>
+        </h1>
+        <p class="sub">Trilhas abertas, lives com a comunidade e um buscador para achar o próximo passo. Comece pelo primeiro módulo hoje.</p>
+        <div class="acoes">
+          <a class="cta" href="https://inema.club">Começar agora</a>
+          <button type="button" class="rever" id="rever">Ver a abertura de novo</button>
+        </div>
+      </div>
+      <div class="mascote-caixa" aria-hidden="true">
+        <svg class="mascote" id="mascote" viewBox="0 0 220 170" data-xray="capivara · entra andando, amassa ao parar e acena" data-xray-tool="code">
+          <ellipse cx="110" cy="162" rx="78" ry="6" fill="rgba(0,0,0,.55)"/>
+          <g id="capi">
+            <g id="pernas" fill="#7a5232">
+              <rect id="p1" x="58" y="112" width="15" height="44" rx="7"/>
+              <rect id="p2" x="146" y="112" width="15" height="44" rx="7"/>
+              <rect id="p3" x="76" y="112" width="15" height="44" rx="7" fill="#9b6b43"/>
+              <rect id="p4" x="128" y="112" width="15" height="44" rx="7" fill="#9b6b43"/>
+            </g>
+            <ellipse cx="112" cy="102" rx="70" ry="42" fill="#9b6b43"/>
+            <ellipse cx="118" cy="88" rx="48" ry="20" fill="#b48459" opacity=".5"/>
+            <g id="cabeca">
+              <rect x="20" y="52" width="66" height="50" rx="22" fill="#9b6b43"/>
+              <rect x="14" y="70" width="34" height="32" rx="14" fill="#7a5232"/>
+              <circle cx="72" cy="52" r="9" fill="#7a5232"/>
+              <circle cx="46" cy="70" r="4.5" fill="#1e1510"/>
+              <circle cx="47.5" cy="68.5" r="1.4" fill="#f3efe7"/>
+              <ellipse cx="22" cy="80" rx="3" ry="2.2" fill="#1e1510"/>
+            </g>
+            <g id="braco">
+              <rect x="40" y="96" width="14" height="42" rx="7" fill="#7a5232"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <div class="colunas col-ambar" aria-hidden="true">
+    <span data-xray="coluna âmbar · sobe 130 ms depois da preta" data-xray-tool="code"></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="colunas col-preta" aria-hidden="true">
+    <span data-xray="coluna preta · sobe da esquerda para a direita" data-xray-tool="code"></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <div class="carga" id="carga" aria-hidden="true">
+    <div class="canto canto-esq" id="cantoEsq"><b>INEMA</b>.CLUB · abrindo</div>
+    <div class="canto canto-dir" id="cantoDir">cursos gratuitos de IA</div>
+    <div class="marca" id="marca" data-xray="marca INEMA · enche de baixo para cima, pulsa e some" data-xray-tool="code">
+      <svg viewBox="-120 -120 240 240">
+        <defs>
+          <clipPath id="recorte" clipPathUnits="userSpaceOnUse">
+            <path id="formaMarca" clip-rule="evenodd" d="M0,-100 A100,100 0 1,1 0,100 A100,100 0 1,1 0,-100 Z M0,-62 A15,15 0 1,0 0,-32 A15,15 0 1,0 0,-62 Z M-13,-18 L13,-18 L13,62 Q13,70 5,70 L-5,70 Q-13,70 -13,62 Z"/>
+          </clipPath>
+        </defs>
+        <!-- a marca inteira já está lá desde o primeiro quadro: base escura + traço creme -->
+        <g clip-path="url(#recorte)"><rect x="-110" y="-110" width="220" height="220" fill="#1b1a1f"/></g>
+        <use href="#formaMarca" fill="none" stroke="#f3efe7" stroke-width="1.6" id="traco" style="opacity:.55"/>
+        <g clip-path="url(#recorte)">
+          <g id="liquido" data-xray="enchimento âmbar · sobe com a carga (translateY), a onda corre de lado" data-xray-tool="code">
+            <path id="onda2" fill="#C9821F" d=""/>
+            <path id="onda1" fill="#E2A23B" d=""/>
+          </g>
+        </g>
+        <g id="contorno" fill="none" stroke="#E2A23B" stroke-width="2" stroke-linecap="round" transform="scale(1.12)"></g>
+      </svg>
+    </div>
+    <div class="etapa" id="etapa" data-xray="etapa da carga · troca a cada terço" data-xray-tool="code"><b>01 / 03</b> · cursos</div>
+    <span class="linha" id="linha" data-xray="linha de progresso · cresce em scaleX" data-xray-tool="code"></span>
+    <div class="contador" id="contador" data-xray="contador · dígitos rolam para cima e saem" data-xray-tool="code">
+      <span class="dig"><span>0</span></span><span class="dig"><span>0</span></span><span class="dig"><span>0</span></span><span class="pct" id="pct">%</span>
+    </div>
+  </div>
+</main>
+
+<script>
+/* Raio-X e modos: ?motion=xray mostra o que se move, ?motion=off congela, ?demo=1 repete sem parar */
+window.MOTION = (() => {
+  const q = new URLSearchParams(location.search);
+  const modo = q.get('motion');
+  const api = { off: modo === 'off', xray: modo === 'xray', demo: q.get('demo') === '1' };
+  if (!api.xray) return api;
+  const css = document.createElement('style');
+  css.textContent = '.xr-box{position:fixed;left:0;top:0;z-index:9998;pointer-events:none;border:1.5px dashed #E2A23B;border-radius:4px}' +
+    '.xr-tag{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;font:500 10px/1.25 "JetBrains Mono",ui-monospace,monospace;color:#0b0b0d;background:#E2A23B;padding:2px 6px;border-radius:3px;white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}';
+  document.head.appendChild(css);
+  const pares = new Map();
+  const desenhar = () => {
+    const vistos = new Set(), textos = new Set();
+    document.querySelectorAll('[data-xray]').forEach(el => {
+      vistos.add(el);
+      let p = pares.get(el);
+      if (!p) {
+        p = { box: document.createElement('div'), tag: document.createElement('div') };
+        p.box.className = 'xr-box'; p.tag.className = 'xr-tag'; p.tag.textContent = el.dataset.xray;
+        document.body.append(p.box, p.tag); pares.set(el, p);
+      }
+      const r = el.getBoundingClientRect();
+      const vis = r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight;
+      p.box.style.display = vis ? '' : 'none';
+      const mostraTag = vis && !textos.has(el.dataset.xray);
+      p.tag.style.display = mostraTag ? '' : 'none';
+      if (!vis) return;
+      textos.add(el.dataset.xray);
+      p.box.style.transform = `translate(${r.left}px,${r.top}px)`;
+      p.box.style.width = r.width + 'px'; p.box.style.height = r.height + 'px';
+      p.tag.style.transform = `translate(${Math.max(2, Math.min(innerWidth - 120, r.left))}px,${Math.max(2, r.top - 18)}px)`;
+    });
+    for (const [el, p] of pares) if (!vistos.has(el)) { p.box.remove(); p.tag.remove(); pares.delete(el); }
+  };
+  setInterval(desenhar, 200);
+  return api;
+})();
+</script>
+
+<script>
+(() => {
+  'use strict';
+  /* ===== roteiro (ms), espelha o PROMPT.md ===== */
+  const ENTRA_DUR = 360;                      // 1. a marca inteira acende e sobe 12 px
+  const CARGA_INI = 300, CARGA_DUR = 2700;     // 2. carga de 2,7 s com três pausas
+  const FIM = CARGA_INI + CARGA_DUR;           // 3000: chegou a 100
+  const MARCA_DUR = 600;                       // 3. incha 7 %, gira 180°, some
+  const DIG_GAP = 55, DIG_DUR = 380;           //    dígitos rolam para cima
+  const COL_INI = 3450, COL_GAP = 75, COL_DUR = 950, COL_ATRASO = 130; // 4. colunas
+  const PAL_INI = 4300, PAL_GAP = 80;          // 5. palavras
+  const CAPI_INI = 4700, CAPI_ANDA = 1200, CAPI_AMASSA = 260, CAPI_ACENA = 1300;
+  const VOLTA_INI = 10500;                     // 6. segura 4 s e as colunas descem
+  const CICLO = 12000;
+  const QUADRO_FINAL = 9000;                   // estado de repouso (página montada)
+
+  const reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const parado = reduz || MOTION.off;
+  const demo = MOTION.demo;
+
+  const palco = document.getElementById('palco');
+  const marca = document.getElementById('marca');
+  const contornoG = document.getElementById('contorno');
+  const linha = document.getElementById('linha');
+  const contador = document.getElementById('contador');
+  const digs = Array.from(contador.querySelectorAll('.dig'));
+  const pct = document.getElementById('pct');
+  const cantoEsq = document.getElementById('cantoEsq');
+  const cantoDir = document.getElementById('cantoDir');
+  const colsP = Array.from(document.querySelectorAll('.col-preta span'));
+  const colsA = Array.from(document.querySelectorAll('.col-ambar span'));
+  const palavras = Array.from(document.querySelectorAll('.palavra'));
+  const capi = document.getElementById('capi');
+  const mascote = document.getElementById('mascote');
+  const pernas = ['p1', 'p2', 'p3', 'p4'].map(id => document.getElementById(id));
+  const braco = document.getElementById('braco');
+  const cabeca = document.getElementById('cabeca');
+  const rever = document.getElementById('rever');
+
+  /* ===== desenho da marca ===== */
+  const NS = 'http://www.w3.org/2000/svg';
+  const segs = [];
+  const rad = g => (g - 90) * Math.PI / 180;
+  // anel de progresso por fora: 12 arcos, cada um acende quando a carga passa (i+1)/12
+  for (let i = 0; i < 12; i++) {
+    const b0 = rad(i * 30 + 3), b1 = rad(i * 30 + 27);
+    const s = document.createElementNS(NS, 'path');
+    s.setAttribute('d', `M${(100 * Math.cos(b0)).toFixed(2)},${(100 * Math.sin(b0)).toFixed(2)} A100,100 0 0,1 ${(100 * Math.cos(b1)).toFixed(2)},${(100 * Math.sin(b1)).toFixed(2)}`);
+    s.style.opacity = '0';
+    contornoG.appendChild(s); segs.push(s);
+  }
+  // onda: período 80, larga o bastante para correr de lado sem mostrar a ponta
+  const PER = 80;
+  function onda(amp, fase) {
+    let d = `M${-240 - PER},240 L${-240 - PER},0`;
+    for (let x = -240 - PER; x < 240 + PER; x += PER / 2) {
+      const meio = x + PER / 4, s = ((x / (PER / 2)) % 2 === 0 ? -1 : 1) * amp;
+      d += ` Q${meio},${(s + fase).toFixed(1)} ${x + PER / 2},0`;
+    }
+    return d + ` L${240 + PER},240 Z`;
+  }
+  const onda1 = document.getElementById('onda1'), onda2 = document.getElementById('onda2');
+  onda1.setAttribute('d', onda(7, 0));
+  onda2.setAttribute('d', onda(9, -4));
+  const liquido = document.getElementById('liquido');
+  const traco = document.getElementById('traco');
+  const etapa = document.getElementById('etapa');
+
+  /* ===== curvas ===== */
+  const cl = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+  const smooth = p => p * p * (3 - 2 * p);
+  const easeOut = p => 1 - Math.pow(1 - p, 3);
+  const easeIn = p => p * p * p;
+  // cubic-bezier(.7,0,.2,1) por Newton
+  const bezier = (x1, y1, x2, y2) => x => {
+    if (x <= 0) return 0; if (x >= 1) return 1;
+    let t = x;
+    for (let i = 0; i < 6; i++) {
+      const cx = 3 * x1 * t * (1 - t) ** 2 + 3 * x2 * t * t * (1 - t) + t ** 3 - x;
+      const d = 3 * x1 * (1 - t) ** 2 + 6 * (x2 - x1) * t * (1 - t) + 3 * (1 - x2) * t * t;
+      if (Math.abs(d) < 1e-6) break;
+      t = cl(t - cx / d);
+    }
+    return 3 * y1 * t * (1 - t) ** 2 + 3 * y2 * t * t * (1 - t) + t ** 3;
+  };
+  const colEase = bezier(.7, 0, .2, 1);
+  // mola subamortecida analítica (k 170, d 14, massa 1): passa do alvo e volta
+  const mola = (ms, k = 170, d = 14) => {
+    if (ms <= 0) return 0;
+    const t = ms / 1000, w = Math.sqrt(k), z = d / (2 * w), wd = w * Math.sqrt(1 - z * z);
+    return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t));
+  };
+
+  // progresso da carga: corre, trava, corre (três pausas curtas)
+  const CHAVES = [[0, 0], [.17, .23], [.29, .25], [.47, .52], [.58, .54], [.78, .83], [.89, .85], [1, 1]];
+  function progresso(t) {
+    const x = cl((t - CARGA_INI) / CARGA_DUR);
+    for (let i = 1; i < CHAVES.length; i++) {
+      const [x0, y0] = CHAVES[i - 1], [x1, y1] = CHAVES[i];
+      if (x <= x1) return y0 + (y1 - y0) * smooth((x - x0) / (x1 - x0));
+    }
+    return 1;
+  }
+  // instante em que cada arco do anel acende (quando a carga passa (i+1)/12)
+  const nasce = [];
+  for (let i = 0; i < 12; i++) {
+    const alvo = (i + 1) / 12 - 1e-4;
+    let t = CARGA_INI;
+    while (t < FIM && progresso(t) < alvo) t += 4;
+    nasce.push(t);
+  }
+
+  /* ===== medidas ===== */
+  function medir() {
+    const pr = palco.getBoundingClientRect(), cr = contador.getBoundingClientRect();
+    const fimLinha = cr.left - pr.left - 18;
+    linha.style.width = Math.max(40, fimLinha) + 'px';
+    linha.style.top = (cr.bottom - pr.top - cr.height * 0.18) + 'px';
+  }
+
+  /* ===== desenha o instante t (relógio único) ===== */
+  let ultTexto = '', ultCanto = '';
+  function render(t) {
+    const p = progresso(t);
+
+    // 1. a marca entra inteira (base escura + traço creme): sobe 12 px e acende em 360 ms
+    const ent = easeOut(cl(t / ENTRA_DUR));
+    // 2. enchimento âmbar sobe com a carga; a onda corre de lado e se acalma no 100
+    const calma = 1 - cl((t - FIM + 300) / 300);
+    const nivel = 108 - 220 * p;                       // 108 = vazio (abaixo da base), -112 = cheio
+    const corre = (t * 0.06) % PER;
+    liquido.setAttribute('transform', `translate(${(-corre).toFixed(2)} ${nivel.toFixed(2)})`);
+    onda2.setAttribute('transform', `translate(${(corre * 0.6 - PER / 3).toFixed(2)} ${(4 * calma).toFixed(2)})`);
+    // anel: cada arco acende quando a carga passa 1/12
+    const apaga = 1 - cl((t - FIM) / 200);
+    segs.forEach((s, i) => { s.style.opacity = (cl((t - nasce[i]) / 140) * apaga).toFixed(3); });
+    traco.style.opacity = ((0.55 - 0.4 * p) * apaga).toFixed(3);
+
+    // 3. marca: pulsa 7 % e encolhe até sumir (sem girar: o "i" nunca fica deitado)
+    const m = (t - FIM) / MARCA_DUR;
+    let esc = 1, op = ent;
+    if (m > 0) {
+      const inc = cl(m / 0.3), enc = cl((m - 0.3) / 0.7);
+      esc = (1 + 0.07 * easeOut(inc)) * (1 - 0.85 * easeIn(enc));
+      op = 1 - easeIn(enc);
+    }
+    marca.style.transform = `translateY(${(12 * (1 - ent)).toFixed(2)}px) scale(${esc.toFixed(4)})`;
+    marca.style.opacity = op.toFixed(3);
+
+    // contador 000 → 100 (zeros à esquerda a 20 %)
+    const n = Math.round(p * 100);
+    const txt = String(n).padStart(3, '0');
+    if (txt !== ultTexto) {
+      ultTexto = txt;
+      const lider = n === 0 ? 3 : 3 - String(n).length;
+      digs.forEach((d, i) => { d.firstChild.textContent = txt[i]; d.classList.toggle('zero', i < lider); });
+    }
+    digs.forEach((d, i) => {
+      const r = easeIn(cl((t - FIM - i * DIG_GAP) / DIG_DUR));
+      d.firstChild.style.transform = `translateY(${(-115 * r).toFixed(2)}%)`;
+      d.firstChild.style.opacity = (1 - r).toFixed(3);
+    });
+    const someTudo = 1 - cl((t - FIM) / 300);
+    pct.style.opacity = someTudo.toFixed(3);
+    linha.style.transform = `scaleX(${p.toFixed(4)})`;
+    linha.style.opacity = someTudo.toFixed(3);
+    cantoEsq.style.opacity = cantoDir.style.opacity = someTudo.toFixed(3);
+    const canto = p < 0.34 ? '<b>01 / 03</b> · cursos' : p < 0.67 ? '<b>02 / 03</b> · lives' : '<b>03 / 03</b> · comunidade';
+    if (canto !== ultCanto) { ultCanto = canto; etapa.innerHTML = canto; }
+    etapa.style.opacity = (ent * someTudo).toFixed(3);
+
+    // 4. colunas sobem; 6. descem de volta (direita para a esquerda)
+    for (let j = 0; j < 6; j++) {
+      const sobeP = colEase(cl((t - COL_INI - j * COL_GAP) / COL_DUR));
+      const sobeA = colEase(cl((t - COL_INI - COL_ATRASO - j * COL_GAP) / COL_DUR));
+      const desceA = colEase(cl((t - VOLTA_INI - (5 - j) * COL_GAP) / COL_DUR));
+      const desceP = colEase(cl((t - VOLTA_INI - COL_ATRASO - (5 - j) * COL_GAP) / COL_DUR));
+      colsP[j].style.transform = `translateY(${(-101 * (sobeP - desceP)).toFixed(3)}%)`;
+      colsA[j].style.transform = `translateY(${(-101 * (sobeA - desceA)).toFixed(3)}%)`;
+    }
+
+    // 5. palavras sobem da máscara com mola
+    palavras.forEach((w, k) => {
+      const e = mola(t - PAL_INI - k * PAL_GAP);
+      w.style.transform = `translateY(${(110 * (1 - e)).toFixed(2)}%)`;
+    });
+
+    // capivara: anda, para com amassada, acena
+    const ca = cl((t - CAPI_INI) / CAPI_ANDA);
+    const x = 130 * (1 - easeOut(ca));
+    const andando = ca > 0 && ca < 1;
+    const fase = (t - CAPI_INI) / 1000 * 9;
+    const amp = andando ? 16 * (1 - ca * 0.6) : 0;
+    pernas.forEach((pe, i) => {
+      const a = amp * Math.sin(fase + (i % 2 ? Math.PI : 0));
+      pe.setAttribute('transform', `rotate(${a.toFixed(2)} ${(+pe.getAttribute('x') + 7)} 114)`);
+    });
+    const pulo = andando ? -Math.abs(Math.sin(fase)) * 4 : 0;
+    const am = (t - CAPI_INI - CAPI_ANDA) / CAPI_AMASSA;
+    let sx = 1, sy = 1;
+    if (am > 0 && am < 1) { const s = Math.sin(am * Math.PI); sx = 1 + 0.08 * s; sy = 1 - 0.09 * s; }
+    capi.setAttribute('transform', `translate(${(110 * (1 - sx)).toFixed(2)} ${(160 * (1 - sy) + pulo).toFixed(2)}) scale(${sx.toFixed(4)} ${sy.toFixed(4)})`);
+    mascote.style.transform = `translateX(${x.toFixed(2)}%)`;
+    mascote.style.opacity = cl((t - CAPI_INI) / 200).toFixed(3);
+    const ac = (t - CAPI_INI - CAPI_ANDA - CAPI_AMASSA) / CAPI_ACENA;
+    let br = 0, cb = 0;
+    if (ac > 0 && ac < 1) {
+      const sobe = Math.sin(Math.PI * ac);
+      br = -150 * Math.min(1, sobe * 1.6) + 18 * Math.sin(ac * Math.PI * 6) * sobe;
+      cb = -6 * sobe;
+    }
+    braco.setAttribute('transform', `rotate(${br.toFixed(2)} 47 100)`);
+    cabeca.setAttribute('transform', `rotate(${cb.toFixed(2)} 70 96)`);
+  }
+
+  /* ===== relógio, laço e pausa fora da tela ===== */
+  let t = parado ? QUADRO_FINAL : 0;
+  let repetir = true;   // até a primeira interação real; ?demo=1 repete sempre
+  const comeca = () => { t = 0; };
+  function avancar(dt) {
+    t += dt;
+    if (!repetir && t >= VOLTA_INI - 1) t = VOLTA_INI - 1; // fica na página montada
+    if (t >= CICLO) t = 0;
+  }
+
+  let raf = 0, ultimo = null, naTela = true;
+  function quadro(agora) {
+    raf = requestAnimationFrame(quadro);
+    if (ultimo === null) ultimo = agora;
+    avancar(Math.min(50, agora - ultimo));
+    ultimo = agora;
+    render(t);
+  }
+  function ligar() {
+    const deve = !parado && naTela && !document.hidden;
+    if (deve && !raf) { ultimo = null; raf = requestAnimationFrame(quadro); }
+    else if (!deve && raf) { cancelAnimationFrame(raf); raf = 0; }
+  }
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => { naTela = es[0].isIntersecting; ligar(); }).observe(palco);
+  document.addEventListener('visibilitychange', ligar);
+
+  // interação real: para de repetir (a página fica disponível); toque no fundo repete
+  const interagiu = () => { if (!demo) repetir = false; };
+  window.addEventListener('pointerdown', interagiu, { passive: true });
+  window.addEventListener('keydown', interagiu, { passive: true });
+  rever.addEventListener('click', () => {
+    if (parado) { render(QUADRO_FINAL); return; }
+    comeca();
+  });
+  palco.addEventListener('click', e => {
+    if (parado || e.target.closest('a, button')) return;
+    if (t > COL_INI + 1600) comeca();
+  });
+
+  let rt = null;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { medir(); render(t); }, 120); });
+  Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 1200))]).then(() => {
+    medir(); render(t); ligar();
+  });
+  medir(); render(t);
+})();
+</script>
+</body>
+</html>

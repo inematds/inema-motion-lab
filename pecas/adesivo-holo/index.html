@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adesivo holográfico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<script>
+  // ?demo=1 demonstração contínua · ?motion=off parado no estado final · ?motion=xray raio-X
+  (function () {
+    var q = location.search, m = (q.match(/[?&]motion=([a-z]+)/) || [])[1] || '';
+    window.MOTION = { demo: /[?&]demo=1\b/.test(q), off: m === 'off', xray: m === 'xray' };
+    if (MOTION.off) document.documentElement.classList.add('motion-off');
+  })();
+</script>
+<style>
+  :root { --bg: #0b0b0d; --fg: #f3efe7; --fg-2: rgba(243,239,231,.55); --accent: #E2A23B; }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--fg); font-family: Inter, system-ui, sans-serif; }
+
+  main {
+    position: relative; height: 100vh; height: 100dvh; width: 100%; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 56px 16px 24px;
+    background:
+      radial-gradient(46% 52% at 50% 44%, rgba(243,239,231,.09), rgba(243,239,231,0) 70%),
+      radial-gradient(80% 70% at 50% 40%, #16161b, #0b0b0d 72%);
+  }
+  main::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .55;
+    background-image: radial-gradient(rgba(243,239,231,.06) .8px, transparent .9px); background-size: 3px 3px; }
+  .label { font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 500; font-size: 12px;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+  .label b { color: var(--fg); font-weight: 500; }
+  .top { position: absolute; left: 0; right: 0; top: 20px; text-align: center; }
+
+  .stage { position: relative; perspective: 1300px; flex: none; }
+  .shadow { position: absolute; left: 10%; right: 10%; bottom: -4%; height: 14%; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0,0,0,.75), rgba(0,0,0,0)); filter: blur(6px); will-change: transform, opacity; }
+  .tilt { position: relative; transform-style: preserve-3d; will-change: transform; }
+  canvas { display: block; }
+  .corner {
+    position: absolute; width: 64px; height: 64px; margin: -40px 0 0 -40px; left: 0; top: 0;
+    appearance: none; border: 0; background: transparent; border-radius: 50%; cursor: grab; touch-action: none;
+  }
+  .corner::after { content: ""; position: absolute; left: 22px; top: 22px; width: 20px; height: 20px; border-radius: 50%;
+    border: 1.5px dashed rgba(243,239,231,.0); transition: border-color 200ms ease; }
+  .corner:hover::after, .corner:focus-visible::after { border-color: rgba(226,162,59,.9); }
+  .corner:focus-visible { outline: 3px solid var(--accent); outline-offset: -6px; }
+  .corner.drag { cursor: grabbing; }
+
+  .chip { position: relative; display: inline-flex; gap: 10px; align-items: center; padding: 8px 14px; border-radius: 999px;
+    border: 1px solid rgba(243,239,231,.14); background: rgba(243,239,231,.04); font-family: "JetBrains Mono", monospace;
+    font-size: 12px; letter-spacing: .14em; color: var(--fg); }
+  .chip i { width: 7px; height: 7px; border-radius: 50%; background: linear-gradient(135deg, #ffd6e8, #c9f0ff, #fff2c6); }
+  .hint { color: var(--fg-2); font-size: 14px; text-align: center; max-width: 30em; line-height: 1.5; margin: 0; }
+
+  .ghost { position: fixed; left: 0; top: 0; width: 30px; height: 30px; pointer-events: none; z-index: 20; opacity: 0; will-change: transform, opacity; }
+  .ghost svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 4px rgba(0,0,0,.45)); }
+
+  @media (max-height: 600px) { .hint { display: none; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+  .motion-off *, .motion-off *::before, .motion-off *::after { transition: none !important; }
+</style>
+</head>
+<body>
+<main id="piece">
+  <div class="top label">INEMA<b>.CLUB</b> · edição holográfica</div>
+  <div class="stage" id="stage">
+    <div class="shadow" id="shadow" aria-hidden="true" data-xray="sombra · escorrega para o lado oposto da inclinação" data-xray-tool="code"></div>
+    <div class="tilt" id="tilt" data-xray="figurinha · inclina para o cursor em mola 120/13, até 18°" data-xray-tool="code">
+      <canvas id="cv" role="img" aria-label="Figurinha holográfica de uma capivara com capelo de formatura e a faixa INEMA"></canvas>
+      <button class="corner" id="corner" type="button" aria-label="Descolar o canto da figurinha. Setas inclinam."
+        data-xray="canto · arraste: dobra na mediatriz entre canto e ponteiro, volta em mola 190/12" data-xray-tool="code"></button>
+    </div>
+  </div>
+  <div class="chip"><i aria-hidden="true"></i>INEMA.CLUB · HOLO 1/250</div>
+  <p class="hint">Mexa o mouse para inclinar. Puxe o canto de baixo para descolar.</p>
+</main>
+
+<div class="ghost" id="ghost" aria-hidden="true">
+  <svg viewBox="0 0 24 24"><path d="M3 2 L3 19.5 L7.6 15.4 L10.7 22 L13.8 20.6 L10.8 14.2 L17 14 Z" fill="#fffaf0" stroke="#17120f" stroke-width="1.5" stroke-linejoin="round"/></svg>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var piece = $('piece'), stage = $('stage'), tilt = $('tilt'), cv = $('cv'), corner = $('corner'), shadowEl = $('shadow'), ghost = $('ghost');
+  var ctx = cv.getContext('2d');
+  var mq = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  var DEMO = MOTION.demo;
+  function reduce() { return mq.matches || MOTION.off; }
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeIO(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function easeO(t) { return 1 - Math.pow(1 - t, 3); }
+  function mk(w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+
+  // ---------- desenho base (unidades de projeto 340 x 380) ----------
+  var DW = 340, DH = 380, CORNER = [290, 350];
+  var cssW = 340, scale = 1, dpr = 1, PW = 0, PH = 0;
+  var art, base, back, fx, flap, ink, flakes = [], sparks = [];
+  var INK = '#1a120c';
+
+  function drawArt(c) {
+    c.lineJoin = 'round'; c.lineCap = 'round'; c.lineWidth = 6; c.strokeStyle = INK;
+    function rr(x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+    // orelhas
+    [[96, 128], [244, 128]].forEach(function (p) { c.beginPath(); c.arc(p[0], p[1], 22, 0, 7); c.fillStyle = '#7a5232'; c.fill(); c.stroke(); });
+    // cabeça
+    rr(78, 116, 184, 190, 72); c.fillStyle = '#9b6b43'; c.fill(); c.stroke();
+    c.save(); rr(78, 116, 184, 190, 72); c.clip();
+    c.fillStyle = 'rgba(255,230,190,.18)'; c.beginPath(); c.ellipse(140, 150, 70, 32, -0.3, 0, 7); c.fill(); c.restore();
+    // focinho
+    rr(112, 214, 116, 92, 42); c.fillStyle = '#7a5232'; c.fill(); c.stroke();
+    c.fillStyle = INK; c.beginPath(); c.ellipse(148, 246, 9, 6, 0, 0, 7); c.fill(); c.beginPath(); c.ellipse(192, 246, 9, 6, 0, 0, 7); c.fill();
+    c.lineWidth = 4; c.beginPath(); c.moveTo(152, 280); c.quadraticCurveTo(170, 292, 188, 280); c.stroke(); c.lineWidth = 6;
+    // bochechas
+    c.fillStyle = 'rgba(226,162,59,.45)'; c.beginPath(); c.ellipse(100, 230, 14, 9, 0, 0, 7); c.fill(); c.beginPath(); c.ellipse(240, 230, 14, 9, 0, 0, 7); c.fill();
+    // olhos
+    [[126, 190], [214, 190]].forEach(function (p) {
+      c.fillStyle = INK; c.beginPath(); c.arc(p[0], p[1], 12, 0, 7); c.fill();
+      c.fillStyle = '#fff'; c.beginPath(); c.arc(p[0] + 4, p[1] - 4, 4, 0, 7); c.fill();
+    });
+    // capelo
+    c.fillStyle = '#211a14'; rr(118, 92, 104, 34, 8); c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(60, 88); c.lineTo(170, 46); c.lineTo(280, 88); c.lineTo(170, 128); c.closePath(); c.fillStyle = '#2a221b'; c.fill(); c.stroke();
+    c.strokeStyle = '#E2A23B'; c.lineWidth = 4; c.beginPath(); c.moveTo(170, 87); c.lineTo(262, 104); c.lineTo(266, 146); c.stroke();
+    c.fillStyle = '#E2A23B'; c.strokeStyle = INK; c.lineWidth = 3; rr(258, 142, 16, 24, 4); c.fill(); c.stroke();
+    c.fillStyle = '#E2A23B'; c.beginPath(); c.arc(170, 87, 7, 0, 7); c.fill(); c.lineWidth = 6;
+    // faixa
+    c.beginPath(); c.moveTo(48, 318); c.lineTo(30, 334); c.lineTo(48, 350); c.closePath(); c.fillStyle = '#b8801f'; c.fill(); c.stroke();
+    c.beginPath(); c.moveTo(292, 318); c.lineTo(310, 334); c.lineTo(292, 350); c.closePath(); c.fill(); c.stroke();
+    rr(46, 304, 248, 56, 14); c.fillStyle = '#E2A23B'; c.fill(); c.stroke();
+    c.fillStyle = INK; c.font = '800 34px Sora, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText('INEMA', 170, 334);
+  }
+
+  function silhouette(src, color) {
+    var c = mk(src.width, src.height), g = c.getContext('2d');
+    g.drawImage(src, 0, 0); g.globalCompositeOperation = 'source-in'; g.fillStyle = color; g.fillRect(0, 0, c.width, c.height);
+    return c;
+  }
+  function dilate(g, sil, rad, k) {
+    for (var r = 3; r <= rad; r += 3) for (var a = 0; a < 32; a++) {
+      var an = a / 32 * Math.PI * 2; g.drawImage(sil, Math.cos(an) * r * k, Math.sin(an) * r * k);
+    }
+  }
+
+  function build() {
+    var vw = piece.clientWidth, vh = piece.clientHeight;
+    cssW = Math.floor(Math.min(400, vw * 0.8, (vh - 190) * DW / DH));
+    cssW = Math.max(cssW, 180);
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    scale = cssW / DW;
+    var cssH = Math.round(DH * scale);
+    PW = Math.round(cssW * dpr); PH = Math.round(cssH * dpr);
+    cv.width = PW; cv.height = PH; cv.style.width = cssW + 'px'; cv.style.height = cssH + 'px';
+    tilt.style.width = cssW + 'px'; stage.style.width = cssW + 'px'; stage.style.height = cssH + 'px';
+    var k = PW / DW;
+    // arte (com margem: o recorte já cabe no quadro de projeto)
+    art = mk(PW, PH); var ga = art.getContext('2d');
+    ga.save(); ga.translate(0, 0); ga.scale(k, k);
+    ga.translate(170, 190); ga.scale(0.86, 0.86); ga.translate(-170, -190);   // espaço para a borda branca
+    drawArt(ga); ga.restore();
+    // recorte: borda cinza (espessura) + borda branca, depois a arte
+    base = mk(PW, PH); var gb = base.getContext('2d');
+    var silGrey = silhouette(art, '#b9b2a6'), silWhite = silhouette(art, '#fbf8f2');
+    gb.save(); gb.translate(0, 2 * k); dilate(gb, silGrey, 16, k); gb.restore();
+    dilate(gb, silWhite, 15, k);
+    gb.drawImage(art, 0, 0);
+    // verso do papel
+    back = mk(PW, PH); var gk = back.getContext('2d');
+    gk.drawImage(silhouette(base, '#e9e3d6'), 0, 0);
+    fx = mk(PW, PH); flap = mk(PW, PH);
+    // tinta: só os traços escuros da arte, redesenhados por cima do holograma
+    ink = mk(PW, PH);
+    var ad = art.getContext('2d').getImageData(0, 0, PW, PH), dd = ad.data;
+    for (var q = 0; q < dd.length; q += 4) {
+      var lum = dd[q] + dd[q + 1] + dd[q + 2];
+      if (lum > 150) dd[q + 3] = 0; else dd[q + 3] = Math.round(dd[q + 3] * Math.min(1, (150 - lum) / 60));
+    }
+    ink.getContext('2d').putImageData(ad, 0, 0);
+    // três camadas de glitter viradas para lados diferentes + 150 brilhos
+    flakes = [];
+    for (var L = 0; L < 3; L++) {
+      var fc = mk(PW, PH), gf = fc.getContext('2d');
+      var hue = [40, 190, 300][L];
+      for (var i = 0; i < 1100; i++) {
+        var x = Math.random() * PW, y = Math.random() * PH, s = (0.6 + Math.random() * 1.6) * k;
+        gf.fillStyle = 'hsla(' + (hue + Math.random() * 60) + ',90%,' + (70 + Math.random() * 25) + '%,' + (0.35 + Math.random() * 0.5) + ')';
+        gf.fillRect(x, y, s, s);
+      }
+      var ang = L * 2.094 + 0.5;
+      flakes.push({ c: fc, nx: Math.cos(ang), ny: Math.sin(ang) });
+    }
+    sparks = [];
+    var bd = base.getContext('2d').getImageData(0, 0, PW, PH).data, tries = 0;
+    while (sparks.length < 150 && tries++ < 6000) {
+      var sx = Math.random() * PW | 0, sy = Math.random() * PH | 0;
+      if (bd[(sy * PW + sx) * 4 + 3] > 200) sparks.push({ x: sx, y: sy, f: Math.random() * Math.PI * 2, s: (2 + Math.random() * 4) * k, g: 0.6 + Math.random() * 0.8 });
+    }
+    // canto que descola: no papel, embaixo à direita
+    placeCorner();
+  }
+  function placeCorner() {
+    corner.style.left = (CORNER[0] * scale) + 'px'; corner.style.top = (CORNER[1] * scale) + 'px';
+  }
+
+  // ---------- estado ----------
+  var rx = { x: 0, v: 0 }, ry = { x: 0, v: 0 }, tgt = [0, 0];
+  var peel = { x: 0, y: 0, vx: 0, vy: 0 }, peelT = null, dragging = null, press = { x: 1, v: 0 };
+  var pointerIn = false, lastPointer = -1e9, clock = 0, nextIdlePeel = 5000, idlePeelT = -1;
+
+  // ---------- holograma ----------
+  function renderSticker() {
+    var k = PW / DW, R = reduce();
+    var tx = ry.x / 18, ty = -rx.x / 18;          // -1..1: para onde a figurinha "olha"
+    var g = fx.getContext('2d');
+    g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.clearRect(0, 0, PW, PH);
+    g.drawImage(base, 0, 0);
+    // 1. arco-íris pastel multiplicado: branco vira perolado
+    var off = (tx * 0.5 + ty * 0.35) * PW;
+    var pg = g.createLinearGradient(-PW * 0.2 + off, 0, PW * 1.2 + off, PH);
+    ['#ffd3e6', '#d4ecff', '#dcffe4', '#fff1c4', '#e6d6ff', '#ffd3e6', '#d4ecff'].forEach(function (c, i, a) { pg.addColorStop(i / (a.length - 1), c); });
+    g.globalCompositeOperation = 'multiply'; g.globalAlpha = 0.75; g.fillStyle = pg; g.fillRect(0, 0, PW, PH);
+    // 2. faixa de arco-íris vivo em color-dodge (não pega a tinta preta)
+    var c0 = 0.5 + tx * 0.45 - ty * 0.25;
+    var bx0 = PW * (c0 - 0.42), bx1 = PW * (c0 + 0.42);
+    var bg = g.createLinearGradient(bx0, 0, bx1, PH * 0.6);
+    bg.addColorStop(0, 'rgba(0,0,0,0)'); bg.addColorStop(0.32, 'rgba(255,70,150,.42)'); bg.addColorStop(0.43, 'rgba(255,200,60,.5)');
+    bg.addColorStop(0.53, 'rgba(80,240,170,.5)'); bg.addColorStop(0.63, 'rgba(80,160,255,.45)'); bg.addColorStop(0.74, 'rgba(190,90,255,.35)'); bg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.globalCompositeOperation = 'color-dodge'; g.globalAlpha = 0.3 + 0.35 * Math.min(1, Math.hypot(tx, ty) + 0.2); g.fillStyle = bg; g.fillRect(0, 0, PW, PH);
+    // 3. risco de luz fino em overlay
+    var sc = 0.5 + tx * 0.6 + ty * 0.3;
+    var sg = g.createLinearGradient(PW * (sc - 0.12), 0, PW * (sc + 0.12), PH * 0.35);
+    sg.addColorStop(0, 'rgba(255,255,255,0)'); sg.addColorStop(0.5, 'rgba(255,255,255,.85)'); sg.addColorStop(1, 'rgba(255,255,255,0)');
+    g.globalCompositeOperation = 'overlay'; g.globalAlpha = 0.7; g.fillStyle = sg; g.fillRect(0, 0, PW, PH);
+    // 4. glitter: cada camada acende quando a inclinação aponta para ela
+    g.globalCompositeOperation = 'lighter';
+    var tl = Math.hypot(tx, ty), ux = tl ? tx / tl : 0, uy = tl ? ty / tl : 0;
+    flakes.forEach(function (f) {
+      var a = Math.max(0, ux * f.nx + uy * f.ny) * Math.min(1, tl * 1.4 + 0.1);
+      if (a > 0.02) { g.globalAlpha = a * 0.75; g.drawImage(f.c, 0, 0); }
+    });
+    // 5. 150 brilhos, cada um com o seu ângulo de faceta
+    var ta = Math.atan2(uy, ux);
+    g.fillStyle = '#fffdf5';
+    for (var i = 0; i < sparks.length; i++) {
+      var s = sparks[i], b = Math.pow(Math.max(0, Math.cos(s.f - ta)), 30) * Math.min(1, tl * 2) * s.g;
+      if (b < 0.05) continue;
+      g.globalAlpha = Math.min(1, b);
+      var r = s.s * (0.6 + b);
+      g.beginPath();
+      g.moveTo(s.x, s.y - r); g.lineTo(s.x + r * 0.22, s.y - r * 0.22); g.lineTo(s.x + r, s.y); g.lineTo(s.x + r * 0.22, s.y + r * 0.22);
+      g.lineTo(s.x, s.y + r); g.lineTo(s.x - r * 0.22, s.y + r * 0.22); g.lineTo(s.x - r, s.y); g.lineTo(s.x - r * 0.22, s.y - r * 0.22); g.closePath(); g.fill();
+    }
+    // 6. máscara: só dentro da figurinha
+    g.globalAlpha = 1; g.globalCompositeOperation = 'destination-in'; g.drawImage(base, 0, 0);
+    g.globalCompositeOperation = 'source-over';
+    g.drawImage(ink, 0, 0);   // a tinta preta nunca pega arco-íris
+
+    // ---------- composição com a dobra ----------
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, PW, PH);
+    var C = [CORNER[0] * k, CORNER[1] * k], P = [C[0] + peel.x * k, C[1] + peel.y * k];
+    var dx = C[0] - P[0], dy = C[1] - P[1], dl = Math.hypot(dx, dy);
+    if (dl < 1.5) { ctx.drawImage(fx, 0, 0); return; }
+    var n = [dx / dl, dy / dl], M = [(C[0] + P[0]) / 2, (C[1] + P[1]) / 2], u = [-n[1], n[0]], BIG = PW * 4;
+    function half(g2, sgn) {   // semiplano do lado sgn da dobra (+1 = lado do canto)
+      g2.beginPath();
+      g2.moveTo(M[0] + u[0] * BIG, M[1] + u[1] * BIG);
+      g2.lineTo(M[0] - u[0] * BIG, M[1] - u[1] * BIG);
+      g2.lineTo(M[0] - u[0] * BIG + sgn * n[0] * BIG, M[1] - u[1] * BIG + sgn * n[1] * BIG);
+      g2.lineTo(M[0] + u[0] * BIG + sgn * n[0] * BIG, M[1] + u[1] * BIG + sgn * n[1] * BIG);
+      g2.closePath();
+    }
+    // frente: tudo o que não passou da dobra
+    ctx.save(); half(ctx, -1); ctx.clip(); ctx.drawImage(fx, 0, 0); ctx.restore();
+    // aba: o pedaço além da dobra espelhado sobre a linha, mostrando o verso do papel
+    var fg = flap.getContext('2d');
+    fg.setTransform(1, 0, 0, 1, 0, 0); fg.globalCompositeOperation = 'source-over'; fg.clearRect(0, 0, PW, PH);
+    var md = M[0] * n[0] + M[1] * n[1];
+    fg.save();
+    fg.setTransform(1 - 2 * n[0] * n[0], -2 * n[0] * n[1], -2 * n[0] * n[1], 1 - 2 * n[1] * n[1], 2 * md * n[0], 2 * md * n[1]);
+    half(fg, 1); fg.clip(); fg.drawImage(back, 0, 0);
+    fg.restore();
+    // vinco: escuro junto da dobra, claro na ponta
+    var cg = fg.createLinearGradient(M[0], M[1], M[0] - n[0] * dl * 0.5, M[1] - n[1] * dl * 0.5);
+    cg.addColorStop(0, 'rgba(70,55,40,.45)'); cg.addColorStop(0.25, 'rgba(70,55,40,.12)'); cg.addColorStop(1, 'rgba(255,255,255,.35)');
+    fg.globalCompositeOperation = 'source-atop'; fg.fillStyle = cg; fg.fillRect(0, 0, PW, PH);
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 14 * k; ctx.shadowOffsetX = -3 * k; ctx.shadowOffsetY = -4 * k;
+    ctx.drawImage(flap, 0, 0);
+    ctx.restore();
+  }
+
+  // ---------- ponteiro ----------
+  function stagePt(cx, cy) {
+    var r = stage.getBoundingClientRect();
+    return [(cx - r.left) / scale, (cy - r.top) / scale];
+  }
+  function aimAt(cx, cy) {
+    var r = stage.getBoundingClientRect();
+    var px = clamp((cx - r.left) / r.width, -0.4, 1.4), py = clamp((cy - r.top) / r.height, -0.4, 1.4);
+    tgt = [clamp(-(py - 0.5) * 2, -1, 1) * 18, clamp((px - 0.5) * 2, -1, 1) * 18];
+  }
+  piece.addEventListener('pointermove', function (e) {
+    if (!e.isTrusted) return;
+    pointerIn = true; lastPointer = clock; aimAt(e.clientX, e.clientY);
+    if (dragging && e.pointerId === dragging) { var p = stagePt(e.clientX, e.clientY); setPeelTo(p); }
+    wake();
+  }, { passive: true });
+  piece.addEventListener('pointerleave', function () { pointerIn = false; tgt = [0, 0]; wake(); });
+  function setPeelTo(p) {
+    var dx = p[0] - CORNER[0], dy = p[1] - CORNER[1], l = Math.hypot(dx, dy), mx = 230;
+    if (l > mx) { dx *= mx / l; dy *= mx / l; }
+    peel.x = Math.min(dx, 0); peel.y = Math.min(dy, 0); peel.vx = peel.vy = 0;
+  }
+  corner.addEventListener('pointerdown', function (e) {
+    if (reduce()) return;
+    dragging = e.pointerId; corner.classList.add('drag'); peelT = null;
+    try { corner.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  function endDrag(e) {
+    if (dragging == null || (e && e.pointerId !== dragging)) return;
+    dragging = null; corner.classList.remove('drag'); press.v -= 0.35; wake();
+  }
+  corner.addEventListener('pointerup', endDrag);
+  corner.addEventListener('pointercancel', endDrag);
+  corner.addEventListener('pointermove', function (e) {
+    if (dragging === e.pointerId) { setPeelTo(stagePt(e.clientX, e.clientY)); lastPointer = clock; wake(); }
+  });
+  corner.addEventListener('click', function (e) { if (e.detail === 0) autoPeel(); });   // teclado
+  corner.addEventListener('keydown', function (e) {
+    var m = { ArrowUp: [-6, 0], ArrowDown: [6, 0], ArrowLeft: [0, -6], ArrowRight: [0, 6] }[e.key];
+    if (m) { e.preventDefault(); tgt = [clamp(tgt[0] + m[0], -18, 18), clamp(tgt[1] + m[1], -18, 18)]; pointerIn = true; lastPointer = clock; wake(); }
+  });
+  function autoPeel() { if (reduce()) return; peelT = 0; wake(); }
+
+  // ---------- passo ----------
+  function spring(s, target, kk, d, dt) { var a = -kk * (s.x - target) - d * s.v; s.v += a * dt; s.x += s.v * dt; }
+  function step(dt) {
+    var s = dt / 1000, R = reduce();
+    if (R) { rx.x = -6; ry.x = 10; rx.v = ry.v = 0; peel.x = peel.y = 0; press.x = 1; return; }
+    var idle = !pointerIn && !demoOn && clock - lastPointer > 1500;
+    var want = tgt;
+    if (idle) {
+      var t = clock / 1300;
+      want = [Math.sin(2 * t) * 8, Math.sin(t) * 14];   // oito deitado
+      nextIdlePeel -= dt;
+      if (nextIdlePeel <= 0 && !peelT && !dragging) { autoPeel(); nextIdlePeel = 5000; }
+    }
+    for (var n = 0; n < 2; n++) { spring(rx, want[0], 120, 13, s / 2); spring(ry, want[1], 120, 13, s / 2); }
+    // descolar automático: abre 600 ms, segura 500 ms, solta
+    if (peelT != null && !dragging) {
+      peelT += dt;
+      var tp = Math.min(1, peelT / 600);
+      peel.x = -118 * easeO(tp); peel.y = -96 * easeO(tp); peel.vx = peel.vy = 0;
+      if (peelT >= 1100) { peelT = null; press.v -= 0.35; }
+    } else if (!dragging) {
+      for (var m = 0; m < 2; m++) {
+        var ax = -190 * peel.x - 12 * peel.vx, ay = -190 * peel.y - 12 * peel.vy;
+        peel.vx += ax * s / 2; peel.vy += ay * s / 2; peel.x += peel.vx * s / 2; peel.y += peel.vy * s / 2;
+      }
+      if (peel.x > 0) { peel.x = 0; peel.vx = 0; } if (peel.y > 0) { peel.y = 0; peel.vy = 0; }
+    }
+    // pressão de 2% ao soltar (mola)
+    var ap = -300 * (press.x - 1) - 16 * press.v; press.v += ap * s; press.x += press.v * s;
+    press.x = clamp(press.x, 0.97, 1.01);
+  }
+  function apply() {
+    tilt.style.transform = 'rotateX(' + rx.x.toFixed(2) + 'deg) rotateY(' + ry.x.toFixed(2) + 'deg) scale(' + press.x.toFixed(4) + ')';
+    shadowEl.style.transform = 'translate(' + (-ry.x * 1.4).toFixed(1) + 'px,' + (rx.x * 1.1).toFixed(1) + 'px) scale(' + (1 - Math.abs(rx.x) / 90).toFixed(3) + ',1)';
+    shadowEl.style.opacity = (0.75 + 0.25 * (1 - Math.hypot(rx.x, ry.x) / 26)).toFixed(3);
+    renderSticker();
+    if (window.xrayTick) xrayTick();
+  }
+
+  // ---------- modo demonstração (ciclo de 9 s) ----------
+  var LOOP = 9000;
+  var demoOn = !reduce() || DEMO, demoE = 0, demoFade = 1, demoStopping = false, demoDrag = false;
+  function stopDemo(e) {
+    if (DEMO || !demoOn || demoStopping) return;
+    if (e && e.isTrusted === false) return;
+    demoStopping = true; demoDrag = false; tgt = [0, 0];
+  }
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (ev) {
+    window.addEventListener(ev, stopDemo, { passive: true, capture: true });
+  });
+  piece.addEventListener('pointerenter', function (e) { if (e.isTrusted && demoE > 300) stopDemo(e); });
+  function demoPath(c) {
+    var r = stage.getBoundingClientRect(), w = r.width, h = r.height;
+    var Cc = [r.left + CORNER[0] * scale, r.top + CORNER[1] * scale];
+    function at(fx2, fy2) { return [r.left + w * fx2, r.top + h * fy2]; }
+    function mv(a, b, t0, t1) { var t = easeIO(clamp((c - t0) / (t1 - t0), 0, 1)); return [lerp(a[0], b[0], t), lerp(a[1], b[1], t)]; }
+    var A = at(1.25, 0.15), B = at(-0.2, 0.25), D = at(0.15, 1.1), E = at(1.2, 0.75), F = [Cc[0] - 120 * scale, Cc[1] - 100 * scale];
+    if (c < 1400) return mv(A, B, 0, 1400);
+    if (c < 2600) return mv(B, D, 1400, 2600);
+    if (c < 3800) return mv(D, E, 2600, 3800);
+    if (c < 4600) return mv(E, Cc, 3800, 4600);
+    if (c < 4800) return Cc;
+    if (c < 5800) return mv(Cc, F, 4800, 5800);        // arrasta: descola
+    if (c < 6300) return F;
+    return mv(F, A, 6300, 8800);
+  }
+  function renderDemo(dt) {
+    if (!demoOn) return;
+    if (demoStopping) {
+      demoFade = Math.max(0, demoFade - dt / 300);
+      ghost.style.opacity = demoFade.toFixed(3);
+      if (demoFade <= 0) { demoOn = false; ghost.style.display = 'none'; }
+      return;
+    }
+    demoE += dt;
+    var c = demoE % LOOP, pos = demoPath(c);
+    var drag = c >= 4700 && c < 6300;
+    if (drag) { setPeelTo(stagePt(pos[0], pos[1])); tgt = [-4, 6]; }
+    else {
+      if (demoDrag) press.v -= 0.35;
+      aimAt(pos[0], pos[1]);
+    }
+    demoDrag = drag;
+    lastPointer = clock;
+    var pr = drag ? 0.88 : 1;
+    ghost.style.opacity = Math.min(1, demoE / 300).toFixed(3);
+    ghost.style.transform = 'translate(' + (pos[0] - 4).toFixed(1) + 'px,' + (pos[1] - 3).toFixed(1) + 'px) scale(' + pr + ')';
+  }
+  if (!demoOn) ghost.style.display = 'none';
+  // durante o arrasto do fantasma a aba não volta: tratar como "segurando"
+  var _step = step;
+  step = function (dt) {
+    if (demoDrag && demoOn && !demoStopping) { var keep = { x: peel.x, y: peel.y }; _step(dt); peel.x = keep.x; peel.y = keep.y; peel.vx = peel.vy = 0; }
+    else _step(dt);
+  };
+
+  // ---------- loop único ----------
+  var visible = true, rafId = 0, last = 0, ready = false;
+  function frame(now) {
+    rafId = 0;
+    var dt = last ? Math.min(50, now - last) : 16;
+    last = now; clock += dt;
+    if (ready) { renderDemo(dt); step(dt); apply(); }
+    if (!(reduce() && !demoOn)) wake();
+  }
+  function running() { return visible && !document.hidden; }
+  function wake() { if (!rafId && running()) rafId = requestAnimationFrame(frame); }
+  function sleep() { if (rafId) { cancelAnimationFrame(rafId); rafId = 0; } last = 0; }
+  document.addEventListener('visibilitychange', function () { document.hidden ? sleep() : wake(); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      visible = entries[entries.length - 1].isIntersecting;
+      visible ? wake() : sleep();
+    }).observe(piece);
+  }
+  if (mq.addEventListener) mq.addEventListener('change', function () {
+    if (reduce() && !DEMO) { demoOn = false; ghost.style.display = 'none'; }
+    step(0); apply(); wake();
+  });
+  var rT = 0;
+  addEventListener('resize', function () { clearTimeout(rT); rT = setTimeout(function () { build(); step(0); apply(); wake(); }, 120); });
+
+  function start() { build(); ready = true; step(16); apply(); wake(); }
+  var fontsOk = document.fonts && document.fonts.load ? document.fonts.load('800 34px Sora') : Promise.resolve();
+  fontsOk.then(start, start);
+})();
+</script>
+
+<!-- Raio-X: ?motion=xray desenha contorno e etiqueta em tudo que se move -->
+<style>
+  .xr-layer { position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden; }
+  .xr-box { position: absolute; left: 0; top: 0; border: 1.5px dashed #E2A23B; border-radius: 6px; }
+  .xr-tag { position: absolute; left: -1.5px; bottom: 100%; margin-bottom: 3px; white-space: nowrap;
+    font: 500 10px/1.25 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .03em;
+    color: #0b0b0d; background: #E2A23B; padding: 3px 6px; border-radius: 4px; }
+  .xr-box.below .xr-tag { bottom: auto; top: 100%; margin: 3px 0 0; }
+</style>
+<script>
+  (function () {
+    if (!window.MOTION || !MOTION.xray) return;
+    var els = [].slice.call(document.querySelectorAll('[data-xray]'));
+    var layer = document.createElement('div'); layer.className = 'xr-layer'; layer.setAttribute('aria-hidden', 'true');
+    var boxes = els.map(function (el) {
+      var b = document.createElement('div'); b.className = 'xr-box';
+      var t = document.createElement('span'); t.className = 'xr-tag'; t.textContent = el.getAttribute('data-xray');
+      b.appendChild(t); layer.appendChild(b); return b;
+    });
+    document.body.appendChild(layer);
+    window.xrayTick = function () {
+      for (var i = 0; i < els.length; i++) {
+        var r = els[i].getBoundingClientRect(), b = boxes[i];
+        b.style.width = r.width + 'px'; b.style.height = r.height + 'px';
+        b.style.transform = 'translate(' + r.left + 'px,' + r.top + 'px)';
+        b.classList.toggle('below', r.top < 24);
+      }
+    };
+    xrayTick(); addEventListener('resize', xrayTick); setTimeout(xrayTick, 600);
+  })();
+</script>
+</body>
+</html>

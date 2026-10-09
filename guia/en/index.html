@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>INEMA Motion Lab — website animations from a single prompt</title>
-<meta name="description" content="A prompt template for website animations, 5 ready-made interactive pieces in the INEMA style (⌘K search, bento grid, playable 404, physics footer, day and night) and a short video of each one. Open and free.">
+<meta name="description" content="A prompt template for website animations, 20 ready-made interactive pieces in the INEMA style (search, menus, footers, galleries, buttons, playable 404, loading screen and more), each with X-ray and ?motion=off and a short video of each one. Open and free.">
 <link rel="alternate" hreflang="pt-BR" href="https://inematds.github.io/inema-motion-lab/guia/">
 <link rel="alternate" hreflang="en" href="https://inematds.github.io/inema-motion-lab/guia/en/">
 <link rel="alternate" hreflang="es" href="https://inematds.github.io/inema-motion-lab/guia/es/">
@@ -145,7 +145,7 @@
     <div>
       <span class="chip">Website animation with AI · open and free</span>
       <h1>Website animations that come out <span class="amb">ready</span> from a prompt</h1>
-      <p class="lead">One prompt template, five interactive pieces in the INEMA style and a short video of each one. Copy, adapt and use.</p>
+      <p class="lead">One prompt template, twenty interactive pieces in the INEMA style and a short video of each one. All have X-ray (?motion=xray labels what moves) and ?motion=off. Copy, adapt and use.</p>
       <div class="cta">
         <a class="btn" href="#pecas">See the pieces</a>
         <a class="btn ghost" href="https://github.com/inematds/inema-motion-lab" target="_blank" rel="noopener">View on GitHub</a>
@@ -157,7 +157,7 @@
 
 <section id="resumo" class="resumo"><div class="wrap">
   <span class="chip">In short</span>
-  <p>INEMA Motion Lab teaches you how to ask an AI (Claude, Codex or another one) for website animations and get something with a professional finish, not a generic effect. It brings a three-part prompt template (appearance, motion and rules) and five real examples made with it: a ⌘K search, a features grid, a playable 404 page, a footer with falling letters and a day/night theme button. Each piece is a single HTML file that you open in the browser and paste into your site, and it comes with the prompt that generated it and a short video. It is for anyone who builds pages, guides or courses and wants motion without relying on a heavy library.</p>
+  <p>INEMA Motion Lab teaches you how to ask an AI (Claude, Codex or another one) for website animations and get something with a professional finish, not a generic effect. It brings a three-part prompt template (appearance, motion and rules) and twenty real examples made with it: searches and menus, footers, galleries, buttons, a playable 404 page, a loading screen and a day/night theme button. Each piece is a single HTML file that you open in the browser and paste into your site, and it comes with the prompt that generated it and a short video. Every piece has X-ray (add ?motion=xray to the URL to label what moves) and a ?motion=off mode that freezes everything in its final state. It is for anyone who builds pages, guides or courses and wants motion without relying on a heavy library.</p>
 </div></section>
 
 <section id="oque"><div class="wrap">
@@ -167,7 +167,7 @@
   <figure style="margin:0 0 26px;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 30px 80px -30px #000"><img src="../assets/banner-grade-en.jpg" alt="Prompt template, ⌘K search, bento grid, playable 404, physics footer, day and night" loading="lazy" style="width:100%;display:block"></figure>
   <div class="grid g3">
     <div class="card"><h3>📐 Prompt template</h3><p>Appearance with exact values, motion in numbered steps with timing in milliseconds, and technical rules that prevent the most common mistakes.</p></div>
-    <div class="card"><h3>🧩 5 ready-made pieces</h3><p>One HTML file each, no build step, in INEMA colors and fonts. They work on mobile, with the keyboard and with reduced motion.</p></div>
+    <div class="card"><h3>🧩 20 ready-made pieces</h3><p>One HTML file each, no build step, in INEMA colors and fonts. They work on mobile, with the keyboard and with reduced motion. Each has X-ray (?motion=xray) and ?motion=off.</p></div>
     <div class="card"><h3>🎬 8-second videos</h3><p>Each piece has a demo mode with a ghost cursor, recorded in WebM and MP4, ready to use as supporting footage in videos and posts.</p></div>
   </div>
 </div></section>
@@ -175,7 +175,7 @@
 <section id="fluxo"><div class="wrap">
   <span class="chip">How it works</span>
   <h2>From request to video, no magic step</h2>
-  <p class="sub">All five pieces went through this same path. The test and the recording are scripts in this repository.</p>
+  <p class="sub">All 20 pieces went through this same path. The test and the recording are scripts in this repository.</p>
   <div class="flow">
     <span>Template</span><span class="arr">→</span>
     <span>The piece's PROMPT.md</span><span class="arr">→</span>
@@ -188,8 +188,11 @@
 
 <section id="pecas"><div class="wrap">
   <span class="chip">The pieces</span>
-  <h2>Five pieces, each with prompt, code and video</h2>
-  <p class="sub">The video shows the automatic demo. Click "Open live" to play with the piece right here.</p>
+  <h2>20 pieces, each with prompt, code and video</h2>
+  <p class="sub">The video shows the automatic demo. Click "Open live" to play with the piece right here. In full screen, add <code>?motion=xray</code> to see what moves labeled, or <code>?motion=off</code> to freeze everything.</p>
+
+
+  <h3 class="grupo" style="margin:34px 0 22px;font-size:1.25rem;color:var(--amb)">Search and navigation</h3>
 
   <div class="peca" data-peca="busca-cmdk">
     <div class="palco"><video src="../../videos/busca-cmdk.mp4" poster="../../videos/busca-cmdk.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the ⌘K search"></video></div>
@@ -203,34 +206,61 @@
     </div>
   </div>
 
-  <div class="peca" data-peca="bento-glide">
-    <div class="palco"><video src="../../videos/bento-glide.mp4" poster="../../videos/bento-glide.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the bento grid"></video></div>
+  <div class="peca" data-peca="nav-pulo">
+    <div class="palco"><video src="../../videos/nav-pulo.mp4" poster="../../videos/nav-pulo.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the hopping navigation"></video></div>
     <div>
-      <span class="chip">02 · Features section</span>
-      <h3>Bento grid with a sliding frame</h3>
-      <div class="tags"><span>no library</span><span>Tab moves the frame</span></div>
-      <p>"What INEMA.CLUB has" in blocks of different sizes. An amber frame slides to the block under the mouse and the block wakes up with its own mini-animation.</p>
-      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/bento-glide/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/bento-glide.mp4" download>Download video</a></div>
+      <span class="chip">02 · Navigation</span>
+      <h3>Hopping navigation</h3>
+      <div class="tags"><span>no library</span><span>keyboard</span><span>text swap</span></div>
+      <p>A capybara lives on top of the active tab and hops in an arc to the tab you click, while the amber pill stretches behind it and the title swaps letter by letter.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/nav-pulo/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/nav-pulo.mp4" download>Download video</a></div>
       <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
     </div>
   </div>
 
-  <div class="peca" data-peca="404-corre">
-    <div class="palco"><video src="../../videos/404-corre.mp4" poster="../../videos/404-corre.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the playable 404 page"></video></div>
+  <div class="peca" data-peca="menu-morfo">
+    <div class="palco"><video src="../../videos/menu-morfo.mp4" poster="../../videos/menu-morfo.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the morphing menu"></video></div>
     <div>
-      <span class="chip">03 · Error page</span>
-      <h3>A 404 that turns into a game</h3>
-      <div class="tags"><span>canvas</span><span>space / tap</span><span>high score saved</span></div>
-      <p>"This page ran away." A capybara runs and jumps over bugs while the visitor decides whether to go back to INEMA.CLUB. It starts on autopilot; the first tap hands over control.</p>
-      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/404-corre/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/404-corre.mp4" download>Download video</a></div>
+      <span class="chip">03 · Menu</span>
+      <h3>Morphing menu</h3>
+      <div class="tags"><span>no library</span><span>keyboard</span><span>single panel</span></div>
+      <p>Instead of opening one panel for each item, a single dropdown panel slides and resizes between the items, swapping its content sideways.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/menu-morfo/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/menu-morfo.mp4" download>Download video</a></div>
       <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
     </div>
   </div>
+
+  <div class="peca" data-peca="menu-tela-cheia">
+    <div class="palco"><video src="../../videos/menu-tela-cheia.mp4" poster="../../videos/menu-tela-cheia.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the full-screen menu"></video></div>
+    <div>
+      <span class="chip">04 · Menu</span>
+      <h3>Full-screen menu</h3>
+      <div class="tags"><span>no library</span><span>keyboard</span><span>mobile</span></div>
+      <p>The menu opens as an orange circle growing from the button, with items rising out of masks. The preview follows the pointer on desktop and sits in a fixed spot below the list on mobile.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/menu-tela-cheia/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/menu-tela-cheia.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="dock-liquido">
+    <div class="palco"><video src="../../videos/dock-liquido.mp4" poster="../../videos/dock-liquido.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the liquid dock"></video></div>
+    <div>
+      <span class="chip">05 · Navigation</span>
+      <h3>Liquid dock</h3>
+      <div class="tags"><span>no library</span><span>glass</span><span>growing icons</span></div>
+      <p>A glass shortcut bar in the style of a system dock. The icons grow near the pointer and jump on click.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/dock-liquido/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/dock-liquido.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+
+  <h3 class="grupo" style="margin:34px 0 22px;font-size:1.25rem;color:var(--amb)">Footers</h3>
 
   <div class="peca" data-peca="rodape-inema">
     <div class="palco"><video src="../../videos/rodape-inema.mp4" poster="../../videos/rodape-inema.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the physics footer"></video></div>
     <div>
-      <span class="chip">04 · Footer</span>
+      <span class="chip">06 · Footer</span>
       <h3>INEMA footer with physics</h3>
       <div class="tags"><span>Matter.js</span><span>drag and throw</span></div>
       <p>The letters I N E M A fall one by one and pile up on the footer floor. You can grab and throw them; "Tidy letters" puts everything back.</p>
@@ -239,14 +269,179 @@
     </div>
   </div>
 
+  <div class="peca" data-peca="rodape-cortina">
+    <div class="palco"><video src="../../videos/rodape-cortina.mp4" poster="../../videos/rodape-cortina.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the curtain footer"></video></div>
+    <div>
+      <span class="chip">07 · Footer</span>
+      <h3>Curtain footer</h3>
+      <div class="tags"><span>no library</span><span>scroll</span><span>magnetic button</span></div>
+      <p>The footer is revealed like a curtain: the light page rises and shrinks, and underneath the "inema" mark rises over a planet horizon, with a sunrise glow and a magnetic button.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/rodape-cortina/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/rodape-cortina.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="rodape-flor">
+    <div class="palco"><video src="../../videos/rodape-flor.mp4" poster="../../videos/rodape-flor.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the flower footer"></video></div>
+    <div>
+      <span class="chip">08 · Footer</span>
+      <h3>Flower footer</h3>
+      <div class="tags"><span>no library</span><span>email field</span><span>garden</span></div>
+      <p>A sign-up footer where each letter typed in the email makes a flower grow in the garden. On submit, it releases petals and butterflies.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/rodape-flor/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/rodape-flor.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="rodape-mapa">
+    <div class="palco"><video src="../../videos/rodape-mapa.mp4" poster="../../videos/rodape-mapa.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the map footer"></video></div>
+    <div>
+      <span class="chip">09 · Footer</span>
+      <h3>Map footer</h3>
+      <div class="tags"><span>no library</span><span>real local time</span><span>3 languages</span></div>
+      <p>Three cards for the INEMA communities by language, with the real local time, and an illustrated map where a capybara walks the streets to the chosen spot.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/rodape-mapa/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/rodape-mapa.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="rodape-quebra">
+    <div class="palco"><video src="../../videos/rodape-quebra.mp4" poster="../../videos/rodape-quebra.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the breakout footer"></video></div>
+    <div>
+      <span class="chip">10 · Footer</span>
+      <h3>Breakout footer</h3>
+      <div class="tags"><span>canvas</span><span>game</span><span>real links</span></div>
+      <p>The footer turns into a brick-breaking game. Each brick is a link in the INEMA ecosystem; when it breaks, the label flies to the tray and becomes a real link.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/rodape-quebra/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/rodape-quebra.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+
+  <h3 class="grupo" style="margin:34px 0 22px;font-size:1.25rem;color:var(--amb)">Galleries and images</h3>
+
+  <div class="peca" data-peca="bento-glide">
+    <div class="palco"><video src="../../videos/bento-glide.mp4" poster="../../videos/bento-glide.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the bento grid"></video></div>
+    <div>
+      <span class="chip">11 · Features section</span>
+      <h3>Bento grid with a sliding frame</h3>
+      <div class="tags"><span>no library</span><span>Tab moves the frame</span></div>
+      <p>"What INEMA.CLUB has" in blocks of different sizes. An amber frame slides to the block under the mouse and the block wakes up with its own mini-animation.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/bento-glide/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/bento-glide.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="galeria-giro">
+    <div class="palco"><video src="../../videos/galeria-giro.mp4" poster="../../videos/galeria-giro.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the spinning gallery"></video></div>
+    <div>
+      <span class="chip">12 · Gallery</span>
+      <h3>Spinning gallery</h3>
+      <div class="tags"><span>3D</span><span>drag</span><span>floor reflection</span></div>
+      <p>A 3D ring with 12 INEMA projects that spins as you drag and reflects on the floor. The front card opens in the spotlight.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/galeria-giro/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/galeria-giro.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="rastro-imagens">
+    <div class="palco"><video src="../../videos/rastro-imagens.mp4" poster="../../videos/rastro-imagens.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the image trail"></video></div>
+    <div>
+      <span class="chip">13 · Images</span>
+      <h3>Image trail</h3>
+      <div class="tags"><span>no library</span><span>follows the pointer</span><span>click to enlarge</span></div>
+      <p>An editorial hero where the pointer leaves a trail of project cards in a collection beside the headline. A click enlarges the card right there.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/rastro-imagens/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/rastro-imagens.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="adesivo-holo">
+    <div class="palco"><video src="../../videos/adesivo-holo.mp4" poster="../../videos/adesivo-holo.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the holographic sticker"></video></div>
+    <div>
+      <span class="chip">14 · Sticker</span>
+      <h3>Holographic sticker</h3>
+      <div class="tags"><span>canvas</span><span>tilts with the cursor</span><span>peelable corner</span></div>
+      <p>The capybara sticker, with a cut-out white border, tilts toward the cursor and shines in rainbow and glitter depending on the angle. You can peel the corner with the mouse.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/adesivo-holo/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/adesivo-holo.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+
+  <h3 class="grupo" style="margin:34px 0 22px;font-size:1.25rem;color:var(--amb)">Buttons and details</h3>
+
+  <div class="peca" data-peca="botoes-geleia">
+    <div class="palco"><video src="../../videos/botoes-geleia.mp4" poster="../../videos/botoes-geleia.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the jelly buttons"></video></div>
+    <div>
+      <span class="chip">15 · Buttons</span>
+      <h3>Jelly buttons</h3>
+      <div class="tags"><span>no library</span><span>springs</span><span>SVG</span></div>
+      <p>Five capsule buttons with a skin made of 72 spring points. On hover and on click, the skin swells, sinks, stretches and bounces.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/botoes-geleia/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/botoes-geleia.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="cursor-amigo">
+    <div class="palco"><video src="../../videos/cursor-amigo.mp4" poster="../../videos/cursor-amigo.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the friendly cursor"></video></div>
+    <div>
+      <span class="chip">16 · Companion</span>
+      <h3>Friendly cursor</h3>
+      <div class="tags"><span>no library</span><span>follows the cursor</span><span>touch</span></div>
+      <p>A capybara walks on the ground after your cursor, runs when it gets away, brakes kicking up dust and sits when you stop. It points at the button and does a spin when clicked.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/cursor-amigo/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/cursor-amigo.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="faixa-flap">
+    <div class="palco"><video src="../../videos/faixa-flap.mp4" poster="../../videos/faixa-flap.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the flap strip"></video></div>
+    <div>
+      <span class="chip">17 · Notice</span>
+      <h3>Flap strip</h3>
+      <div class="tags"><span>no library</span><span>mechanical flap</span><span>clock</span></div>
+      <p>An airport departure board with a mechanical flap, for notices, upcoming lives, a clock and a menu. Items flip letter by letter and the menu ends in "GO →".</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/faixa-flap/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/faixa-flap.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
   <div class="peca" data-peca="dia-noite">
     <div class="palco"><video src="../../videos/dia-noite.mp4" poster="../../videos/dia-noite.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the day and night theme"></video></div>
     <div>
-      <span class="chip">05 · Light/dark theme</span>
+      <span class="chip">18 · Light/dark theme</span>
       <h3>Day and night</h3>
       <div class="tags"><span>no library</span><span>role="switch"</span><span>CSS variables</span></div>
       <p>The theme button is a scene: the sun goes down, the moon comes up, the school windows light up and the capybara falls asleep. The colors of the whole page change along with it.</p>
       <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/dia-noite/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/dia-noite.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+
+  <h3 class="grupo" style="margin:34px 0 22px;font-size:1.25rem;color:var(--amb)">Special pages</h3>
+
+  <div class="peca" data-peca="404-corre">
+    <div class="palco"><video src="../../videos/404-corre.mp4" poster="../../videos/404-corre.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the playable 404 page"></video></div>
+    <div>
+      <span class="chip">19 · Error page</span>
+      <h3>A 404 that turns into a game</h3>
+      <div class="tags"><span>canvas</span><span>space / tap</span><span>high score saved</span></div>
+      <p>"This page ran away." A capybara runs and jumps over bugs while the visitor decides whether to go back to INEMA.CLUB. It starts on autopilot; the first tap hands over control.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/404-corre/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/404-corre.mp4" download>Download video</a></div>
+      <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
+    </div>
+  </div>
+
+  <div class="peca" data-peca="revela-carga">
+    <div class="palco"><video src="../../videos/revela-carga.mp4" poster="../../videos/revela-carga.jpg" autoplay muted loop playsinline preload="none" aria-label="Demo of the loading screen"></video></div>
+    <div>
+      <span class="chip">20 · Loading</span>
+      <h3>Loading reveal</h3>
+      <div class="tags"><span>no library</span><span>counter 000 to 100</span><span>transition</span></div>
+      <p>The INEMA mark, whole from the first frame, fills with amber from bottom to top while the counter goes from 000 to 100. At the end, everything becomes the transition that reveals the dark home page.</p>
+      <div class="acoes"><button class="btn vivo">Open live</button><a class="btn ghost" href="../../pecas/revela-carga/" target="_blank" rel="noopener">Full screen</a><a class="btn ghost" href="../../videos/revela-carga.mp4" download>Download video</a></div>
       <details><summary>See the prompt (in Portuguese)</summary><pre class="prompt">loading…</pre></details>
     </div>
   </div>
@@ -333,7 +528,7 @@ open pecas/dia-noite/index.html</pre></div>
 
   <div class="step"><div class="b">4</div><div>
     <h3>Create your own piece with the template</h3>
-    <p>Fill in the template (<code>molde/MOLDE-PROMPT-ANIMACAO.md</code>), save it as <code>pecas/&lt;name&gt;/PROMPT.md</code> and ask the AI to write the <code>index.html</code> from it. Use the five <code>PROMPT.md</code> files as examples of the level of detail. To adjust, ask by step number: "in step 1, 80 ms instead of 120".</p>
+    <p>Fill in the template (<code>molde/MOLDE-PROMPT-ANIMACAO.md</code>), save it as <code>pecas/&lt;name&gt;/PROMPT.md</code> and ask the AI to write the <code>index.html</code> from it. Use the 20 <code>PROMPT.md</code> files as examples of the level of detail. To adjust, ask by step number: "in step 1, 80 ms instead of 120".</p>
 <pre><span class="c"># example with Claude Code, in the repository folder</span>
 <span class="k">claude</span> <span class="s">"Read pecas/minha-peca/PROMPT.md and write pecas/minha-peca/index.html following the prompt."</span></pre>
   </div></div>
@@ -342,7 +537,7 @@ open pecas/dia-noite/index.html</pre></div>
     <h3>Test and record the video</h3>
     <p>The test checks, across all pieces: no JavaScript errors, no horizontal scrolling at 1280 and 360 px, the reduced-motion version, and whether the piece locks page scrolling. The recording produces, for each piece, 8 s in WebM and MP4 plus a cover image in <code>videos/</code>.</p>
 <pre><span class="k">python3</span> -m http.server 8850 --directory . --bind 127.0.0.1 &amp;
-<span class="k">node</span> tools/testar-pecas.cjs 8850     <span class="c"># 5/5 pieces OK</span>
+<span class="k">node</span> tools/testar-pecas.cjs 8850     <span class="c"># 20/20 pieces OK</span>
 <span class="k">node</span> tools/gravar-videos.cjs 8850    <span class="c"># OK busca-cmdk: webm 285 KB, mp4 349 KB …</span>
 <span class="k">node</span> tools/gravar-videos.cjs 8850 dia-noite   <span class="c"># just one piece</span></pre>
   </div></div>
@@ -352,15 +547,15 @@ open pecas/dia-noite/index.html</pre></div>
   <span class="chip">Next steps</span>
   <h2>What comes next</h2>
   <p class="sub">The lab is ready to use. These are the possible next stages, not done yet.</p>
-  <div class="phase"><div class="tag">Done</div><div class="d"><strong>Template, 5 pieces, tests and videos</strong><span>Everything in this repository, in PT/EN/ES. The template also went into the INEMA guides skill, so the next guides are born with it.</span></div></div>
+  <div class="phase"><div class="tag">Done</div><div class="d"><strong>Template, 20 pieces with X-ray, tests and videos</strong><span>Everything in this repository, in PT/EN/ES. The template also went into the INEMA guides skill, so the next guides are born with it.</span></div></div>
   <div class="phase"><div class="tag">Next</div><div class="d"><strong>Pieces on the INEMA sites</strong><span>⌘K search on the portal and on buscas, playable 404 on inema.club, bento grid on the guide landing pages.</span></div></div>
-  <div class="phase"><div class="tag">Later</div><div class="d"><strong>More pieces and a vertical version of the videos</strong><span>A menu that takes over the screen, a loader that reveals the page, a ring gallery; 9:16 videos for shorts.</span></div></div>
+  <div class="phase"><div class="tag">Later</div><div class="d"><strong>A vertical version of the videos</strong><span>A vertical (9:16) version of the videos for shorts and the pieces applied to more pages.</span></div></div>
 </div></section>
 
 <footer>
   <div class="wrap">
     <div class="pill">HTML + CSS + JS</div><div class="pill">Matter.js</div><div class="pill">Playwright + ffmpeg</div>
-    <p style="margin-top:18px">INEMA Motion Lab · ideas inspired by popular effects from the community; code written from scratch ·
+    <p style="margin-top:18px">INEMA Motion Lab · code written from scratch ·
       <a href="https://github.com/inematds/inema-motion-lab">inematds/inema-motion-lab</a> ·
       <a href="https://inema.club">INEMA.CLUB</a></p>
   </div>

@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rodapé quebra</title>
+<meta name="description" content="Rodapé que vira jogo de quebrar tijolos: cada tijolo é um link do ecossistema INEMA e cai na bandeja quando quebra.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500;700&family=Sora:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --painel: #111114;
+    --linha: #24242a;
+    --texto: #f3efe7;
+    --texto-2: rgba(243, 239, 231, .6);
+    --ambar: #E2A23B;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow-x: hidden; background: var(--bg); color: var(--texto); }
+  body { font-family: Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+  .rodape {
+    position: relative; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+    background: var(--painel); border-top: 1px solid var(--linha); overflow: hidden;
+  }
+  .placar {
+    flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 24px clamp(16px, 4vw, 56px) 16px;
+  }
+  .marca { font: 800 clamp(22px, 2.4vw, 28px)/1 Sora, sans-serif; letter-spacing: -.02em; color: var(--texto); text-decoration: none; border-radius: 4px; }
+  .marca span { color: var(--ambar); }
+  .info { display: flex; align-items: center; gap: 16px; font: 500 12px/1 "JetBrains Mono", monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--texto-2); }
+  .vidas { display: flex; gap: 6px; }
+  .vidas i { width: 10px; height: 10px; border-radius: 3px; background: var(--ambar); }
+  .vidas i.perdida { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(243, 239, 231, .3); }
+  .modo { white-space: nowrap; color: var(--ambar); }
+
+  .arena { position: relative; flex: 1 1 auto; min-height: 300px; margin: 0 clamp(16px, 4vw, 56px); border-radius: 16px; overflow: hidden; background: #0d0d10;
+    box-shadow: inset 0 0 0 1px rgba(243, 239, 231, .07); }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; cursor: none; }
+  canvas:focus-visible { outline: 3px solid var(--ambar); outline-offset: -3px; }
+  .aviso {
+    position: absolute; left: 50%; top: 56%; transform: translate(-50%, -50%); width: max-content; max-width: 90%;
+    text-align: center; pointer-events: none; opacity: 0; will-change: opacity, transform;
+    font: 600 clamp(18px, 2.4vw, 26px)/1.25 Sora, sans-serif;
+  }
+  .aviso small { display: block; margin-top: 8px; font: 400 15px/1.4 Inter, sans-serif; color: var(--texto-2); }
+  .ajuda { position: absolute; left: 50%; top: 64%; transform: translate(-50%, -50%); white-space: nowrap; font: 500 12px/1 "JetBrains Mono", monospace; letter-spacing: .08em; color: rgba(243, 239, 231, .4); pointer-events: none; }
+  .ajuda .toque { display: none; }
+  @media (hover: none), (pointer: coarse) { .ajuda .mouse { display: none; } .ajuda .toque { display: inline; } }
+
+  .bandejas { flex: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px clamp(16px, 3vw, 40px); padding: 28px clamp(16px, 4vw, 56px) 8px; }
+  .bandeja h3 { margin: 0 0 10px; font: 500 12px/1.2 "JetBrains Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--ambar); }
+  .bandeja ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .chip {
+    position: relative; display: inline-block; font: 400 15px/1.5 Inter, sans-serif; color: rgba(243, 239, 231, .55);
+    text-decoration: none; border-radius: 4px; will-change: transform; transition: color .2s;
+  }
+  .chip::before { content: ""; position: absolute; left: -9px; top: 50%; width: 5px; height: 5px; margin-top: -2.5px; border-radius: 50%; background: var(--ambar); opacity: 0; transition: opacity .2s; }
+  .chip.ganho { color: var(--texto); }
+  .chip.ganho::before { opacity: 1; }
+  .chip:hover { color: var(--ambar); }
+  .chip:focus-visible, .marca:focus-visible, .barra a:focus-visible { outline: 2px solid var(--ambar); outline-offset: 2px; }
+  .barra { flex: none; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; margin: 20px clamp(16px, 4vw, 56px) 0; padding: 16px 0 20px; border-top: 1px solid var(--linha); font-size: 14px; color: var(--texto-2); }
+  .barra p { margin: 0; }
+  .barra a { color: var(--texto); text-decoration: none; border-radius: 4px; }
+
+  .voo { position: absolute; left: 0; top: 0; z-index: 5; pointer-events: none; padding: 4px 9px; border-radius: 6px; will-change: transform, opacity;
+    font: 600 13px/1.2 Inter, sans-serif; color: #0b0b0d; white-space: nowrap; opacity: 0; }
+
+  @media (max-width: 760px) {
+    .placar { padding: 18px 16px 12px; }
+    .info .modo { display: none; }
+    .arena { min-height: 320px; margin: 0 16px; }
+    .bandejas { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; padding: 20px 16px 4px; }
+    .bandeja ul { gap: 4px 16px; }
+    .chip { font-size: 14px; }
+    .barra { margin: 16px 16px 0; padding: 12px 0 16px; font-size: 13px; flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<footer class="rodape" id="rodape">
+  <div class="placar">
+    <a class="marca" href="https://inema.club">INEMA<span>.</span>CLUB</a>
+    <div class="info">
+      <span class="modo" id="modo">piloto automático</span>
+      <span class="vidas" id="vidas" role="img" aria-label="3 vidas"><i></i><i></i><i></i></span>
+    </div>
+  </div>
+
+  <div class="arena" id="arena">
+    <canvas id="tela" tabindex="0" aria-label="Jogo de quebrar tijolos. Setas movem a raquete, Espaço lança a bola. Os links estão logo abaixo." data-xray="jogo em canvas · bola, raquete, tijolos e cacos desenhados a cada quadro" data-xray-tool="code"></canvas>
+    <div class="aviso" id="aviso" aria-live="polite" data-xray="aviso · aparece em opacidade e escala" data-xray-tool="code"></div>
+    <span class="ajuda" aria-hidden="true"><span class="mouse">mouse ou setas · espaço lança</span><span class="toque">arraste para mover · toque lança</span></span>
+  </div>
+
+  <nav class="bandejas" id="bandejas" aria-label="Links do ecossistema INEMA"></nav>
+
+  <div class="barra">
+    <p>© 2026 <a href="https://inema.club">INEMA.CLUB</a> · conteúdo aberto e gratuito</p>
+    <p>Os links funcionam mesmo sem jogar</p>
+  </div>
+</footer>
+
+<script>
+/* Raio-X e modos: ?motion=xray mostra o que se move, ?motion=off congela, ?demo=1 repete sem parar */
+window.MOTION = (() => {
+  const q = new URLSearchParams(location.search);
+  const modo = q.get('motion');
+  const api = { off: modo === 'off', xray: modo === 'xray', demo: q.get('demo') === '1' };
+  if (!api.xray) return api;
+  const css = document.createElement('style');
+  css.textContent = '.xr-box{position:fixed;left:0;top:0;z-index:9998;pointer-events:none;border:1.5px dashed #E2A23B;border-radius:4px}' +
+    '.xr-tag{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;font:500 10px/1.25 "JetBrains Mono",ui-monospace,monospace;color:#0b0b0d;background:#E2A23B;padding:2px 6px;border-radius:3px;white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}';
+  document.head.appendChild(css);
+  const pares = new Map();
+  const desenhar = () => {
+    const vistos = new Set(), textos = new Set();
+    document.querySelectorAll('[data-xray]').forEach(el => {
+      vistos.add(el);
+      let p = pares.get(el);
+      if (!p) {
+        p = { box: document.createElement('div'), tag: document.createElement('div') };
+        p.box.className = 'xr-box'; p.tag.className = 'xr-tag'; p.tag.textContent = el.dataset.xray;
+        document.body.append(p.box, p.tag); pares.set(el, p);
+      }
+      const r = el.getBoundingClientRect();
+      const vis = r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight;
+      p.box.style.display = vis ? '' : 'none';
+      const mostraTag = vis && !textos.has(el.dataset.xray);
+      p.tag.style.display = mostraTag ? '' : 'none';
+      if (!vis) return;
+      textos.add(el.dataset.xray);
+      p.box.style.transform = `translate(${r.left}px,${r.top}px)`;
+      p.box.style.width = r.width + 'px'; p.box.style.height = r.height + 'px';
+      p.tag.style.transform = `translate(${Math.max(2, Math.min(innerWidth - 120, r.left))}px,${Math.max(2, r.top - 18)}px)`;
+    });
+    for (const [el, p] of pares) if (!vistos.has(el)) { p.box.remove(); p.tag.remove(); pares.delete(el); }
+  };
+  setInterval(desenhar, 200);
+  return api;
+})();
+</script>
+
+<script>
+(() => {
+  'use strict';
+  /* ===== parâmetros (espelham o PROMPT.md) ===== */
+  const ANG_MAX = 62 * Math.PI / 180;     // saída da raquete até 62°
+  const MOLA_RAQ = { k: 520, d: 16 };
+  const RAMPA = 1.06, RAMPA_CADA = 6;     // +6 % a cada 6 tijolos
+  const CACOS = 24, VOO_MS = 900;
+  const FESTA_MS = 3000, VOLTA_GAP = 42;
+  const OCIOSO_MS = 6000;                 // piloto volta depois de 6 s parado
+  const CORES = ['#E2A23B', '#F2C76E', '#f3efe7', '#C9821F'];   // uma cor por linha, só tons da marca
+
+  const GRUPOS = [
+    { nome: 'CURSOS', links: [['Trilhas', 'https://inema.club'], ['Agentes', 'https://inema.club'], ['Vídeos', 'https://inema.club'], ['Guias', 'https://inema.club'], ['Do zero', 'https://inema.club']] },
+    { nome: 'EVENTOS', links: [['Lives', 'https://eventos.inema.pro'], ['Agenda', 'https://eventos.inema.pro'], ['Áreas', 'https://eventos.inema.pro'], ['Gravadas', 'https://eventos.inema.pro'], ['Material', 'https://eventos.inema.pro']] },
+    { nome: 'BUSCAS', links: [['Cursos', 'https://buscas.inema.club'], ['Guias', 'https://buscas.inema.club'], ['Kits', 'https://buscas.inema.club'], ['Projetos', 'https://buscas.inema.club'], ['Temas', 'https://buscas.inema.club']] },
+    { nome: 'CLUBE', links: [['VIP', 'https://inema.vip'], ['PRO', 'https://inema.pro'], ['Notícias', 'https://news.inema.pro'], ['Portal', 'https://inema.club'], ['Eventos', 'https://eventos.inema.pro']] }
+  ];
+
+  const reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const congelado = MOTION.off;
+  const demo = MOTION.demo;
+
+  const rodape = document.getElementById('rodape');
+  const arena = document.getElementById('arena');
+  const tela = document.getElementById('tela');
+  const ctx = tela.getContext('2d');
+  const avisoEl = document.getElementById('aviso');
+  const vidasEl = document.getElementById('vidas');
+  const modoEl = document.getElementById('modo');
+  const bandejas = document.getElementById('bandejas');
+
+  /* ===== bandejas de links (reais desde o início) ===== */
+  const chips = GRUPOS.map((g, r) => {
+    const sec = document.createElement('div');
+    sec.className = 'bandeja';
+    sec.innerHTML = `<h3>${g.nome}</h3><ul></ul>`;
+    const ul = sec.querySelector('ul');
+    bandejas.appendChild(sec);
+    return g.links.map(([t, href], c) => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.className = 'chip'; a.href = href; a.textContent = t;
+            a.setAttribute('data-xray', 'link ganho · quica (scale) ao pousar');
+      a.setAttribute('data-xray-tool', 'code');
+      li.appendChild(a); ul.appendChild(li);
+      return { a, pouso: -1e9 };
+    });
+  });
+
+  /* ===== medidas ===== */
+  let W = 0, H = 0, dpr = 1, fundo = null;
+  let tij = [], raq = null, bola = null, velBase = 450;
+  function medir() {
+    const r = arena.getBoundingClientRect();
+    W = Math.round(r.width); H = Math.round(r.height);
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    tela.width = Math.round(W * dpr); tela.height = Math.round(H * dpr);
+    // fundo cacheado: vinheta suave
+    fundo = document.createElement('canvas');
+    fundo.width = tela.width; fundo.height = tela.height;
+    const f = fundo.getContext('2d');
+    f.scale(dpr, dpr);
+    const g = f.createRadialGradient(W / 2, H * 0.45, Math.min(W, H) * 0.2, W / 2, H / 2, Math.max(W, H) * 0.75);
+    g.addColorStop(0, '#131317'); g.addColorStop(1, '#0a0a0c');
+    f.fillStyle = g; f.fillRect(0, 0, W, H);
+    velBase = Math.max(340, Math.min(600, H * 1.05));
+    montarParede(true);
+  }
+  function geometria(r, c) {
+    const estreito = W < 500;
+    const m = estreito ? 10 : 24, gap = estreito ? 5 : 12, topo = estreito ? 18 : 28;
+    const bw = (W - 2 * m - 4 * gap) / 5, bh = estreito ? Math.max(30, Math.min(40, H * 0.075)) : Math.max(28, Math.min(40, H * 0.085));
+    return { x: m + c * (bw + gap), y: topo + r * (bh + gap), w: bw, h: bh };
+  }
+  function montarParede(manter) {
+    const antigo = tij;
+    tij = [];
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 5; c++) {
+      const g = geometria(r, c);
+      const velho = manter && antigo.find(t => t.r === r && t.c === c);
+      tij.push(Object.assign({ r, c, vida: 1, viva: true, flash: 0, treme: 0,
+        cor: CORES[r], rotulo: GRUPOS[r].links[c][0] }, velho ? { viva: velho.viva } : {}, g));
+    }
+    const pw = Math.max(70, Math.min(140, W * 0.14));
+    raq = Object.assign(raq || { x: W / 2, alvo: W / 2, sq: 0, sv: 0, mira: 0 }, { w: pw, h: 12, y: H - 26 });
+    raq.x = Math.min(Math.max(raq.x, pw / 2), W - pw / 2);
+    if (!bola || bola.presa) bola = { x: raq.x, y: raq.y - 14, vx: 0, vy: 0, s: 12, presa: true, solta: 700, vel: velBase };
+  }
+
+  /* ===== estado de jogo ===== */
+  let pontos = 0, vidas = 3, quebrados = 0, cacos = [], confete = [], voos = [];
+  let piloto = !reduz && !congelado, ultimoToque = -1e9, festa = null, fimJogo = null;
+  let relogio = 0;
+  const teclas = { esq: false, dir: false };
+
+  function placar() {
+    Array.from(vidasEl.children).forEach((v, i) => v.classList.toggle('perdida', i >= vidas));
+    vidasEl.setAttribute('aria-label', `${vidas} vidas`);
+    modoEl.textContent = congelado ? 'parado' : piloto ? 'piloto automático' : 'você joga';
+  }
+  function avisar(html, ms) { avisoEl.innerHTML = html; aviso.ini = relogio; aviso.dur = ms; }
+  const aviso = { ini: -1e9, dur: 0 };
+
+  function lancar() {
+    if (!bola.presa) return;
+    const a = (Math.random() - 0.5) * 0.6;
+    bola.presa = false; bola.vel = bola.vel || velBase;
+    bola.vx = Math.sin(a) * bola.vel; bola.vy = -Math.cos(a) * bola.vel;
+  }
+
+  function quebrar(t) {
+    t.viva = false; quebrados++;
+    pontos += 10;
+    if (quebrados % RAMPA_CADA === 0) {
+      const f = RAMPA; bola.vel *= f; bola.vx *= f; bola.vy *= f;
+    }
+    for (let k = 0; k < CACOS; k++) {
+      cacos.push({ x: t.x + Math.random() * t.w, y: t.y + Math.random() * t.h, vx: (Math.random() - 0.5) * 260, vy: -60 - Math.random() * 180,
+        s: 2 + Math.random() * 3, cor: t.cor, vida: 0, dur: 600 + Math.random() * 500 });
+    }
+    {
+      const ch = chips[t.r][t.c];
+      const el = document.createElement('span');
+      el.className = 'voo'; el.textContent = t.rotulo; el.style.background = t.cor;
+      el.setAttribute('data-xray', 'rótulo do tijolo · voa em arco balístico até a bandeja');
+      el.setAttribute('data-xray-tool', 'code');
+      rodape.appendChild(el);
+      const ar = arena.getBoundingClientRect(), rr = rodape.getBoundingClientRect();
+      voos.push({ el, ch, de: { x: ar.left - rr.left + t.x + t.w / 2, y: ar.top - rr.top + t.y + t.h / 2 }, ini: relogio, volta: false });
+    }
+    placar();
+    if (tij.every(x => !x.viva)) comecarFesta();
+  }
+
+  function comecarFesta() {
+    festa = { ini: relogio, voltou: false };
+    avisar('Rodapé completo.<small>Você leu todos os links.</small>', FESTA_MS);
+    bola.presa = true; bola.solta = FESTA_MS + 1800;
+    for (let k = 0; k < 90; k++) confete.push({ x: W / 2 + (Math.random() - 0.5) * 80, y: H * 0.55, vx: (Math.random() - 0.5) * 700, vy: -250 - Math.random() * 450,
+      s: 3 + Math.random() * 4, cor: CORES[k % CORES.length], rot: Math.random() * 6, vr: (Math.random() - 0.5) * 12, vida: 0, dur: 1800 + Math.random() * 1200 });
+  }
+  function devolverLinks() {
+    // os links voltam das bandejas para os tijolos, 42 ms entre eles
+    const ar = arena.getBoundingClientRect(), rr = rodape.getBoundingClientRect();
+    let k = 0;
+    tij.forEach(t => {
+      const ch = chips[t.r][t.c];
+      const cr = ch.a.getBoundingClientRect();
+      const el = document.createElement('span');
+      el.className = 'voo'; el.textContent = t.rotulo; el.style.background = t.cor;
+      el.setAttribute('data-xray', 'link voltando · sobe com mola até o tijolo');
+      el.setAttribute('data-xray-tool', 'code');
+      rodape.appendChild(el);
+      voos.push({ el, ch, tij: t, de: { x: cr.left - rr.left + cr.width / 2, y: cr.top - rr.top + cr.height / 2 },
+        para: { x: ar.left - rr.left + t.x + t.w / 2, y: ar.top - rr.top + t.y + t.h / 2 }, ini: relogio + k * VOLTA_GAP, volta: true });
+      k++;
+    });
+  }
+
+  /* ===== física ===== */
+  function perdeVida() {
+    vidas--;
+    if (vidas <= 0) {
+      fimJogo = relogio;
+      avisar('Fim de jogo.<small>A parede volta inteira.</small>', 1800);
+      vidas = 3; quebrados = 0; pontos = 0;
+      montarParede();
+      tij.forEach(t => { t.viva = true; t.vida = 1; });
+      chips.flat().forEach(c => c.a.classList.remove('ganho'));
+    }
+    bola.presa = true; bola.solta = 800; bola.vel = velBase;
+    placar();
+  }
+  function fisica(s) {
+    // raquete: segue o alvo; mola de amassar
+    if (piloto) {
+      let alvo = bola.x;
+      if (!bola.presa && bola.vy > 0) {
+        const t = (raq.y - bola.y) / bola.vy;
+        let x = bola.x + bola.vx * t;
+        const L = W - bola.s;
+        for (let n = 0; n < 6 && (x < bola.s / 2 || x > L + bola.s / 2); n++) x = x < bola.s / 2 ? bola.s - x : 2 * L + bola.s - x;
+        alvo = x + raq.mira * raq.w * 0.35;
+      } else if (!bola.presa) alvo = bola.x + (W / 2 - bola.x) * 0.2;
+      raq.alvo = alvo;
+      const max = 1300 * s;
+      raq.x += Math.max(-max, Math.min(max, (raq.alvo - raq.x) * (1 - Math.exp(-s * 9))));
+    } else {
+      if (teclas.esq) raq.alvo -= 700 * s;
+      if (teclas.dir) raq.alvo += 700 * s;
+      raq.x += (raq.alvo - raq.x) * (1 - Math.exp(-s * 25));
+    }
+    raq.x = Math.min(Math.max(raq.x, raq.w / 2), W - raq.w / 2);
+    raq.alvo = Math.min(Math.max(raq.alvo, raq.w / 2), W - raq.w / 2);
+    const a = -MOLA_RAQ.k * raq.sq - MOLA_RAQ.d * raq.sv; raq.sv += a * s; raq.sq += raq.sv * s;
+
+    if (bola.presa) {
+      bola.x = raq.x; bola.y = raq.y - 14;
+      if (piloto || festa) { bola.solta -= s * 1000; if (bola.solta <= 0 && !festa) lancar(); }
+      return;
+    }
+    const passos = Math.ceil(Math.hypot(bola.vx, bola.vy) * s / 4);
+    const ss = s / passos, r = bola.s / 2;
+    for (let n = 0; n < passos; n++) {
+      bola.x += bola.vx * ss; bola.y += bola.vy * ss;
+      if (bola.x < r) { bola.x = r; bola.vx = Math.abs(bola.vx); }
+      if (bola.x > W - r) { bola.x = W - r; bola.vx = -Math.abs(bola.vx); }
+      if (bola.y < r) { bola.y = r; bola.vy = Math.abs(bola.vy); }
+      // raquete
+      if (bola.vy > 0 && bola.y + r >= raq.y - raq.h / 2 && bola.y - r <= raq.y + raq.h / 2 && Math.abs(bola.x - raq.x) <= raq.w / 2 + r) {
+        const pos = Math.max(-1, Math.min(1, (bola.x - raq.x) / (raq.w / 2)));
+        const ang = pos * ANG_MAX;
+        bola.vx = Math.sin(ang) * bola.vel; bola.vy = -Math.cos(ang) * bola.vel;
+        bola.y = raq.y - raq.h / 2 - r;
+        raq.sv += 7;
+        raq.mira = (Math.random() - 0.5) * 2;
+      }
+      // tijolos
+      for (const t of tij) {
+        if (!t.viva) continue;
+        if (bola.x + r < t.x || bola.x - r > t.x + t.w || bola.y + r < t.y || bola.y - r > t.y + t.h) continue;
+        const pe = bola.x + r - t.x, pd = t.x + t.w - (bola.x - r), pc = bola.y + r - t.y, pb = t.y + t.h - (bola.y - r);
+        const m = Math.min(pe, pd, pc, pb);
+        if (m === pe) { bola.x = t.x - r; bola.vx = -Math.abs(bola.vx); }
+        else if (m === pd) { bola.x = t.x + t.w + r; bola.vx = Math.abs(bola.vx); }
+        else if (m === pc) { bola.y = t.y - r; bola.vy = -Math.abs(bola.vy); }
+        else { bola.y = t.y + t.h + r; bola.vy = Math.abs(bola.vy); }
+        t.vida--; t.flash = 1; t.treme = 1;
+        if (t.vida <= 0) quebrar(t);
+        break;
+      }
+      if (bola.y - r > H) { perdeVida(); return; }
+    }
+  }
+  raqMira();
+  function raqMira() { if (raq) raq.mira = 0; }
+
+  /* ===== desenho ===== */
+  function retRed(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  function desenhar() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(fundo, 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const fs = Math.max(12, Math.min(15, (tij[0] ? tij[0].w : 60) / 6));
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `600 ${fs}px Inter, sans-serif`;
+    for (const t of tij) {
+      if (!t.viva) continue;
+      const tr = t.treme > 0 ? Math.sin(relogio / 18) * 3 * t.treme : 0;
+      const x = t.x + tr, y = t.y;
+      ctx.fillStyle = t.cor; retRed(x, y, t.w, t.h, 7); ctx.fill();
+      if (t.flash > 0) { ctx.fillStyle = `rgba(255,255,255,${(t.flash * 0.7).toFixed(3)})`; retRed(x, y, t.w, t.h, 7); ctx.fill(); }
+      ctx.fillStyle = '#0b0b0d';
+      ctx.fillText(t.rotulo, x + t.w / 2, y + t.h / 2 + 1, t.w - 6);
+    }
+    for (const c of cacos) { ctx.globalAlpha = Math.max(0, 1 - c.vida / c.dur); ctx.fillStyle = c.cor; ctx.fillRect(c.x, c.y, c.s, c.s); }
+    for (const c of confete) {
+      ctx.globalAlpha = Math.max(0, 1 - c.vida / c.dur);
+      ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.rot); ctx.fillStyle = c.cor; ctx.fillRect(-c.s / 2, -c.s, c.s, c.s * 2); ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+    // raquete com brilho e amassada
+    const sx = 1 + Math.max(-0.3, Math.min(0.3, raq.sq * 0.04)), sy = 1 - Math.max(-0.3, Math.min(0.3, raq.sq * 0.04));
+    ctx.save(); ctx.translate(raq.x, raq.y); ctx.scale(sx, sy);
+    ctx.shadowColor = 'rgba(226,162,59,.5)'; ctx.shadowBlur = 10;
+    ctx.fillStyle = '#E2A23B'; retRed(-raq.w / 2, -raq.h / 2, raq.w, raq.h, raq.h / 2); ctx.fill();
+    ctx.restore();
+    // bola: quadrado arredondado creme com o "i"
+    ctx.save(); ctx.translate(bola.x, bola.y);
+    ctx.shadowColor = 'rgba(243,239,231,.6)'; ctx.shadowBlur = 12;
+    ctx.fillStyle = '#f3efe7'; retRed(-bola.s / 2, -bola.s / 2, bola.s, bola.s, 3.5); ctx.fill();
+    ctx.shadowBlur = 0; ctx.fillStyle = '#0b0b0d';
+    ctx.fillRect(-1.2, -1.5, 2.4, 5); ctx.beginPath(); ctx.arc(0, -3.6, 1.3, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  /* ===== laço único ===== */
+  const balistico = (de, para, p) => {
+    const x = de.x + (para.x - de.x) * p;
+    const y = de.y + (para.y - de.y) * p - Math.sin(Math.PI * p) * Math.max(60, Math.abs(para.y - de.y) * 0.5);
+    return { x, y };
+  };
+  const molaVolta = p => { const t = p * 1.1; return 1 - Math.exp(-6 * t) * Math.cos(9 * t); };
+  function passo(dt) {
+    relogio += dt;
+    const s = dt / 1000;
+    if (!piloto && !demo && !reduz && relogio - ultimoToque > OCIOSO_MS) { piloto = true; placar(); }
+    fisica(s);
+    tij.forEach(t => { t.flash = Math.max(0, t.flash - s * 5); t.treme = Math.max(0, t.treme - s * 4);  });
+    for (let k = cacos.length - 1; k >= 0; k--) { const c = cacos[k]; c.vida += dt; c.vy += 700 * s; c.x += c.vx * s; c.y += c.vy * s; if (c.vida > c.dur) cacos.splice(k, 1); }
+    for (let k = confete.length - 1; k >= 0; k--) { const c = confete[k]; c.vida += dt; c.vy += 520 * s; c.vx *= 0.99; c.x += c.vx * s; c.y += c.vy * s; c.rot += c.vr * s; if (c.vida > c.dur) confete.splice(k, 1); }
+    // voos de rótulo (DOM, transform)
+    const rr = rodape.getBoundingClientRect();
+    for (let k = voos.length - 1; k >= 0; k--) {
+      const v = voos[k];
+      const p = (relogio - v.ini) / VOO_MS;
+      if (p < 0) { v.el.style.opacity = '0'; continue; }
+      if (!v.volta) {
+        const cr = v.ch.a.getBoundingClientRect();
+        const para = { x: cr.left - rr.left + cr.width / 2, y: cr.top - rr.top + cr.height / 2 };
+        const q = balistico(v.de, para, Math.min(1, p));
+        v.el.style.opacity = '1';
+        v.el.style.transform = `translate(${q.x.toFixed(1)}px, ${q.y.toFixed(1)}px) translate(-50%, -50%) rotate(${(Math.sin(p * Math.PI) * -12).toFixed(1)}deg)`;
+        if (p >= 1) { v.el.remove(); voos.splice(k, 1); v.ch.a.classList.add('ganho'); v.ch.pouso = relogio; }
+      } else {
+        if (p > 0 && !v.saiu) { v.saiu = true; v.ch.a.classList.remove('ganho'); }
+        const e = molaVolta(Math.min(1, p));
+        const x = v.de.x + (v.para.x - v.de.x) * e, y = v.de.y + (v.para.y - v.de.y) * e;
+        v.el.style.opacity = (1 - Math.max(0, (p - 0.85) / 0.15)).toFixed(3);
+        v.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%)`;
+        if (p >= 1) { v.el.remove(); voos.splice(k, 1); v.tij.viva = true; v.tij.vida = 1; v.tij.flash = 1; }
+      }
+    }
+    chips.flat().forEach(c => {
+      const u = relogio - c.pouso;
+      if (u >= 0 && u < 500) {
+        const q = Math.exp(-u / 110) * Math.cos(u / 45);
+        c.a.style.transform = `scale(${(1 + 0.25 * q).toFixed(3)}, ${(1 - 0.2 * q).toFixed(3)})`;
+      } else if (c.a.style.transform) c.a.style.transform = '';
+    });
+    if (festa) {
+      const u = relogio - festa.ini;
+      if (u > FESTA_MS && !festa.voltou) { festa.voltou = true; devolverLinks(); }
+      if (festa.voltou && tij.every(t => t.viva) && !voos.length) {
+        festa = null; quebrados = 0; bola.vel = velBase; bola.solta = 600;
+        if (!piloto) avisar('Parede de volta.<small>Espaço ou clique para lançar.</small>', 1600);
+      }
+    }
+    // aviso: aparece e some
+    const ua = relogio - aviso.ini;
+    const op = ua < 0 || ua > aviso.dur ? 0 : Math.min(1, ua / 200, (aviso.dur - ua) / 300);
+    avisoEl.style.opacity = op.toFixed(3);
+    avisoEl.style.transform = `translate(-50%, -50%) scale(${(0.94 + 0.06 * Math.min(1, ua / 250)).toFixed(3)})`;
+    desenhar();
+  }
+
+  let raf = 0, ultimo = null, naTela = true, ativo = !reduz && !congelado, pronto = false;
+  function quadro(agora) {
+    raf = requestAnimationFrame(quadro);
+    if (ultimo === null) ultimo = agora;
+    const dt = Math.min(34, agora - ultimo); ultimo = agora;
+    passo(dt);
+  }
+  function ligar() {
+    const deve = pronto && ativo && naTela && !document.hidden;
+    if (deve && !raf) { ultimo = null; raf = requestAnimationFrame(quadro); }
+    else if (!deve && raf) { cancelAnimationFrame(raf); raf = 0; }
+  }
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => { naTela = es[0].isIntersecting; ligar(); }).observe(rodape);
+  document.addEventListener('visibilitychange', ligar);
+
+  /* ===== controles ===== */
+  function assumir() {
+    ultimoToque = relogio;
+    if (demo) return false;
+    if (piloto) { piloto = false; placar(); }
+    if (reduz && !congelado && !ativo) { ativo = true; ligar(); }
+    return true;
+  }
+  tela.addEventListener('pointermove', e => {
+    if (!pronto || !assumir()) return;
+    const r = tela.getBoundingClientRect();
+    raq.alvo = e.clientX - r.left;
+  });
+  tela.addEventListener('pointerdown', e => {
+    if (!pronto || !assumir()) return;
+    const r = tela.getBoundingClientRect();
+    raq.alvo = e.clientX - r.left;
+    if (bola.presa && !festa) lancar();
+  });
+  tela.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === ' ') {
+      e.preventDefault();
+      if (!pronto || !assumir()) return;
+      if (e.key === 'ArrowLeft') teclas.esq = true;
+      if (e.key === 'ArrowRight') teclas.dir = true;
+      if (e.key === ' ' && bola.presa && !festa) lancar();
+    }
+  });
+  tela.addEventListener('keyup', e => { if (e.key === 'ArrowLeft') teclas.esq = false; if (e.key === 'ArrowRight') teclas.dir = false; });
+  tela.addEventListener('blur', () => { teclas.esq = teclas.dir = false; });
+
+  let rt = null;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { medir(); montarParede(true); if (!raf) desenhar(); }, 120); });
+  function iniciar() {
+    medir(); placar(); raqMira(); pronto = true;
+    if (!ativo) { desenhar(); return; }   // movimento reduzido ou ?motion=off: parede inteira, parada
+    ligar();
+  }
+  Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 1200))]).then(iniciar);
+})();
+</script>
+</body>
+</html>

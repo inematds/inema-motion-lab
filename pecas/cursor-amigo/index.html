@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cursor amigo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<script>
+  // ?demo=1 demonstração contínua · ?motion=off parado no estado final · ?motion=xray raio-X
+  (function () {
+    var q = location.search, m = (q.match(/[?&]motion=([a-z]+)/) || [])[1] || '';
+    window.MOTION = { demo: /[?&]demo=1\b/.test(q), off: m === 'off', xray: m === 'xray' };
+    if (MOTION.off) document.documentElement.classList.add('motion-off');
+  })();
+</script>
+<style>
+  :root {
+    --bg: #0b0b0d; --surface: #111114; --fg: #f3efe7; --fg-2: rgba(243,239,231,.62);
+    --accent: #E2A23B; --ink: #0b0b0d; --floor: #141418;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--fg); font-family: Inter, system-ui, sans-serif; }
+
+  main {
+    position: relative; height: 100vh; height: 100dvh; width: 100%; overflow: hidden;
+    background: radial-gradient(70% 60% at 50% 20%, rgba(226,162,59,.09), transparent 70%), var(--bg);
+    touch-action: pan-y;
+  }
+  .copy { position: relative; z-index: 2; text-align: center; padding: clamp(28px, 9vh, 96px) 16px 0; }
+  .label { font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 500; font-size: 12px;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+  .label b { color: var(--fg); font-weight: 500; }
+  h1 { margin: 16px auto 0; max-width: 12em; font-family: Sora, sans-serif; font-weight: 800;
+    font-size: clamp(2.3rem, min(8vw, 11vh), 5.6rem); line-height: 1; letter-spacing: -.045em; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .lead { margin: 16px auto 0; max-width: 30em; color: var(--fg-2); font-size: clamp(.98rem, 1.8vw, 1.15rem); line-height: 1.5; }
+  .row { margin-top: clamp(18px, 3.5vh, 30px); display: flex; gap: 18px; justify-content: center; align-items: center; flex-wrap: wrap; }
+  .cta {
+    appearance: none; cursor: pointer; font: 600 16px/1 Inter, system-ui, sans-serif; color: var(--ink);
+    background: var(--accent); border: 2.5px solid var(--fg); border-radius: 999px; padding: 15px 24px;
+    box-shadow: 5px 5px 0 var(--fg); transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .cta:hover { transform: translate(-1px, -1px); box-shadow: 6px 6px 0 var(--fg); }
+  .cta:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--fg); }
+  .cta:focus-visible, .more:focus-visible, .buddy:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+  .more { color: var(--fg); font-weight: 500; text-decoration: none; border-bottom: 1.5px solid rgba(226,162,59,.6); padding-bottom: 2px; }
+  .more:hover { color: var(--accent); }
+
+  .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 24%; background: var(--floor);
+    border-top: 2.5px solid var(--accent); z-index: 1; }
+  .floor .label { position: absolute; right: 16px; bottom: 14px; color: rgba(243,239,231,.38); }
+  .floor::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(90deg, rgba(243,239,231,.045) 0 1px, transparent 1px 64px),
+      linear-gradient(180deg, rgba(226,162,59,.10), transparent 40%); }
+  .shade { position: absolute; left: 0; bottom: 24%; width: 130px; height: 14px; margin: 0 0 -9px -65px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0,0,0,.55), transparent); z-index: 2; pointer-events: none; will-change: transform, opacity; }
+
+  /* mascote */
+  .buddy {
+    position: absolute; left: 0; bottom: 24%; width: 176px; height: 148px; z-index: 3;
+    appearance: none; border: 0; padding: 0; background: transparent; cursor: pointer; border-radius: 20px;
+    margin-bottom: -15px; will-change: transform;
+  }
+  .lean { width: 100%; height: 100%; transform-origin: 50% 100%; will-change: transform; pointer-events: none; }
+  .buddy svg { width: 100%; height: 100%; overflow: visible; display: block; }
+  .stars { position: absolute; left: 50%; top: 0; width: 0; height: 0; pointer-events: none; }
+  .stars i { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; opacity: 0; will-change: transform, opacity; }
+  .stars svg { width: 100%; height: 100%; }
+  .puff { position: absolute; left: 0; bottom: 24%; width: 22px; height: 22px; margin: 0 0 -11px -11px; border-radius: 50%;
+    background: rgba(243,239,231,.5); opacity: 0; pointer-events: none; z-index: 2; will-change: transform, opacity; }
+
+  /* cursor fantasma */
+  .ghost { position: fixed; left: 0; top: 0; width: 30px; height: 30px; pointer-events: none; z-index: 20; opacity: 0; will-change: transform, opacity; }
+  .ghost svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 4px rgba(0,0,0,.45)); }
+  .ring { position: fixed; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid var(--accent); pointer-events: none; z-index: 19; opacity: 0; will-change: transform, opacity; }
+
+  @media (max-width: 600px) {
+    .buddy { width: 120px; height: 101px; margin-bottom: -10px; }
+    .shade { width: 90px; margin-left: -45px; }
+    .cta { font-size: 15px; padding: 13px 20px; }
+    .floor .label { left: 16px; right: auto; }
+  }
+  @media (max-height: 560px) { .lead { display: none; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+  .motion-off *, .motion-off *::before, .motion-off *::after { transition: none !important; }
+</style>
+</head>
+<body>
+<main id="piece">
+  <section class="copy">
+    <div class="label">INEMA<b>.CLUB</b> · companhia</div>
+    <h1>Um amigo para o seu <em>cursor</em>.</h1>
+    <p class="lead">Aprender IA fica mais leve com companhia. A capivara segue o seu mouse pelo chão e adora um oi.</p>
+    <div class="row">
+      <button class="cta" id="cta" type="button">Dar um oi</button>
+      <a class="more" href="https://inema.club">Ver cursos gratuitos →</a>
+    </div>
+  </section>
+
+  <div class="shade" id="shade" aria-hidden="true" data-xray="sombra · encolhe e clareia com a altura do pulo" data-xray-tool="code"></div>
+  <div class="floor" aria-hidden="true"><span class="label">chão · ela segue você</span></div>
+
+  <button class="buddy" id="buddy" type="button" aria-label="Capivara: clique para ela dar uma pirueta. Setas movem a capivara."
+    data-xray="capivara · persegue o cursor com aceleração e freio, patas plantadas, senta parada" data-xray-tool="code">
+    <div class="lean" id="lean">
+      <svg viewBox="0 0 128 108" aria-hidden="true">
+        <g id="face">
+          <g id="body">
+            <g id="legBL"><rect x="-6" y="-2" width="12" height="27" rx="6" fill="#6e4a2c"/></g>
+            <g id="legFL"><rect x="-6" y="-2" width="12" height="27" rx="6" fill="#6e4a2c"/></g>
+            <ellipse cx="62" cy="60" rx="42" ry="25" fill="#9b6b43"/>
+            <ellipse cx="56" cy="51" rx="28" ry="9" fill="#b48459" opacity=".5"/>
+            <g id="legBR"><rect x="-6.5" y="-2" width="13" height="27" rx="6.5" fill="#7a5232"/></g>
+            <g id="legFR"><rect x="-6.5" y="-2" width="13" height="27" rx="6.5" fill="#7a5232"/></g>
+            <g id="head">
+              <rect x="84" y="24" width="34" height="32" rx="13" fill="#9b6b43"/>
+              <rect x="103" y="31" width="19" height="24" rx="9" fill="#7a5232"/>
+              <circle cx="90" cy="24" r="5.5" fill="#7a5232"/>
+              <g id="eye"><ellipse cx="102" cy="34" rx="3" ry="3.3" fill="#17120f"/></g>
+              <circle cx="103" cy="33" r="1" fill="#fff4d6"/>
+              <ellipse cx="118" cy="38" rx="1.6" ry="1.2" fill="#2a1d14"/>
+              <path d="M110 47 Q114 49 118 47" stroke="#2a1d14" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+            </g>
+            <path d="M80 50 Q92 60 106 54 L104 61 Q91 65 79 57 Z" fill="#E2A23B"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <div class="stars" id="stars">
+      <i><svg viewBox="-1 -1 2 2"><path d="M0 -1 L.25 -.25 L1 0 L.25 .25 L0 1 L-.25 .25 L-1 0 L-.25 -.25Z" fill="#E2A23B"/></svg></i>
+      <i><svg viewBox="-1 -1 2 2"><path d="M0 -1 L.25 -.25 L1 0 L.25 .25 L0 1 L-.25 .25 L-1 0 L-.25 -.25Z" fill="#f3efe7"/></svg></i>
+      <i><svg viewBox="-1 -1 2 2"><path d="M0 -1 L.25 -.25 L1 0 L.25 .25 L0 1 L-.25 .25 L-1 0 L-.25 -.25Z" fill="#E2A23B"/></svg></i>
+    </div>
+  </button>
+  <div class="puff"></div><div class="puff"></div><div class="puff"></div><div class="puff"></div><div class="puff"></div><div class="puff"></div>
+</main>
+
+<div class="ring" id="ring" aria-hidden="true"></div>
+<div class="ghost" id="ghost" aria-hidden="true">
+  <svg viewBox="0 0 24 24"><path d="M3 2 L3 19.5 L7.6 15.4 L10.7 22 L13.8 20.6 L10.8 14.2 L17 14 Z" fill="#fffaf0" stroke="#17120f" stroke-width="1.5" stroke-linejoin="round"/></svg>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var piece = $('piece'), buddy = $('buddy'), lean = $('lean'), face = $('face'), bodyG = $('body'), head = $('head'), eye = $('eye');
+  var cta = $('cta'), ghost = $('ghost'), ring = $('ring');
+  var legBL = $('legBL'), legBR = $('legBR'), legFL = $('legFL'), legFR = $('legFR');
+  var shade = document.getElementById('shade');
+  var stars = [].slice.call($('stars').children), puffs = [].slice.call(document.querySelectorAll('.puff'));
+  var mq = window.matchMedia ? matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  var DEMO = MOTION.demo;
+  function reduce() { return mq.matches || MOTION.off; }
+  function clamp(x, a, b) { return x < a ? a : x > b ? b : x; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function easeIO(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function easeO(t) { return 1 - Math.pow(1 - t, 3); }
+
+  // ---------- constantes (px/s, px/s²) ----------
+  var ACC = 1800, BRAKE = 2700, VMAX = 620, L = 25, A = 24 * Math.PI / 180;
+  var STRIDE = 4 * L * Math.sin(A);              // passo em unidades do desenho: pé plantado
+  var HIP = { BL: [40, 72], BR: [48, 73], FL: [80, 72], FR: [88, 73] };
+
+  // ---------- estado ----------
+  var W = 128, k = 1, vw = 1280, vh = 720, floorY = 0;
+  var x = 0, v = 0, dir = 1, phase = 0;
+  var cursorX = null, lastMove = -1e9, still = 0;
+  var hoverBtn = false, anticip = 0, wasRest = true;
+  var leanA = 0, sit = 0, tapA = 0, tapV = 0, tapNext = 0;
+  var jumpY = 0, jumpV = 0, crouch = 0, airborne = false, sq = 0, sqV = 0;
+  var spin = -1, dizzy = 0, clock = 0, blinkT = 2000, pointA = 0;
+  var puffI = 0, puffState = puffs.map(function () { return { t: 1e9, x: 0, d: 1 }; });
+
+  function measure() {
+    var r = piece.getBoundingClientRect(); vw = r.width; vh = r.height;
+    W = buddy.offsetWidth; k = W / 128;
+    floorY = vh * 0.76;
+    x = clamp(x || vw * 0.3, W / 2, vw - W / 2);
+  }
+
+  function spawnPuff(px, d) {
+    var p = puffState[puffI]; puffI = (puffI + 1) % puffs.length;
+    p.t = 0; p.x = px; p.d = d;
+  }
+
+  // ---------- entrada ----------
+  piece.addEventListener('pointermove', function (e) {
+    if (e.pointerType === 'touch' && e.buttons === 0) return;
+    cursorX = e.clientX - piece.getBoundingClientRect().left; lastMove = clock;
+  }, { passive: true });
+  piece.addEventListener('pointerdown', function (e) {
+    cursorX = e.clientX - piece.getBoundingClientRect().left; lastMove = clock;
+  }, { passive: true });
+  cta.addEventListener('pointerenter', function () { hoverBtn = true; });
+  cta.addEventListener('pointerleave', function () { hoverBtn = false; });
+  cta.addEventListener('focus', function () { hoverBtn = true; lastMove = clock; wake(); });
+  cta.addEventListener('blur', function () { hoverBtn = false; });
+  cta.addEventListener('click', function () { hop(); });
+  buddy.addEventListener('click', function () { twirl(); });
+  buddy.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      cursorX = clamp(x + (e.key === 'ArrowRight' ? 1 : -1) * W * 1.6, 0, vw); lastMove = clock; wake();
+    }
+  });
+
+  function hop() {
+    if (reduce() || airborne || crouch > 0) return;
+    crouch = 90; wake();
+  }
+  function twirl() {
+    if (reduce() || spin >= 0) return;
+    spin = 0; wake();
+  }
+
+  function btnCenterX() { var r = cta.getBoundingClientRect(), p = piece.getBoundingClientRect(); return r.left - p.left + r.width / 2; }
+
+  // ---------- física ----------
+  function step(dt) {
+    var s = dt / 1000, R = reduce();
+    if (R) {
+      // parada, apontando para o botão
+      var bx = btnCenterX();
+      x = clamp(bx - W * 1.25, W / 2, vw - W / 2); v = 0; dir = bx > x ? 1 : -1;
+      leanA = 0; sit = 0; jumpY = 0; sq = 0; spin = -1; dizzy = 0; pointA = 1; phase = 0;
+      return;
+    }
+    // alvo
+    var target = x, want = false;
+    if (hoverBtn) { var b = btnCenterX(); var sb = b > x ? 1 : -1; target = b - sb * (W * 0.5 + 34); want = Math.abs(target - x) > 6; }
+    else if (cursorX != null) {
+      var side = cursorX > x ? 1 : -1, gap = Math.abs(cursorX - x);
+      if (gap > W * (0.5 + 1 / 3) + 4) { target = cursorX - side * W * (0.5 + 1 / 3); want = true; }
+    }
+    target = clamp(target, W / 2, vw - W / 2);
+    var dist = target - x, sg = dist > 0 ? 1 : -1;
+    if (spin >= 0 || dizzy > 0 || airborne || crouch > 0) want = false;
+
+    // antecipação: alvo longe partindo do repouso
+    if (want && wasRest && Math.abs(dist) > 260 && anticip <= 0) anticip = 150;
+    if (anticip > 0) { anticip -= dt; want = false; }
+
+    var prevV = v;
+    if (want) {
+      var stopDist = v * v / (2 * BRAKE);
+      if (Math.sign(v) === sg && Math.abs(dist) <= stopDist + 2) v -= sg * BRAKE * s;      // freia
+      else v += sg * ACC * s;
+      v = clamp(v, -VMAX, VMAX);
+      if (Math.abs(dist) < 3 && Math.abs(v) < 40) { v = 0; x = target; }
+    } else {
+      var dv = BRAKE * s; v = Math.abs(v) <= dv ? 0 : v - Math.sign(v) * dv;
+    }
+    x += v * s;
+    if (x < W / 2) { x = W / 2; v = 0; } if (x > vw - W / 2) { x = vw - W / 2; v = 0; }
+    if (Math.abs(v) > 30) dir = v > 0 ? 1 : -1;
+    else if (hoverBtn) dir = btnCenterX() > x ? 1 : -1;
+    else if (cursorX != null && Math.abs(cursorX - x) > 20 && clock - lastMove < 1900) dir = cursorX > x ? 1 : -1;
+    var decel = (Math.abs(prevV) - Math.abs(v)) / Math.max(s, 1e-4);
+    var hardBrake = Math.abs(prevV) > 380 && decel > 2000;
+    if (hardBrake && Math.random() < 0.35) spawnPuff(x + dir * W * 0.32, -dir);
+    wasRest = Math.abs(v) < 5 && anticip <= 0;
+
+    // passo com pé plantado
+    phase += Math.abs(v * s) / k / STRIDE * 2 * Math.PI;
+    if (Math.abs(v) < 5) phase = lerp(phase, Math.round(phase / Math.PI) * Math.PI, 0.15);
+
+    // inclinação: para frente correndo, para trás freando / antecipando
+    var speedN = Math.abs(v) / VMAX;
+    var leanT = speedN * (speedN > 0.6 ? 16 : 10);
+    if (hardBrake || (Math.abs(v) > 120 && Math.sign(v) !== sg && want)) leanT = -9;
+    if (anticip > 0) leanT = -7;
+    leanA = lerp(leanA, leanT, 1 - Math.exp(-dt / 70));
+
+    // sentar após 1.9 s parado
+    if (Math.abs(v) < 5 && !airborne && spin < 0 && dizzy <= 0 && !hoverBtn) still += dt; else still = 0;
+    sit = lerp(sit, still > 1900 ? 1 : 0, 1 - Math.exp(-dt / 140));
+    // batucada do pé sentado (mola 70/11)
+    if (sit > 0.8) {
+      tapNext -= dt;
+      if (tapNext <= 0) { tapV -= 260; tapNext = 520 + Math.random() * 380; }
+    }
+    var aT = -70 * tapA - 11 * tapV; tapV += aT * s; tapA += tapV * s;
+
+    // pulo
+    if (crouch > 0) {
+      crouch -= dt; sq = -0.16;
+      if (crouch <= 0) { airborne = true; jumpV = -560; sq = 0.1; sqV = 0; }
+    }
+    if (airborne) {
+      jumpV += 1900 * s; jumpY += jumpV * s;
+      if (jumpY >= 0) { jumpY = 0; airborne = false; sq = -0.22; sqV = 0; }
+    }
+    if (crouch <= 0) { var aS = -380 * sq - 14 * sqV; sqV += aS * s; sq += sqV * s; }
+
+    // pirueta + tontura
+    if (spin >= 0) { spin += dt; if (spin >= 700) { spin = -1; dizzy = 1600; } }
+    else if (dizzy > 0) dizzy -= dt;
+
+    // apontar
+    pointA = lerp(pointA, hoverBtn && Math.abs(v) < 60 && !airborne ? 1 : 0, 1 - Math.exp(-dt / 90));
+
+    // poeira
+    puffState.forEach(function (p) { p.t += dt; });
+  }
+
+  function legT(g, hip, ang, lift) {
+    g.setAttribute('transform', 'translate(' + hip[0] + ' ' + hip[1] + ') rotate(' + ang.toFixed(2) + ') scale(1 ' + (1 - lift).toFixed(3) + ')');
+  }
+
+  function render() {
+    var R = reduce();
+    // corpo
+    var spinA = spin >= 0 ? 360 * easeIO(spin / 700) : 0;
+    var wob = dizzy > 0 ? Math.sin(clock / 70) * 7 * (dizzy / 1600) : 0;
+    var rot = (leanA * dir) + spinA * dir + wob;
+    var sy = 1 + sq, sx = 1 - sq * 0.6;
+    var bob = Math.abs(v) > 5 ? -Math.abs(Math.sin(phase)) * 2.2 * k : 0;
+    buddy.style.transform = 'translate(' + (x - W / 2).toFixed(2) + 'px,' + (jumpY + bob).toFixed(2) + 'px)';
+    lean.style.transform = 'rotate(' + rot.toFixed(2) + 'deg) scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ')';
+    var hgt = Math.min(1, -jumpY / 160);
+    shade.style.transform = 'translateX(' + x.toFixed(2) + 'px) scale(' + (1 - 0.45 * hgt).toFixed(3) + ')';
+    shade.style.opacity = (1 - 0.6 * hgt).toFixed(3);
+    face.setAttribute('transform', dir < 0 ? 'translate(128 0) scale(-1 1)' : '');
+
+    // sentar: traseira desce e gira
+    var sitRot = -14 * sit, sitDown = 9 * sit;
+    bodyG.setAttribute('transform', 'translate(0 ' + sitDown.toFixed(2) + ') rotate(' + sitRot.toFixed(2) + ' 88 82)');
+
+    // patas
+    var aDeg = A * 180 / Math.PI, moving = Math.abs(v) > 5 ? 1 : 0;
+    function swing(off) {
+      var psi = phase + off, ang = aDeg * Math.sin(psi) * moving;
+      var lift = moving ? 0.22 * Math.max(0, -Math.cos(psi)) : 0;
+      return [ang, lift];
+    }
+    var a1 = swing(0), a2 = swing(Math.PI), tuck = airborne ? 0.35 : 0;
+    // traseiras dobram ao sentar
+    legT(legBL, HIP.BL, lerp(a2[0], -70, sit), Math.max(a2[1], tuck, sit * 0.35));
+    legT(legBR, HIP.BR, lerp(a1[0], -78, sit), Math.max(a1[1], tuck, sit * 0.35));
+    // dianteira de trás: anda, ou bate o pé sentada
+    legT(legFL, HIP.FL, a1[0] + sit * 8 + tapA * 0.0, Math.max(a1[1], tuck, Math.max(0, -tapA) * 0.012 * sit));
+    // dianteira da frente: anda, ou aponta para o botão
+    var fr = lerp(a2[0], -118, pointA);
+    legT(legFR, HIP.FR, fr + sit * 10, Math.max(a2[1] * (1 - pointA), tuck * (1 - pointA)));
+    head.setAttribute('transform', 'rotate(' + (sit * 8 - pointA * 6 + (dizzy > 0 ? wob * 0.6 : 0)).toFixed(2) + ' 90 50)');
+
+    // piscar (tonto: olho semicerrado)
+    blinkT -= 16;
+    var bl = 1;
+    if (!R && blinkT < 120) { bl = Math.abs(blinkT - 60) / 60; if (blinkT <= 0) blinkT = 2000 + Math.random() * 2500; }
+    if (dizzy > 0) bl = 0.35;
+    eye.setAttribute('transform', 'translate(0 34) scale(1 ' + bl.toFixed(3) + ') translate(0 -34)');
+
+    // estrelinhas da tontura
+    var sa = dizzy > 0 ? Math.min(1, dizzy / 300, (1600 - dizzy) / 150 + 0.2) : 0;
+    var hx = (dir > 0 ? 104 : 24) * k - W / 2;
+    stars.forEach(function (st, i) {
+      var ang = clock / 260 + i * 2.094;
+      var px = hx + Math.cos(ang) * 20 * k, py = 18 * k + Math.sin(ang) * 7 * k;
+      st.style.opacity = sa.toFixed(3);
+      st.style.transform = 'translate(' + px.toFixed(1) + 'px,' + py.toFixed(1) + 'px) scale(' + (0.7 + 0.3 * Math.sin(ang)).toFixed(3) + ')';
+    });
+
+    // poeira
+    puffs.forEach(function (el, i) {
+      var p = puffState[i], u = p.t / 520;
+      if (u >= 1) { el.style.opacity = '0'; return; }
+      el.style.opacity = (0.55 * (1 - u)).toFixed(3);
+      el.style.transform = 'translate(' + (p.x + p.d * 40 * easeO(u) + (i % 3 - 1) * 8).toFixed(1) + 'px,' + (-14 * easeO(u) - (i % 2) * 6).toFixed(1) + 'px) scale(' + (0.4 + 1.4 * easeO(u)).toFixed(3) + ')';
+    });
+    if (window.xrayTick) xrayTick();
+  }
+
+  // ---------- modo demonstração ----------
+  var LOOP = 12000;
+  var prevG = null;
+  var demoOn = !reduce() || DEMO, demoE = 0, demoFade = 1, demoStopping = false, ringT = 1e9, lastC = -1, ringAt = [0, 0];
+  function stopDemo(e) {
+    if (DEMO || !demoOn || demoStopping) return;
+    if (e && e.isTrusted === false) return;
+    demoStopping = true; hoverBtn = false;
+  }
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function (ev) {
+    window.addEventListener(ev, stopDemo, { passive: true, capture: true });
+  });
+  piece.addEventListener('pointerenter', function (e) { if (e.isTrusted && demoE > 300) stopDemo(e); });
+  function crossed(prev, cur, mark) { if (prev < 0) return false; return prev <= cur ? (prev < mark && cur >= mark) : (prev < mark || cur >= mark); }
+  function demoPath(c) {
+    var fy = floorY - 40, br = cta.getBoundingClientRect(), pr = piece.getBoundingClientRect();
+    var B = [br.left - pr.left + br.width * 0.6, br.top - pr.top + br.height * 0.6];
+    var M = [x + 8 * dir, floorY - W * 0.55];
+    var P0 = [vw * 0.12, fy], P1 = [vw * 0.86, fy - 30], P2 = [vw * 0.62, fy + 10];
+    function mv(a, b2, t0, t1) { var t = easeIO(clamp((c - t0) / (t1 - t0), 0, 1)); return [lerp(a[0], b2[0], t), lerp(a[1], b2[1], t)]; }
+    if (c < 600) return P0;
+    if (c < 1500) return mv(P0, P1, 600, 1500);         // corre para a direita
+    if (c < 4300) return P1;                            // parado: ela freia e senta
+    if (c < 5200) return mv(P1, B, 4300, 5200);         // vai até o botão
+    if (c < 6900) return B;                             // aponta, clique em 6000
+    if (c < 7700) return mv(B, P2, 6900, 7700);
+    if (c < 8400) return mv(P2, M, 7700, 8400);         // vai até a capivara
+    if (c < 10600) return M;                            // clique em 8600: pirueta
+    return mv(M, P0, 10600, 11800);
+  }
+  function renderDemo(dt) {
+    if (!demoOn) return;
+    if (demoStopping) {
+      demoFade = Math.max(0, demoFade - dt / 300);
+      ghost.style.opacity = demoFade.toFixed(3);
+      if (demoFade <= 0) { demoOn = false; ghost.style.display = 'none'; ring.style.display = 'none'; }
+      return;
+    }
+    demoE += dt;
+    var c = demoE % LOOP, pos = demoPath(c), pr = piece.getBoundingClientRect();
+    if (!prevG || Math.abs(pos[0] - prevG[0]) + Math.abs(pos[1] - prevG[1]) > 0.3) lastMove = clock;
+    prevG = pos; cursorX = pos[0];
+    var br = cta.getBoundingClientRect();
+    hoverBtn = c >= 5000 && c < 6900;
+    var press = 1;
+    if (crossed(lastC, c, 6000)) { hop(); ringT = 0; ringAt = [pos[0] + pr.left, pos[1] + pr.top]; }
+    if (crossed(lastC, c, 8600)) { twirl(); ringT = 0; ringAt = [pos[0] + pr.left, pos[1] + pr.top]; }
+    lastC = c;
+    if (ringT < 240) press = 1 - 0.15 * Math.sin(Math.PI * ringT / 240);
+    ghost.style.opacity = Math.min(1, demoE / 300).toFixed(3);
+    ghost.style.transform = 'translate(' + (pos[0] + pr.left - 4).toFixed(1) + 'px,' + (pos[1] + pr.top - 3).toFixed(1) + 'px) scale(' + press.toFixed(3) + ')';
+    ringT += dt;
+    if (ringT < 500) {
+      var kk = ringT / 500;
+      ring.style.opacity = (0.9 * (1 - kk)).toFixed(3);
+      ring.style.transform = 'translate(' + ringAt[0].toFixed(1) + 'px,' + ringAt[1].toFixed(1) + 'px) scale(' + (0.4 + 1.2 * easeO(kk)).toFixed(3) + ')';
+    } else ring.style.opacity = '0';
+  }
+  if (!demoOn) { ghost.style.display = 'none'; ring.style.display = 'none'; }
+
+  // ---------- loop único ----------
+  var visible = true, rafId = 0, last = 0, ready = false;
+  function frame(now) {
+    rafId = 0;
+    var dt = last ? Math.min(50, now - last) : 16;
+    last = now; clock += dt;
+    if (ready) { renderDemo(dt); step(dt); render(); }
+    if (!(reduce() && !demoOn)) wake();
+  }
+  function running() { return visible && !document.hidden; }
+  function wake() { if (!rafId && running()) rafId = requestAnimationFrame(frame); }
+  function sleep() { if (rafId) { cancelAnimationFrame(rafId); rafId = 0; } last = 0; }
+  document.addEventListener('visibilitychange', function () { document.hidden ? sleep() : wake(); });
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      visible = entries[entries.length - 1].isIntersecting;
+      visible ? wake() : sleep();
+    }).observe(piece);
+  }
+  if (mq.addEventListener) mq.addEventListener('change', function () {
+    if (reduce() && !DEMO) { demoOn = false; ghost.style.display = 'none'; ring.style.display = 'none'; }
+    step(0); render(); wake();
+  });
+  addEventListener('resize', function () { measure(); step(0); render(); wake(); });
+
+  function start() { measure(); ready = true; step(16); render(); wake(); }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else start();
+})();
+</script>
+
+<!-- Raio-X: ?motion=xray desenha contorno e etiqueta em tudo que se move -->
+<style>
+  .xr-layer { position: fixed; inset: 0; pointer-events: none; z-index: 9999; overflow: hidden; }
+  .xr-box { position: absolute; left: 0; top: 0; border: 1.5px dashed #E2A23B; border-radius: 6px; }
+  .xr-tag { position: absolute; left: -1.5px; bottom: 100%; margin-bottom: 3px; white-space: nowrap;
+    font: 500 10px/1.25 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .03em;
+    color: #0b0b0d; background: #E2A23B; padding: 3px 6px; border-radius: 4px; }
+  .xr-box.below .xr-tag { bottom: auto; top: 100%; margin: 3px 0 0; }
+</style>
+<script>
+  (function () {
+    if (!window.MOTION || !MOTION.xray) return;
+    var els = [].slice.call(document.querySelectorAll('[data-xray]'));
+    var layer = document.createElement('div'); layer.className = 'xr-layer'; layer.setAttribute('aria-hidden', 'true');
+    var boxes = els.map(function (el) {
+      var b = document.createElement('div'); b.className = 'xr-box';
+      var t = document.createElement('span'); t.className = 'xr-tag'; t.textContent = el.getAttribute('data-xray');
+      b.appendChild(t); layer.appendChild(b); return b;
+    });
+    document.body.appendChild(layer);
+    window.xrayTick = function () {
+      for (var i = 0; i < els.length; i++) {
+        var r = els[i].getBoundingClientRect(), b = boxes[i];
+        b.style.width = r.width + 'px'; b.style.height = r.height + 'px';
+        b.style.transform = 'translate(' + r.left + 'px,' + r.top + 'px)';
+        b.classList.toggle('below', r.top < 24);
+      }
+    };
+    xrayTick(); addEventListener('resize', xrayTick); setTimeout(xrayTick, 600);
+  })();
+</script>
+</body>
+</html>

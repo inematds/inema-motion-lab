@@ -6,7 +6,7 @@
 
 ## What it is
 
-INEMA Motion Lab teaches you how to ask an AI (Claude, Codex or another one) for website animations and get something with a professional finish, not a generic effect. It brings a three-part prompt template (appearance, motion and rules) and five real examples made with it: a ⌘K search, a features grid, a playable 404 page, a footer with falling letters and a day/night theme button. Each piece is a single HTML file that you open in the browser and paste into your site, and it comes with the prompt that generated it and a short video. It is for anyone who builds pages, guides or courses and wants motion without relying on a heavy library.
+INEMA Motion Lab teaches you how to ask an AI (Claude, Codex or another one) for website animations and get something with a professional finish, not a generic effect. It brings a three-part prompt template (appearance, motion and rules) and twenty real examples made with it: searches and menus, footers, galleries, buttons, a playable 404 page, a loading screen and a day/night theme button, all with X-ray and a `?motion=off` mode. Each piece is a single HTML file that you open in the browser and paste into your site, and it comes with the prompt that generated it and a short video. It is for anyone who builds pages, guides or courses and wants motion without relying on a heavy library.
 
 ## 📖 How-to guide
 
@@ -23,7 +23,54 @@ Full guide (landing + step by step, with the pieces live): **https://inematds.gi
 | `tools/testar-pecas.cjs` | Tests every piece in the browser (errors, 360 px, reduced motion, scrolling) |
 | `tools/gravar-videos.cjs` | Records the demo mode (`?demo=1`) of each piece |
 
-The five pieces: `busca-cmdk`, `bento-glide`, `404-corre`, `rodape-inema`, `dia-noite`.
+## The 20 pieces
+
+Each piece has `index.html` and `PROMPT.md`, and accepts `?demo=1` (continuous demo), `?motion=xray` (X-ray: labels what moves) and `?motion=off` (everything frozen in its final state).
+
+**Search and navigation**
+
+| Piece | Link |
+|---|---|
+| ⌘K search | [`pecas/busca-cmdk/`](pecas/busca-cmdk/index.html) |
+| Hopping navigation | [`pecas/nav-pulo/`](pecas/nav-pulo/index.html) |
+| Morphing menu | [`pecas/menu-morfo/`](pecas/menu-morfo/index.html) |
+| Full-screen menu | [`pecas/menu-tela-cheia/`](pecas/menu-tela-cheia/index.html) |
+| Liquid dock | [`pecas/dock-liquido/`](pecas/dock-liquido/index.html) |
+
+**Footers**
+
+| Piece | Link |
+|---|---|
+| INEMA footer with physics | [`pecas/rodape-inema/`](pecas/rodape-inema/index.html) |
+| Curtain footer | [`pecas/rodape-cortina/`](pecas/rodape-cortina/index.html) |
+| Flower footer | [`pecas/rodape-flor/`](pecas/rodape-flor/index.html) |
+| Map footer | [`pecas/rodape-mapa/`](pecas/rodape-mapa/index.html) |
+| Breakout footer | [`pecas/rodape-quebra/`](pecas/rodape-quebra/index.html) |
+
+**Galleries and images**
+
+| Piece | Link |
+|---|---|
+| Bento grid with a sliding frame | [`pecas/bento-glide/`](pecas/bento-glide/index.html) |
+| Spinning gallery | [`pecas/galeria-giro/`](pecas/galeria-giro/index.html) |
+| Image trail | [`pecas/rastro-imagens/`](pecas/rastro-imagens/index.html) |
+| Holographic sticker | [`pecas/adesivo-holo/`](pecas/adesivo-holo/index.html) |
+
+**Buttons and details**
+
+| Piece | Link |
+|---|---|
+| Jelly buttons | [`pecas/botoes-geleia/`](pecas/botoes-geleia/index.html) |
+| Friendly cursor | [`pecas/cursor-amigo/`](pecas/cursor-amigo/index.html) |
+| Flap strip | [`pecas/faixa-flap/`](pecas/faixa-flap/index.html) |
+| Day and night | [`pecas/dia-noite/`](pecas/dia-noite/index.html) |
+
+**Special pages**
+
+| Piece | Link |
+|---|---|
+| 404 that turns into a game | [`pecas/404-corre/`](pecas/404-corre/index.html) |
+| Loading reveal | [`pecas/revela-carga/`](pecas/revela-carga/index.html) |
 
 ## Quick start
 
@@ -39,5 +86,5 @@ node tools/gravar-videos.cjs 8850
 
 ## Credits
 
-Ideas inspired by popular effects from the community; prompts and code written from scratch for INEMA.
+Prompts and code written from scratch for INEMA.
 Open and free content from [INEMA.CLUB](https://inema.club).

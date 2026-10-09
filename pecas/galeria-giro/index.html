@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galeria giro</title>
+<meta name="description" content="Anel 3D de projetos INEMA que gira com o arraste, com reflexo no chão e cartão que abre em destaque.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@500&family=Sora:wght@200;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --painel: #111114;
+    --texto: #f3efe7;
+    --texto-2: rgba(243, 239, 231, .6);
+    --ambar: #E2A23B;
+    --cw: 260px;
+    --ch: 162px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow-x: hidden; background: var(--bg); color: var(--texto); }
+  body { font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  .palco {
+    position: relative; height: 100vh; height: 100dvh; min-height: 520px; overflow: hidden;
+    background: radial-gradient(120% 80% at 50% 0%, #141418 0%, var(--bg) 60%);
+    touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: grab;
+  }
+  .palco.arrastando { cursor: grabbing; }
+  .palco:focus-visible { outline: 3px solid var(--ambar); outline-offset: -3px; }
+
+  /* luz, poeira, chão, vinheta e grão */
+  .luz {
+    position: absolute; left: 50%; top: -10%; width: 90vmin; height: 95%; margin-left: -45vmin;
+    background: linear-gradient(180deg, rgba(243, 239, 231, .16), rgba(226, 162, 59, .05) 60%, transparent 92%);
+    clip-path: polygon(44% 0, 56% 0, 100% 100%, 0 100%); filter: blur(10px); pointer-events: none;
+  }
+  .poeira { position: absolute; inset: 0; pointer-events: none; }
+  .poeira i {
+    position: absolute; left: 0; top: 0; width: 3px; height: 3px; border-radius: 50%;
+    background: #f3e2c0; will-change: transform, opacity;
+  }
+  .chao {
+    position: absolute; left: 10%; right: 10%; top: 62%; height: 30%;
+    background: radial-gradient(50% 50% at 50% 30%, rgba(226, 162, 59, .14), transparent 70%); pointer-events: none;
+  }
+  .vinheta { position: absolute; inset: 0; pointer-events: none; z-index: 5;
+    background: radial-gradient(130% 100% at 50% 45%, transparent 55%, rgba(0, 0, 0, .75) 100%); }
+  .grao { position: absolute; inset: 0; pointer-events: none; z-index: 6; opacity: .09; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  /* anel 3D */
+  .cena { position: absolute; left: 0; right: 0; top: 0; height: 74%; z-index: 2; display: grid; place-items: center; will-change: transform, opacity; }
+  .anel { position: relative; width: var(--cw); height: var(--ch); transform-style: preserve-3d; will-change: transform; }
+  .item { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
+  .cartao {
+    position: absolute; inset: 0; padding: 0; border: 0; border-radius: 10px; cursor: pointer; overflow: hidden;
+    background: #1a1a1f; box-shadow: inset 0 0 0 1px rgba(243, 239, 231, .22), 0 18px 40px rgba(0, 0, 0, .55);
+    color: var(--texto); font: inherit; text-align: left;
+  }
+  .cartao:focus-visible { outline: 3px solid var(--ambar); outline-offset: 4px; }
+  .arte { position: absolute; inset: 0; border-radius: 10px; overflow: hidden; }
+  .arte svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .arte .inicial { position: absolute; right: 8%; bottom: -6%; font: 800 calc(var(--ch) * .78)/1 Sora, sans-serif; letter-spacing: -.05em; color: rgba(11, 11, 13, .82); }
+  .arte .etq { position: absolute; left: 8%; top: 9%; font: 500 calc(var(--ch) * .07)/1 "JetBrains Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: rgba(11, 11, 13, .75); }
+  .arte .nome { position: absolute; left: 8%; bottom: 10%; max-width: 60%; font: 600 calc(var(--ch) * .12)/1.1 Sora, sans-serif; color: #0b0b0d; }
+  .cartao .brilho {
+    position: absolute; top: -20%; bottom: -20%; left: 0; width: 45%; pointer-events: none;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .28), transparent); will-change: transform;
+  }
+  .cartao .sombra { position: absolute; inset: 0; background: #050506; pointer-events: none; will-change: opacity; }
+  .reflexo {
+    position: absolute; left: 0; right: 0; top: calc(100% + 6px); height: 100%; border-radius: 10px; overflow: hidden;
+    transform: scaleY(-1); pointer-events: none; opacity: .32;
+    -webkit-mask-image: linear-gradient(to top, rgba(0, 0, 0, .9), transparent 55%);
+            mask-image: linear-gradient(to top, rgba(0, 0, 0, .9), transparent 55%);
+  }
+  .reflexo .sombra { position: absolute; inset: 0; background: #050506; }
+
+  /* textos */
+  .topo {
+    position: absolute; left: clamp(16px, 4vw, 48px); right: clamp(16px, 4vw, 48px); top: clamp(14px, 3vh, 28px); z-index: 7;
+    display: flex; justify-content: space-between; gap: 12px;
+    font: 500 11px/1.3 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--texto-2);
+  }
+  .topo b { color: var(--ambar); font-weight: 500; }
+  .base {
+    position: absolute; left: clamp(16px, 4vw, 48px); right: clamp(16px, 4vw, 48px); bottom: clamp(14px, 3.5vh, 34px); z-index: 7;
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; pointer-events: none;
+  }
+  .grande { margin: 0; font: 200 clamp(2.4rem, min(7.4vw, 13vh), 6.6rem)/.9 Sora, sans-serif; letter-spacing: -.04em; }
+  .grande em { font-style: normal; color: var(--ambar); }
+  .frente { text-align: right; min-width: 0; }
+  .frente .titulo { display: block; font: 600 clamp(17px, 2vw, 24px)/1.2 Sora, sans-serif; }
+  .frente .desc { display: block; margin-top: 4px; font-size: 14px; color: var(--texto-2); max-width: 32ch; margin-left: auto; }
+  .contador { display: inline-flex; gap: .4em; margin-top: 10px; font: 500 13px/1 "JetBrains Mono", monospace; letter-spacing: .1em; color: var(--texto-2); }
+  .rolo { display: inline-block; height: 1em; overflow: hidden; color: var(--ambar); }
+  .rolo span { display: block; will-change: transform; }
+
+  /* destaque (cartão aberto) */
+  .borrado { position: absolute; inset: -10%; z-index: 3; pointer-events: none; opacity: 0; filter: blur(48px) saturate(1.2); will-change: opacity; }
+  .detalhe { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+  .detalhe.aberto { pointer-events: auto; }
+  .quadro { position: absolute; left: 0; top: 0; border-radius: 14px; overflow: hidden; transform-origin: 0 0; opacity: 0; will-change: transform, opacity;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(243, 239, 231, .25); }
+  .quadro .arte { border-radius: 14px; }
+  .quadro .arte .nome { display: none; }
+  .info {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: clamp(14px, 3vw, 28px);
+    background: linear-gradient(to top, rgba(11, 11, 13, .88), rgba(11, 11, 13, 0));
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px 16px;
+  }
+  .info > * { will-change: transform, opacity; opacity: 0; }
+  .info h2 { margin: 0; font: 600 clamp(20px, 3vw, 36px)/1.1 Sora, sans-serif; color: var(--texto); }
+  .info .ano { display: block; margin-top: 6px; font: 500 12px/1 "JetBrains Mono", monospace; letter-spacing: .14em; color: var(--ambar); }
+  .info a {
+    display: inline-block; padding: 11px 18px; border-radius: 999px; background: var(--ambar); color: #0b0b0d;
+    font: 500 14px/1 Inter, sans-serif; text-decoration: none;
+  }
+  .fechar {
+    position: absolute; right: 12px; top: 12px; width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid rgba(243, 239, 231, .3); background: rgba(11, 11, 13, .6); color: var(--texto);
+    font: 500 18px/1 Inter, sans-serif; cursor: pointer; opacity: 0; will-change: opacity;
+  }
+  .info a:focus-visible, .fechar:focus-visible { outline: 3px solid var(--texto); outline-offset: 3px; }
+
+  .fantasma { position: absolute; left: 0; top: 0; width: 30px; height: 30px; z-index: 9; pointer-events: none; opacity: 0; will-change: transform, opacity;
+    filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, .55)); }
+  .fantasma svg { width: 100%; height: 100%; display: block; transform-origin: 3px 2px; transition: transform .12s; }
+  .fantasma.aperta svg { transform: scale(.85); }
+
+  @media (max-width: 640px) {
+    .base { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .frente { text-align: left; }
+    .frente .desc { margin-left: 0; }
+    .topo .so-largo { display: none; }
+    .cena { height: 64%; top: 4%; }
+  }
+</style>
+</head>
+<body>
+<main class="palco" id="palco" tabindex="0" aria-label="Galeria de projetos INEMA. Use as setas para girar e Enter para abrir o projeto da frente.">
+  <div class="luz" aria-hidden="true"></div>
+  <div class="poeira" id="poeira" aria-hidden="true"></div>
+  <div class="chao" aria-hidden="true"></div>
+  <div class="borrado" id="borrado" aria-hidden="true" data-xray="cópia borrada · aparece em opacidade atrás do destaque" data-xray-tool="code"></div>
+
+  <div class="cena" id="cena" data-xray="cena · encolhe quando um cartão abre" data-xray-tool="code">
+    <div class="anel" id="anel" data-xray="anel 3D · um ângulo só, guiado por mola" data-xray-tool="code"></div>
+  </div>
+
+  <div class="topo"><span><b>INEMA</b> · galeria de projetos</span><span class="so-largo">arraste · setas · role de lado</span></div>
+  <div class="base">
+    <p class="grande">Projetos <em>2026</em></p>
+    <div class="frente" aria-live="polite">
+      <span class="titulo" id="frenteTitulo">Ata</span>
+      <span class="desc" id="frenteDesc"></span>
+      <span class="contador"><span class="rolo"><span id="rolo" data-xray="contador · número rola ao trocar" data-xray-tool="code">01</span></span><span>/ 12</span></span>
+    </div>
+  </div>
+
+  <div class="vinheta" aria-hidden="true"></div>
+  <div class="grao" aria-hidden="true"></div>
+
+  <div class="detalhe" id="detalhe" role="dialog" aria-modal="false" aria-labelledby="detTitulo" hidden>
+    <div class="quadro" id="quadro" data-xray="cartão aberto · FLIP com mola até 70 % do palco" data-xray-tool="code">
+      <div class="arte" id="detArte"></div>
+      <div class="info">
+        <div><h2 id="detTitulo">Ata</h2><span class="ano" id="detAno">2026 · projeto</span></div>
+        <a id="detLink" href="https://inema.club">Ver projeto ↗</a>
+      </div>
+      <button type="button" class="fechar" id="fechar" aria-label="Fechar">✕</button>
+    </div>
+  </div>
+
+  <div class="fantasma" id="fantasma" aria-hidden="true">
+    <svg viewBox="0 0 30 30"><path d="M3 2 L3 24 L9 18.5 L13 27 L17 25.2 L13 16.8 L21 16.8 Z" fill="#f3efe7" stroke="#0b0b0d" stroke-width="2" stroke-linejoin="round"/></svg>
+  </div>
+</main>
+
+<script>
+/* Raio-X e modos: ?motion=xray mostra o que se move, ?motion=off congela, ?demo=1 repete sem parar */
+window.MOTION = (() => {
+  const q = new URLSearchParams(location.search);
+  const modo = q.get('motion');
+  const api = { off: modo === 'off', xray: modo === 'xray', demo: q.get('demo') === '1' };
+  if (!api.xray) return api;
+  const css = document.createElement('style');
+  css.textContent = '.xr-box{position:fixed;left:0;top:0;z-index:9998;pointer-events:none;border:1.5px dashed #E2A23B;border-radius:4px}' +
+    '.xr-tag{position:fixed;left:0;top:0;z-index:9999;pointer-events:none;font:500 10px/1.25 "JetBrains Mono",ui-monospace,monospace;color:#0b0b0d;background:#E2A23B;padding:2px 6px;border-radius:3px;white-space:nowrap;max-width:70vw;overflow:hidden;text-overflow:ellipsis}';
+  document.head.appendChild(css);
+  const pares = new Map();
+  const desenhar = () => {
+    const vistos = new Set(), textos = new Set();
+    document.querySelectorAll('[data-xray]').forEach(el => {
+      vistos.add(el);
+      let p = pares.get(el);
+      if (!p) {
+        p = { box: document.createElement('div'), tag: document.createElement('div') };
+        p.box.className = 'xr-box'; p.tag.className = 'xr-tag'; p.tag.textContent = el.dataset.xray;
+        document.body.append(p.box, p.tag); pares.set(el, p);
+      }
+      const r = el.getBoundingClientRect();
+      const vis = r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight;
+      p.box.style.display = vis ? '' : 'none';
+      const mostraTag = vis && !textos.has(el.dataset.xray);
+      p.tag.style.display = mostraTag ? '' : 'none';
+      if (!vis) return;
+      textos.add(el.dataset.xray);
+      p.box.style.transform = `translate(${r.left}px,${r.top}px)`;
+      p.box.style.width = r.width + 'px'; p.box.style.height = r.height + 'px';
+      p.tag.style.transform = `translate(${Math.max(2, Math.min(innerWidth - 120, r.left))}px,${Math.max(2, r.top - 18)}px)`;
+    });
+    for (const [el, p] of pares) if (!vistos.has(el)) { p.box.remove(); p.tag.remove(); pares.delete(el); }
+  };
+  setInterval(desenhar, 200);
+  return api;
+})();
+</script>
+
+<script>
+(() => {
+  'use strict';
+  /* ===== parâmetros (espelham o PROMPT.md) ===== */
+  const N = 12, PASSO = 360 / N;
+  const INCLINA = 9.5;                 // graus de inclinação do anel
+  const MOLA_ANEL = { k: 38, d: 11.5 };
+  const MOLA_FLIP = { k: 150, d: 21 };
+  const ESCURECE = 0.8;                // até 80 % mais escuro de costas
+  const ERGUE = 0.07;                  // cartão da frente sobe 7 %
+  const ARREMESSO = 0.32;              // s de projeção da velocidade no arremesso
+  const AUTO_PASSO = 2400;             // ms entre avanços automáticos
+
+  const PROJETOS = [
+    ['Ata', 'Anotador de reuniões que roda no seu computador.', 'projeto', ['#E2A23B', '#F2C76E'], 0],
+    ['Filmarca', 'Transforma o site da marca num filme curto.', 'projeto', ['#f3efe7', '#E2A23B'], 1],
+    ['Cardshorts', 'Roteiro vira short de cartões narrado.', 'kit', ['#7cc4e8', '#f3efe7'], 2],
+    ['Motion Lab', 'Peças animadas com o prompt para refazer.', 'guia', ['#E2A23B', '#C9821F'], 3],
+    ['Arena da Capivara', 'Modelos de IA desenhando a mesma capivara.', 'teste', ['#F2C76E', '#9b6b43'], 4],
+    ['Atende Clínica', 'Atendimento de clínica com agenda e avisos.', 'kit', ['#9fd3c4', '#f3efe7'], 5],
+    ['INEMA Mods', 'Extensões em português para agentes de código.', 'kit', ['#C9821F', '#F2C76E'], 0],
+    ['Mentor', 'Um mentor treinado com o seu próprio conteúdo.', 'kit', ['#f3efe7', '#7cc4e8'], 1],
+    ['Carisma', 'Treino de fala com retorno por voz.', 'projeto', ['#E86A4A', '#F2C76E'], 2],
+    ['Docflow', 'Um tema vira documentário narrado.', 'projeto', ['#b69cff', '#f3efe7'], 3],
+    ['Publica', 'Sobe vídeo para o canal direto do terminal.', 'ferramenta', ['#E2A23B', '#f3efe7'], 4],
+    ['Agent Runtime', 'Kit para rodar agentes com regras claras.', 'kit', ['#7cc4e8', '#E2A23B'], 5]
+  ];
+
+  const reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const parado = reduz || MOTION.off;
+  const demo = MOTION.demo;
+
+  const palco = document.getElementById('palco');
+  const cena = document.getElementById('cena');
+  const anel = document.getElementById('anel');
+  const poeiraEl = document.getElementById('poeira');
+  const borrado = document.getElementById('borrado');
+  const frenteTitulo = document.getElementById('frenteTitulo');
+  const frenteDesc = document.getElementById('frenteDesc');
+  const rolo = document.getElementById('rolo');
+  const detalhe = document.getElementById('detalhe');
+  const quadro = document.getElementById('quadro');
+  const detArte = document.getElementById('detArte');
+  const detTitulo = document.getElementById('detTitulo');
+  const detAno = document.getElementById('detAno');
+  const info = Array.from(quadro.querySelectorAll('.info > *'));
+  const btnFechar = document.getElementById('fechar');
+  const fantasma = document.getElementById('fantasma');
+
+  /* ===== arte de cada cartão (gradiente + motivo em SVG) ===== */
+  const motivo = (tipo) => {
+    const c = 'rgba(11,11,13,.28)';
+    switch (tipo) {
+      case 0: return [0, 1, 2, 3, 4, 5].map(i => `<circle cx="78" cy="30" r="${8 + i * 9}" fill="none" stroke="${c}" stroke-width="1.6"/>`).join('');
+      case 1: { let s = ''; for (let x = 6; x < 100; x += 8) for (let y = 6; y < 62; y += 8) s += `<circle cx="${x}" cy="${y}" r="${1 + ((x * y) % 5) * .3}" fill="${c}"/>`; return s; }
+      case 2: return [0, 1, 2, 3, 4].map(i => `<path d="M0 ${18 + i * 9} Q25 ${8 + i * 9} 50 ${18 + i * 9} T100 ${18 + i * 9}" fill="none" stroke="${c}" stroke-width="2"/>`).join('');
+      case 3: return [0, 1, 2, 3, 4, 5, 6, 7].map(i => `<rect x="${-20 + i * 16}" y="-10" width="7" height="90" fill="${c}" transform="rotate(25 50 31)"/>`).join('');
+      case 4: return `<circle cx="70" cy="34" r="22" fill="${c}"/><circle cx="70" cy="34" r="12" fill="rgba(255,255,255,.25)"/><ellipse cx="70" cy="34" rx="34" ry="10" fill="none" stroke="${c}" stroke-width="1.5"/>`;
+      default: { let s = ''; for (let i = 0; i < 7; i++) s += `<rect x="${8 + i * 12}" y="${56 - (12 + ((i * 37) % 40))}" width="8" height="${12 + ((i * 37) % 40)}" rx="2" fill="${c}"/>`; return s; }
+    }
+  };
+  const arteHTML = (p, i) =>
+    `<div class="arte" style="background:linear-gradient(135deg, ${p[3][0]}, ${p[3][1]})">` +
+    `<svg viewBox="0 0 100 62.5" preserveAspectRatio="none" aria-hidden="true">${motivo(p[4])}</svg>` +
+    `<span class="etq">${String(i + 1).padStart(2, '0')} · ${p[2]}</span>` +
+    `<span class="inicial">${p[0][0]}</span><span class="nome">${p[0]}</span></div>`;
+
+  const itens = PROJETOS.map((p, i) => {
+    const item = document.createElement('div');
+    item.className = 'item';
+    item.setAttribute('data-xray', 'cartão · rotateY(i·30°) translateZ(raio), escurece com o ângulo');
+    item.setAttribute('data-xray-tool', 'code');
+    item.innerHTML =
+      `<button type="button" class="cartao" aria-label="${p[0]}, projeto ${i + 1} de ${N}">${arteHTML(p, i)}` +
+      `<span class="brilho" data-xray="brilho · faixa que desliza com o giro" data-xray-tool="code"></span><span class="sombra"></span></button>` +
+      `<div class="reflexo" aria-hidden="true">${arteHTML(p, i)}<span class="sombra"></span></div>`;
+    anel.appendChild(item);
+    return {
+      el: item, btn: item.querySelector('.cartao'), brilho: item.querySelector('.brilho'),
+      sombra: item.querySelector('.cartao .sombra'), sombraR: item.querySelector('.reflexo .sombra'),
+      arte: item.querySelector('.cartao .arte')
+    };
+  });
+
+  /* poeira na luz */
+  const graos = Array.from({ length: 22 }, (_, i) => {
+    const g = document.createElement('i');
+    g.setAttribute('data-xray', 'poeira · deriva devagar dentro da luz');
+    g.setAttribute('data-xray-tool', 'code');
+    poeiraEl.appendChild(g);
+    return { el: g, x: Math.random(), y: Math.random(), v: 0.004 + Math.random() * 0.01, f: Math.random() * 6.28, s: 0.5 + Math.random() };
+  });
+
+  /* ===== medidas ===== */
+  let W = 0, H = 0, cw = 260, ch = 162, R = 600;
+  function medir() {
+    const r = palco.getBoundingClientRect();
+    W = r.width; H = r.height;
+    cw = Math.round(Math.max(120, Math.min(300, W < 640 ? W * 0.42 : W * 0.2, H * 0.36 * 1.6)));
+    ch = Math.round(cw / 1.6);
+    R = Math.round(cw / (2 * Math.tan(Math.PI / N)) * 1.12);
+    palco.style.setProperty('--cw', cw + 'px');
+    palco.style.setProperty('--ch', ch + 'px');
+    cena.style.perspective = (2.2 * R) + 'px';
+    cena.style.perspectiveOrigin = '50% 40%';
+  }
+
+  /* ===== estado ===== */
+  let ang = 0, vel = 0, alvo = 0;            // ângulo do anel (graus), velocidade (graus/s)
+  let molaLivre = true;                      // falso enquanto alguém arrasta
+  let aberto = false, flip = 0, flipV = 0, flipAlvo = 0, flipDe = null, abertoIdx = -1;
+  const norm = a => ((a % 360) + 540) % 360 - 180;
+  const frenteIdx = () => ((Math.round(-ang / PASSO) % N) + N) % N;
+  const cl = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+
+  function irPara(i) {
+    // menor caminho até o cartão i
+    const atual = -ang / PASSO;
+    let d = ((i - atual) % N + N) % N; if (d > N / 2) d -= N;
+    alvo = -(atual + d) * PASSO;
+    alvo = Math.round(alvo / PASSO) * PASSO;
+    if (parado) { ang = alvo; vel = 0; }
+  }
+  function passo(dir) { alvo = Math.round(alvo / PASSO) * PASSO - dir * PASSO; if (parado) { ang = alvo; vel = 0; } }
+
+  /* ===== desenho ===== */
+  let ultFrente = -1, roloT = 1;
+  function desenharAnel() {
+    anel.style.transform = `translateZ(${-R}px) rotateX(${-INCLINA}deg) rotateY(${ang.toFixed(3)}deg)`;
+    itens.forEach((it, i) => {
+      const th = norm(i * PASSO + ang);
+      const a = Math.abs(th);
+      const frente = cl(1 - a / PASSO);
+      const lift = -ERGUE * ch * frente;
+      it.el.style.transform = `rotateY(${i * PASSO}deg) translateZ(${R}px) translateY(${lift.toFixed(2)}px)`;
+      const esc = ESCURECE * cl(a / 150);
+      it.sombra.style.opacity = esc.toFixed(3);
+      it.sombraR.style.opacity = esc.toFixed(3);
+      it.brilho.style.transform = `translateX(${(-th / 40 * 120 + 60).toFixed(1)}%) skewX(-12deg)`;
+      it.brilho.style.opacity = cl(1 - a / 70).toFixed(3);
+    });
+    const f = frenteIdx();
+    if (f !== ultFrente) {
+      ultFrente = f;
+      frenteTitulo.textContent = PROJETOS[f][0];
+      frenteDesc.textContent = PROJETOS[f][1];
+      rolo.textContent = String(f + 1).padStart(2, '0');
+      roloT = parado ? 1 : 0;
+    }
+  }
+
+  /* ===== abrir / fechar (FLIP) ===== */
+  let destino = null;
+  function abrir(i, foco = true) {
+    if (aberto) return;
+    abertoIdx = i; aberto = true;
+    const p = PROJETOS[i];
+    document.getElementById('detArte').outerHTML = arteHTML(p, i).replace('class="arte"', 'class="arte" id="detArte"');
+    detTitulo.textContent = p[0];
+    detAno.textContent = `2026 · ${p[2]}`;
+    borrado.style.background = `linear-gradient(135deg, ${p[3][0]}, ${p[3][1]})`;
+    detalhe.hidden = false; detalhe.classList.add('aberto');
+    const pr = palco.getBoundingClientRect();
+    const w = Math.min(W * 0.7, H * 0.7 * 1.6), h = w / 1.6;
+    destino = { x: (W - w) / 2, y: (H - h) / 2 - H * 0.04, w, h };
+    quadro.style.left = destino.x + 'px'; quadro.style.top = destino.y + 'px';
+    quadro.style.width = w + 'px'; quadro.style.height = h + 'px';
+    quadro.style.setProperty('--ch', h + 'px');
+    const r = itens[i].btn.getBoundingClientRect();
+    flipDe = { x: r.left - pr.left, y: r.top - pr.top, w: r.width, h: r.height };
+    flipAlvo = 1;
+    if (parado) { flip = 1; flipV = 0; }
+    if (foco) btnFechar.focus({ preventScroll: true });
+  }
+  function fechar(foco = true) {
+    if (!aberto) return;
+    aberto = false;
+    const pr = palco.getBoundingClientRect();
+    const r = itens[abertoIdx].btn.getBoundingClientRect();
+    flipDe = { x: r.left - pr.left, y: r.top - pr.top, w: r.width, h: r.height };
+    flipAlvo = 0;
+    if (parado) { flip = 0; flipV = 0; }
+    detalhe.classList.remove('aberto');
+    if (foco) itens[abertoIdx].btn.focus({ preventScroll: true });
+  }
+  function desenharFlip() {
+    if (!destino) return;
+    const e = flip;
+    const sx = flipDe.w / destino.w, sy = flipDe.h / destino.h;
+    const dx = flipDe.x - destino.x, dy = flipDe.y - destino.y;
+    const k = 1 - e;
+    quadro.style.transform = `translate(${(dx * k).toFixed(2)}px, ${(dy * k).toFixed(2)}px) scale(${(1 + (sx - 1) * k).toFixed(4)}, ${(1 + (sy - 1) * k).toFixed(4)})`;
+    quadro.style.opacity = cl(e * 4).toFixed(3);
+    itens[abertoIdx].arte.style.opacity = e > 0.02 ? '0' : '1';
+    cena.style.transform = `scale(${(1 - 0.14 * e).toFixed(4)})`;
+    cena.style.opacity = (1 - 0.6 * e).toFixed(3);
+    borrado.style.opacity = (0.4 * cl(e)).toFixed(3);
+    info.forEach((el, j) => {
+      const s = cl((e - 0.55 - j * 0.1) / 0.35);
+      el.style.opacity = s.toFixed(3);
+      el.style.transform = `translateY(${(18 * (1 - s)).toFixed(2)}px)`;
+    });
+    btnFechar.style.opacity = cl((e - 0.5) / 0.4).toFixed(3);
+    if (!aberto && e < 0.003 && Math.abs(flipV) < 0.01) {
+      itens[abertoIdx].arte.style.opacity = '1';
+      detalhe.hidden = true; destino = null; flip = 0;
+      cena.style.transform = ''; cena.style.opacity = ''; borrado.style.opacity = '0';
+    }
+  }
+
+  /* ===== arraste (ponteiro real e fantasma usam as mesmas funções) ===== */
+  let arr = null;
+  const grausPorPx = () => 180 / (Math.PI * R);
+  function pegar(x, t) { arr = { x0: x, x, t, amostras: [{ x, t }], moveu: 0 }; molaLivre = false; vel = 0; palco.classList.add('arrastando'); }
+  function mover(x, t) {
+    if (!arr) return;
+    const dx = x - arr.x; arr.x = x; arr.moveu = Math.max(arr.moveu, Math.abs(x - arr.x0));
+    ang += dx * grausPorPx();
+    arr.amostras.push({ x, t });
+    while (arr.amostras.length > 2 && t - arr.amostras[0].t > 100) arr.amostras.shift();
+  }
+  function largar(t) {
+    if (!arr) return 0;
+    const am = arr.amostras, a = am[0], b = am[am.length - 1];
+    const dt = (b.t - a.t) / 1000;
+    const v = dt > 0.008 && t - b.t < 80 ? (b.x - a.x) / dt * grausPorPx() : 0;
+    const moveu = arr.moveu;
+    arr = null; molaLivre = true; palco.classList.remove('arrastando');
+    vel = parado ? 0 : v;
+    alvo = Math.round((ang + v * ARREMESSO) / PASSO) * PASSO;
+    if (parado) ang = alvo;
+    return moveu;
+  }
+
+  palco.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || aberto || e.target.closest('.detalhe')) return;
+    pararDemo();
+    pegar(e.clientX, e.timeStamp);
+    palco.setPointerCapture?.(e.pointerId);
+    arr.alvoBtn = e.target.closest('.cartao');
+  });
+  palco.addEventListener('pointermove', e => { if (arr) mover(e.clientX, e.timeStamp); });
+  const fimArraste = e => {
+    if (!arr) return;
+    const btn = arr.alvoBtn;
+    const moveu = largar(e.timeStamp);
+    if (moveu < 6 && btn) {
+      const i = itens.findIndex(it => it.btn === btn);
+      if (i === frenteIdx() && Math.abs(norm(i * PASSO + ang)) < 8) abrir(i); else irPara(i);
+    }
+  };
+  palco.addEventListener('pointerup', fimArraste);
+  palco.addEventListener('pointercancel', fimArraste);
+
+  // teclado: Enter/Espaço nos botões (click com detail 0), setas com a galeria em foco
+  itens.forEach((it, i) => {
+    it.btn.addEventListener('click', e => {
+      if (e.detail !== 0) return;
+      if (i === frenteIdx()) abrir(i); else irPara(i);
+    });
+    it.btn.addEventListener('focus', () => { if (!aberto && !demoAtivo) irPara(i); });
+  });
+  palco.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && aberto) { fechar(); return; }
+    if (aberto) return;
+    if (e.key === 'ArrowRight') { passo(1); itens[(frenteIdx() + 1) % N].btn.focus({ preventScroll: true }); }
+    else if (e.key === 'ArrowLeft') { passo(-1); itens[(frenteIdx() + N - 1) % N].btn.focus({ preventScroll: true }); }
+    else if (e.key === 'Enter' && e.target === palco) abrir(frenteIdx());
+  });
+  btnFechar.addEventListener('click', () => fechar());
+
+  // roda horizontal só com o mouse em cima (sem bloquear a rolagem vertical)
+  let rodaFim = 0;
+  palco.addEventListener('wheel', e => {
+    if (aberto || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    pararDemo();
+    ang -= e.deltaX * grausPorPx() * 0.8; alvo = ang; vel = 0;
+    rodaFim = performance.now() + 140;
+  }, { passive: true });
+
+  /* ===== modo demonstração ===== */
+  let demoAtivo = !parado || demo;
+  let demoT = 0;
+  const G = { x: 0, y: 0, vis: 0 };
+  const ROTEIRO = 2400 * 3 + 5600;   // 3 avanços, um arremesso, abre 2 s, fecha
+  const easeIO = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  function pararDemo() {
+    if (demo || !demoAtivo) return;
+    demoAtivo = false;
+    if (arr && arr.fantasma) largar(performance.now());
+    fantasma.classList.remove('aperta');
+  }
+  let ultEtapa = -1;
+  function passoDemo(dt) {
+    if (!demoAtivo) { G.vis = Math.max(0, G.vis - dt / 300); return; }
+    demoT = (demoT + dt) % ROTEIRO;
+    const t = demoT;
+    const etapa = t < 7200 ? Math.floor(t / 2400) : t < 8600 ? 3 : t < 10400 ? 4 : 5;
+    const cx = W * 0.5, cy = H * 0.37;
+    if (etapa !== ultEtapa) {
+      if (etapa <= 2) passo(1);
+      if (etapa === 4 && !aberto) abrir(frenteIdx(), false);
+      if (etapa === 5 && aberto) fechar(false);
+      ultEtapa = etapa;
+    }
+    if (t >= 6400 && t < 8600) {               // fantasma entra, aperta e arremessa o anel
+      const u = t - 6400;
+      G.vis = Math.min(1, G.vis + dt / 250);
+      if (u < 700) { const e = easeIO(u / 700); G.x = W * 0.86 + (cx + 90 - W * 0.86) * e; G.y = H * 0.8 + (cy - H * 0.8) * e; }
+      else if (u < 760) { fantasma.classList.add('aperta'); if (!arr) { pegar(G.x, performance.now()); arr.fantasma = true; } }
+      else if (u < 1040) { const e = (u - 760) / 280; G.x = cx + 90 - 260 * e * e; mover(G.x, performance.now()); }
+      else if (u < 1100) { if (arr && arr.fantasma) largar(performance.now()); fantasma.classList.remove('aperta'); }
+    } else if (t >= 8600 && t < 10400) {        // vai até o cartão da frente e clica
+      const u = t - 8600;
+      const e = easeIO(cl(u / 600));
+      G.x += (cx - G.x) * Math.min(1, e); G.y += (cy - G.y) * Math.min(1, e);
+      if (u > 600 && u < 720) fantasma.classList.add('aperta'); else fantasma.classList.remove('aperta');
+    } else if (t >= 10400) {
+      const u = t - 10400;
+      if (u < 400) { G.x += ((W * 0.5 + destinoFechar().x) - G.x) * 0.2; G.y += (destinoFechar().y - G.y) * 0.2; }
+      if (u > 300 && u < 420) fantasma.classList.add('aperta'); else fantasma.classList.remove('aperta');
+      if (u > 900) G.vis = Math.max(0, G.vis - dt / 300);
+    } else {
+      G.vis = Math.max(0, G.vis - dt / 300);
+    }
+  }
+  const destinoFechar = () => destino ? { x: destino.x + destino.w - 32 - W * 0.5, y: destino.y + 32 } : { x: 0, y: H * 0.3 };
+
+  /* ===== laço único ===== */
+  function integrar(dt) {
+    const s = dt / 1000;
+    if (molaLivre && performance.now() > rodaFim) {
+      if (rodaFim) { alvo = Math.round(ang / PASSO) * PASSO; rodaFim = 0; }
+      const f = -MOLA_ANEL.k * (ang - alvo) - MOLA_ANEL.d * vel;
+      vel += f * s; ang += vel * s;
+    }
+    const ff = -MOLA_FLIP.k * (flip - flipAlvo) - MOLA_FLIP.d * flipV;
+    flipV += ff * s; flip += flipV * s;
+  }
+  let raf = 0, ultimo = null, naTela = true, relogio = 0;
+  function quadroLoop(agora) {
+    raf = requestAnimationFrame(quadroLoop);
+    if (ultimo === null) ultimo = agora;
+    const dt = Math.min(40, agora - ultimo); ultimo = agora; relogio += dt;
+    passoDemo(dt);
+    // subpassos para a mola ficar estável
+    for (let k = 0; k < 4; k++) integrar(dt / 4);
+    desenharAnel();
+    desenharFlip();
+    roloT = Math.min(1, roloT + dt / 320);
+    const r = 1 - Math.pow(1 - roloT, 3);
+    rolo.style.transform = `translateY(${(100 * (1 - r)).toFixed(2)}%)`;
+    graos.forEach(g => {
+      g.y -= g.v * dt / 1000; if (g.y < 0) g.y += 1;
+      const x = 0.5 + (g.x - 0.5) * (0.15 + 0.6 * g.y) + 0.01 * Math.sin(relogio / 1400 + g.f);
+      g.el.style.transform = `translate(${(x * W).toFixed(1)}px, ${(g.y * H * 0.85).toFixed(1)}px) scale(${g.s.toFixed(2)})`;
+      g.el.style.opacity = (0.55 * Math.sin(Math.PI * g.y) * (0.5 + 0.5 * Math.sin(relogio / 900 + g.f))).toFixed(3);
+    });
+    fantasma.style.transform = `translate(${(G.x - 3).toFixed(1)}px, ${(G.y - 2).toFixed(1)}px)`;
+    fantasma.style.opacity = G.vis.toFixed(3);
+  }
+  function ligar() {
+    const deve = !parado && naTela && !document.hidden;
+    if (deve && !raf) { ultimo = null; raf = requestAnimationFrame(quadroLoop); }
+    else if (!deve && raf) { cancelAnimationFrame(raf); raf = 0; }
+  }
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => { naTela = es[0].isIntersecting; ligar(); }).observe(palco);
+  document.addEventListener('visibilitychange', ligar);
+  window.addEventListener('keydown', e => { if (palco.contains(e.target)) pararDemo(); }, { passive: true });
+
+  // quadro parado (movimento reduzido / ?motion=off): anel quieto, tudo desenhado uma vez
+  function desenharParado() {
+    desenharAnel();
+    if (destino) desenharFlip();
+    graos.forEach(g => {
+      const x = 0.5 + (g.x - 0.5) * (0.15 + 0.6 * g.y);
+      g.el.style.transform = `translate(${(x * W).toFixed(1)}px, ${(g.y * H * 0.85).toFixed(1)}px)`;
+      g.el.style.opacity = (0.4 * Math.sin(Math.PI * g.y)).toFixed(3);
+    });
+  }
+  if (parado) {
+    // em modo parado as ações mudam o estado na hora; redesenha após cada uma
+    ['pointerup', 'keydown', 'click', 'wheel'].forEach(ev => palco.addEventListener(ev, () => setTimeout(desenharParado, 0), { passive: true }));
+  }
+
+  let rt = null;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { medir(); if (aberto) { fechar(); flip = 0; } if (parado) desenharParado(); }, 120); });
+  medir();
+  if (parado) desenharParado(); else { desenharAnel(); ligar(); }
+})();
+</script>
+</body>
+</html>
